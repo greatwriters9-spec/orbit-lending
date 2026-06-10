@@ -1,0 +1,43 @@
+import { notFound, redirect } from "next/navigation";
+
+import { CategoryForm } from "@/components/admin/category-form";
+import { SectionHeader } from "@/components/ui-kit/section-header";
+import { fetchAdminCategoryByKey } from "@/lib/admin/categories/queries";
+import { getCategoryLabel } from "@/lib/loans/category-config";
+import { hasAdminPermission } from "@/lib/admin/permissions";
+import { requireAdmin } from "@/lib/auth/guards";
+import type { LoanProductCategory } from "@/types/loans";
+
+type PageProps = {
+  params: Promise<{ categoryKey: string }>;
+};
+
+export default async function AdminEditCategoryPage({ params }: PageProps) {
+  const ctx = await requireAdmin();
+
+  if (!hasAdminPermission(ctx.role, "products:manage")) {
+    redirect("/admin");
+  }
+
+  const { categoryKey } = await params;
+  const category = await fetchAdminCategoryByKey(
+    categoryKey as LoanProductCategory,
+  );
+
+  if (!category) {
+    notFound();
+  }
+
+  return (
+    <div className="space-y-6">
+      <SectionHeader
+        title={`Edit ${category.label}`}
+        description={`Change the icon, illustration, title, description, display order, and visibility for ${getCategoryLabel(category.category)}.`}
+      />
+      <CategoryForm
+        category={category}
+        basePath="/admin/loan-products"
+      />
+    </div>
+  );
+}
