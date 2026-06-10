@@ -66,7 +66,7 @@ See [`.env.example`](./.env.example). Required for production:
 
 ## Deployment (Vercel)
 
-1. Set **Root Directory** to `loan-platform`.
+1. Set **Root Directory** to `.` (repository root — do not use `loan-platform`).
 2. Add all environment variables from `.env.example`.
 3. Apply Supabase migrations to the production project.
 4. Run `npm run seed:loan-products` against production (one-time).
