@@ -1,3 +1,5 @@
+import { cleanEnv } from "@/lib/env";
+
 type EmailPayload = {
   to: string;
   subject: string;
@@ -24,10 +26,10 @@ function getDevFallbackFrom(): string {
 export async function sendTransactionalEmail(
   payload: EmailPayload,
 ): Promise<EmailSendResult> {
-  const apiKey = process.env.RESEND_API_KEY?.trim();
+  const apiKey = cleanEnv(process.env.RESEND_API_KEY);
   const from = getFromAddress();
 
-  const testOverride = process.env.RESEND_TEST_TO?.trim();
+  const testOverride = cleanEnv(process.env.RESEND_TEST_TO);
   const effectivePayload =
     testOverride && process.env.NODE_ENV !== "production"
       ? {
