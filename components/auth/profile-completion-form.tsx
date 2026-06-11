@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 
 import { FormField, FormMessage } from "@/components/auth/form-field";
+import { UsStateSelect } from "@/components/auth/us-state-select";
 import { USPhoneInput } from "@/components/auth/us-phone-input";
 import { Button } from "@/components/ui-kit/button";
 import { Input } from "@/components/ui-kit/input";
@@ -100,20 +101,12 @@ export function ProfileCompletionForm({ profile }: ProfileCompletionFormProps) {
         </FormField>
 
         <FormField label="State" htmlFor="state">
-          <Input
+          <UsStateSelect
             id="state"
             name="state"
-            defaultValue={profile?.state ?? ""}
-            placeholder="CA"
+            defaultValue={profile?.state}
             required
-            maxLength={2}
-            className={cn(inputClassName, "uppercase")}
-            onChange={(event) => {
-              event.target.value = event.target.value
-                .replace(/[^A-Za-z]/g, "")
-                .toUpperCase()
-                .slice(0, 2);
-            }}
+            className={inputClassName}
           />
         </FormField>
 

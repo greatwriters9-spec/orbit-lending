@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Camera, Trash2 } from "lucide-react";
 
 import { FormField, FormMessage } from "@/components/auth/form-field";
+import { UsStateSelect } from "@/components/auth/us-state-select";
 import { USPhoneInput } from "@/components/auth/us-phone-input";
 import {
   Avatar,
@@ -257,12 +258,11 @@ export function ClientProfilePage({ profile, email }: ClientProfilePageProps) {
             </FormField>
 
             <FormField label="State" htmlFor="state">
-              <Input
+              <UsStateSelect
                 id="state"
                 name="state"
-                defaultValue={profile.state ?? ""}
+                defaultValue={profile.state}
                 required
-                maxLength={2}
                 className={inputClassName}
               />
             </FormField>

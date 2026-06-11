@@ -5,6 +5,8 @@ import type {
 } from "@/types/notifications";
 import type { NotificationType } from "@/types/wallet";
 
+import { cleanEnv } from "@/lib/env";
+
 import { buildEmailHtml, sendTransactionalEmail } from "./email";
 import { resolveUserEmail } from "./resolve-user-email";
 
@@ -49,7 +51,7 @@ export async function notifyUser(input: NotifyUserInput) {
 
   if (shouldEmail && recipientEmail) {
     const origin =
-      process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+      cleanEnv(process.env.NEXT_PUBLIC_APP_URL) || "http://localhost:3000";
     const actionUrl = input.actionUrl
       ? `${origin}${input.actionUrl}`
       : undefined;
