@@ -1,8 +1,9 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 
 import { FormField, FormMessage } from "@/components/auth/form-field";
+import { UsCityInput } from "@/components/auth/us-city-input";
 import { UsStateSelect } from "@/components/auth/us-state-select";
 import { USPhoneInput } from "@/components/auth/us-phone-input";
 import { Button } from "@/components/ui-kit/button";
@@ -30,6 +31,13 @@ export function ProfileCompletionForm({ profile }: ProfileCompletionFormProps) {
     completeProfileAction,
     initialState,
   );
+  const [stateCode, setStateCode] = useState(profile?.state ?? "");
+  const [city, setCity] = useState(profile?.city ?? "");
+
+  function handleStateChange(nextState: string) {
+    setStateCode(nextState);
+    setCity("");
+  }
 
   return (
     <form action={formAction} className="space-y-5">
@@ -89,23 +97,27 @@ export function ProfileCompletionForm({ profile }: ProfileCompletionFormProps) {
         />
       </FormField>
 
-      <div className="grid gap-5 sm:grid-cols-[1.4fr_0.6fr_0.8fr]">
-        <FormField label="City" htmlFor="city">
-          <Input
-            id="city"
-            name="city"
-            defaultValue={profile?.city ?? ""}
+      <div className="grid gap-5 sm:grid-cols-[0.7fr_1.3fr_0.8fr]">
+        <FormField label="State" htmlFor="state">
+          <UsStateSelect
+            id="state"
+            name="state"
+            value={stateCode}
+            onValueChange={handleStateChange}
             required
             className={inputClassName}
           />
         </FormField>
 
-        <FormField label="State" htmlFor="state">
-          <UsStateSelect
-            id="state"
-            name="state"
-            defaultValue={profile?.state}
+        <FormField label="City" htmlFor="city">
+          <UsCityInput
+            id="city"
+            name="city"
+            stateCode={stateCode}
+            value={city}
+            onValueChange={setCity}
             required
+            disabled={!stateCode}
             className={inputClassName}
           />
         </FormField>

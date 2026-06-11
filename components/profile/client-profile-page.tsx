@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Camera, Trash2 } from "lucide-react";
 
 import { FormField, FormMessage } from "@/components/auth/form-field";
+import { UsCityInput } from "@/components/auth/us-city-input";
 import { UsStateSelect } from "@/components/auth/us-state-select";
 import { USPhoneInput } from "@/components/auth/us-phone-input";
 import {
@@ -39,6 +40,13 @@ export function ClientProfilePage({ profile, email }: ClientProfilePageProps) {
     updateProfileAction,
     initialState,
   );
+  const [selectedState, setSelectedState] = useState(profile.state ?? "");
+  const [city, setCity] = useState(profile.city ?? "");
+
+  function handleStateChange(nextState: string) {
+    setSelectedState(nextState);
+    setCity("");
+  }
   const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url);
   const [avatarMessage, setAvatarMessage] = useState<string | null>(null);
   const [isAvatarPending, startAvatarTransition] = useTransition();
@@ -247,22 +255,26 @@ export function ClientProfilePage({ profile, email }: ClientProfilePageProps) {
           </FormField>
 
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            <FormField label="City" htmlFor="city">
-              <Input
-                id="city"
-                name="city"
-                defaultValue={profile.city ?? ""}
+            <FormField label="State" htmlFor="state">
+              <UsStateSelect
+                id="state"
+                name="state"
+                value={selectedState}
+                onValueChange={handleStateChange}
                 required
                 className={inputClassName}
               />
             </FormField>
 
-            <FormField label="State" htmlFor="state">
-              <UsStateSelect
-                id="state"
-                name="state"
-                defaultValue={profile.state}
+            <FormField label="City" htmlFor="city">
+              <UsCityInput
+                id="city"
+                name="city"
+                stateCode={selectedState}
+                value={city}
+                onValueChange={setCity}
                 required
+                disabled={!selectedState}
                 className={inputClassName}
               />
             </FormField>

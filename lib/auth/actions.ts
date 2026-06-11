@@ -12,6 +12,7 @@ import {
   registerSchema,
   resetPasswordSchema,
 } from "@/lib/auth/schemas";
+import { validateCityForState } from "@/lib/auth/validate-city";
 import { createClient } from "@/lib/supabase/server";
 
 export type AuthActionState = {
@@ -199,6 +200,11 @@ export async function completeProfileAction(
 
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  const cityError = validateCityForState(parsed.data.state, parsed.data.city);
+  if (cityError) {
+    return { error: cityError };
   }
 
   const supabase = await createClient();
