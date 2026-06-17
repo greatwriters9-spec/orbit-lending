@@ -14,7 +14,7 @@ import {
 import { OnboardingStateInput } from "@/components/onboarding/onboarding-state-input";
 import { Button } from "@/components/ui-kit/button";
 import { formatSSNInput, formatUSPhoneInput, isCompleteSSN, isCompleteUSPhone } from "@/lib/auth/input-formatters";
-import { finalizeOnboardingAction } from "@/lib/onboarding/actions";
+import { finalizeOnboardingAction, updateApplicationFromOnboardingAction } from "@/lib/onboarding/actions";
 import {
   readMortgageApplicationDraft,
   writeMortgageApplicationDraft,
@@ -146,10 +146,21 @@ function parseCurrency(value: string): number {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
-export function OnboardingWizard({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
+export function OnboardingWizard({
+  isLoggedIn = false,
+  mode = "create",
+  applicationId,
+  initialDraft,
+}: {
+  isLoggedIn?: boolean;
+  mode?: "create" | "edit";
+  applicationId?: string;
+  initialDraft?: MortgageApplicationDraft;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [draft, setDraft] = useState<MortgageApplicationDraft>({});
+  const isEditMode = mode === "edit" && Boolean(applicationId);
+  const [draft, setDraft] = useState<MortgageApplicationDraft>(initialDraft ?? {});
   const [stepIndex, setStepIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
@@ -157,6 +168,13 @@ export function OnboardingWizard({ isLoggedIn = false }: { isLoggedIn?: boolean 
   const [isFinishing, setIsFinishing] = useState(false);
 
   useEffect(() => {
+    if (isEditMode && initialDraft) {
+      setDraft(initialDraft);
+      setStepIndex(0);
+      setHydrated(true);
+      return;
+    }
+
     const stored = readMortgageApplicationDraft() ?? {};
     const homeFoundParam = searchParams.get("homeFound");
     const initial =
@@ -174,7 +192,7 @@ export function OnboardingWizard({ isLoggedIn = false }: { isLoggedIn?: boolean 
     }
 
     setHydrated(true);
-  }, [searchParams]);
+  }, [initialDraft, isEditMode, searchParams]);
 
   const steps = useMemo(() => getSteps(draft), [draft]);
   const currentStep = steps[stepIndex] ?? "home-found";
@@ -204,7 +222,9 @@ export function OnboardingWizard({ isLoggedIn = false }: { isLoggedIn?: boolean 
       writeMortgageApplicationDraft(finalDraft);
       setIsFinishing(true);
 
-      const result = await finalizeOnboardingAction(finalDraft);
+      const result = isEditMode
+        ? await updateApplicationFromOnboardingAction(applicationId!, finalDraft)
+        : await finalizeOnboardingAction(finalDraft);
 
       if (result.error) {
         setError(result.error);
@@ -221,7 +241,7 @@ export function OnboardingWizard({ isLoggedIn = false }: { isLoggedIn?: boolean 
       return;
     }
     setStepIndex((value) => value + 1);
-  }, [draft, router, stepIndex, steps.length]);
+  }, [applicationId, draft, isEditMode, router, stepIndex, steps.length]);
 
   const goBack = useCallback(() => {
     setError(null);
@@ -230,11 +250,15 @@ export function OnboardingWizard({ isLoggedIn = false }: { isLoggedIn?: boolean 
       return;
     }
     if (stepIndex <= 0) {
+      if (isEditMode && applicationId) {
+        router.push(`/dashboard/loans/${applicationId}`);
+        return;
+      }
       router.push("/");
       return;
     }
     setStepIndex((value) => value - 1);
-  }, [currentStep, employmentPhase, router, stepIndex]);
+  }, [applicationId, currentStep, employmentPhase, isEditMode, router, stepIndex]);
 
   const validateStep = (): boolean => {
     switch (currentStep) {
@@ -1069,9 +1093,11 @@ export function OnboardingWizard({ isLoggedIn = false }: { isLoggedIn?: boolean 
           {isFinishing
             ? "Saving..."
             : stepIndex >= steps.length - 1
-              ? isLoggedIn
-                ? "View My Pre-Qualification"
-                : "Continue to Account"
+              ? isEditMode
+                ? "Save Application"
+                : isLoggedIn
+                  ? "View My Pre-Qualification"
+                  : "Continue to Account"
               : currentStep === "employment" && employmentPhase === "type"
                 ? "Continue"
                 : "Continue"}

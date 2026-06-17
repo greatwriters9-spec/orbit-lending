@@ -51,7 +51,7 @@ export function PreQualHero({
           href={detailsHref}
           className="inline-flex h-11 items-center gap-2 rounded-[10px] bg-brand-blue px-5 text-sm font-semibold text-white transition-colors hover:bg-brand-blue/90"
         >
-          View Mortgage Details
+          View Application
           <ArrowRight className="size-4" />
         </Link>
       </div>

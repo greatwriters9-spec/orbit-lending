@@ -7,6 +7,8 @@ import type {
 
 type OnboardingMeta = {
   homeFound?: boolean;
+  purchaseTimeline?: MortgageApplicationDraft["purchaseTimeline"];
+  buyingStage?: MortgageApplicationDraft["buyingStage"];
   targetLocation?: TargetLocation;
   targetHomePrice?: number;
   propertyAddress?: PropertyAddress;

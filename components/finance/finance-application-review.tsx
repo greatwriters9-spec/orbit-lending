@@ -9,6 +9,9 @@ import { ApplicationStatusBadge } from "@/components/applications/application-st
 import { ApplicantDetailsPanel } from "@/components/finance/applicant-details-panel";
 import { ApplicationScoringPanel } from "@/components/finance/application-scoring-panel";
 import { DownPaymentReviewPanel } from "@/components/finance/down-payment-review-panel";
+import { EscrowTransferReviewPanel } from "@/components/finance/escrow-transfer-review-panel";
+import { parseEscrowTransferMeta } from "@/lib/dashboard/closing-funds-meta";
+import { extractPreQualification } from "@/lib/onboarding/parse-application";
 import {
   addInternalNoteAction,
   approveApplicationAction,
@@ -131,6 +134,10 @@ export function FinanceApplicationReview({
     application.status,
   );
 
+  const preQual = extractPreQualification(application.personalInfo);
+  const fallbackDownPayment = preQual?.estimatedDownPayment ?? 0;
+  const escrowTransfer = parseEscrowTransferMeta(application.personalInfo);
+
   const pendingDocRequests = application.documentRequests.filter(
     (doc) => !doc.fulfilled,
   );
@@ -220,6 +227,14 @@ export function FinanceApplicationReview({
               applicationId={application.id}
               personalInfo={application.personalInfo}
               pathwardBalance={application.pathwardBalance}
+              fallbackDownPayment={fallbackDownPayment}
+            />
+          ) : null}
+
+          {escrowTransfer ? (
+            <EscrowTransferReviewPanel
+              applicationId={application.id}
+              escrowTransfer={escrowTransfer}
             />
           ) : null}
 

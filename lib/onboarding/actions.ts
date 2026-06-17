@@ -7,6 +7,7 @@ import { z } from "zod";
 import { AUTH_ROUTES } from "@/lib/auth/routes";
 import { createClient } from "@/lib/supabase/server";
 import { ensureOnboardingApplication } from "@/lib/onboarding/finalize-application";
+import { updateOnboardingApplication } from "@/lib/onboarding/update-application";
 import { computePreQualification } from "@/lib/onboarding/pre-qualification";
 import { fetchMortgageConfig } from "@/lib/admin/mortgage/config";
 import {
@@ -181,4 +182,43 @@ export async function createAccountFromOnboardingAction(
   }
 
   redirect(AUTH_ROUTES.qualificationResult);
+}
+
+export async function updateApplicationFromOnboardingAction(
+  applicationId: string,
+  draft: MortgageApplicationDraft,
+): Promise<OnboardingActionState> {
+  const parsed = onboardingDraftSchema.safeParse(draft);
+  if (!parsed.success) {
+    return { error: "Invalid application data." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "You must be signed in to update your application." };
+  }
+
+  await syncProfileFromOnboardingDraft(
+    supabase,
+    user.id,
+    enrichOnboardingDraft(parsed.data, user.email),
+  );
+
+  const result = await updateOnboardingApplication(
+    supabase,
+    user.id,
+    applicationId,
+    user.email,
+    parsed.data,
+  );
+
+  if (result.error) {
+    return { error: result.error };
+  }
+
+  redirect(`/dashboard/loans/${applicationId}`);
 }

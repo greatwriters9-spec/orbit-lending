@@ -24,9 +24,16 @@ export type FundingStatusLabel =
   | "Partially Funded"
   | "Fully Funded"
   | "Pending"
-  | "Verified";
+  | "Verified"
+  | "Transfer Pending"
+  | "Amount Required";
 
-export type ClosingFundsStatus = "locked" | "ready_for_closing" | "available";
+export type ClosingFundsStatus =
+  | "locked"
+  | "ready_for_closing"
+  | "available"
+  | "transfer_pending"
+  | "transferred";
 
 export type MortgageSummaryView = {
   approvedMortgageAmount: number;
@@ -58,6 +65,9 @@ export type PathwardFundingView = {
   remainingRequired: number;
   fundingPercent: number;
   fundingStatus: FundingStatusLabel;
+  fundingStatusDisplay: string;
+  depositLabel: string;
+  showDepositUI: boolean;
   linked: boolean;
   setupPending: boolean;
   showFundingActions: boolean;
@@ -70,6 +80,57 @@ export type DownPaymentView = {
   status: DownPaymentStatus;
   statusLabel: FundingStatusLabel;
   canSubmitDepositCompleted: boolean;
+  breakdown: FundingBreakdownItem[];
+  fundingPhase: FundingPhase;
+  requestLabel: string;
+  showFundingSection: boolean;
+};
+
+export type FundingBreakdownItem = {
+  id: string;
+  label: string;
+  amount: number;
+  isDefault: boolean;
+};
+
+export type FundingPhase =
+  | "down_payment"
+  | "escrow_pending"
+  | "admin_requested"
+  | "complete";
+
+export type FundingRequirementFee = {
+  id: string;
+  label: string;
+  amount: number;
+  addedAt: string;
+  addedBy: string;
+};
+
+export type SellerDestinationDetails = {
+  accountName: string;
+  bankName: string;
+  routingNumber: string;
+  accountNumber: string;
+  notes?: string;
+};
+
+export type EscrowTransferMeta = {
+  status: "pending" | "approved" | "rejected";
+  amount: number;
+  pathwardBalanceAtTransfer?: number;
+  initiatedAt: string;
+  withdrawalRequestId: string;
+  sellerDestination?: SellerDestinationDetails;
+  approvedAt?: string;
+  approvedBy?: string;
+  rejectedAt?: string;
+  rejectedReason?: string;
+};
+
+export type ClosingFundsMeta = {
+  mortgageCreditedToPathward?: number;
+  escrowTransfer?: EscrowTransferMeta;
 };
 
 export type ClosingFundsView = {
@@ -81,6 +142,7 @@ export type ClosingFundsView = {
   mortgageApproved: boolean;
   downPaymentVerified: boolean;
   canTransferToEscrow: boolean;
+  escrowTransfer?: EscrowTransferMeta | null;
 };
 
 export type NextActionView = {
@@ -125,6 +187,13 @@ export type MortgageMessageItem = {
 export type DownPaymentMeta = {
   status: DownPaymentStatus;
   requiredAmount: number;
+  baseDownPaymentAmount?: number;
+  verifiedDownPaymentAmount?: number;
+  fundingPhase?: FundingPhase;
+  activeRequest?: FundingRequirementFee | null;
+  requestLabel?: string;
+  /** @deprecated Use activeRequest instead */
+  additionalFees?: FundingRequirementFee[];
   verificationRequestedAt?: string;
   verifiedAt?: string;
   verifiedBy?: string;

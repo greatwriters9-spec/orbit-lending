@@ -4,6 +4,19 @@ import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
 import { parseDownPaymentMeta } from "@/lib/dashboard/mortgage-journey";
+import { parseClosingFundsMeta, parseEscrowTransferMeta, isEscrowTransferPending } from "@/lib/dashboard/closing-funds-meta";
+import {
+  buildAdminRequestedDepositMeta,
+  buildEscrowPendingFundingMeta,
+  buildPostAdminDepositVerifiedMeta,
+  computeTotalRequiredFunding,
+  resolveBaseDownPaymentAmount,
+  resolveCurrentRequestLabel,
+  resolveFundingPhase,
+} from "@/lib/dashboard/funding-requirements";
+import { getOrCreateWallet } from "@/lib/wallet/ledger";
+import { generateReferenceNumber } from "@/lib/wallet/utils";
+import { mirrorWalletTransaction } from "@/lib/transactions/wallet-bridge";
 import { createNotification } from "@/lib/wallet/notifications";
 import { creditPathwardAccountBalance } from "@/lib/wallet/pathward-closing";
 import type { DownPaymentMeta } from "@/types/mortgage-dashboard";
@@ -47,14 +60,25 @@ export async function submitDownPaymentVerificationAction(
   const onboarding = personalInfo.onboarding as
     | { preQualification?: { estimatedDownPayment?: number } }
     | undefined;
-  const requiredAmount =
-    existing?.requiredAmount ??
-    onboarding?.preQualification?.estimatedDownPayment ??
-    0;
+  const fallbackDownPayment =
+    onboarding?.preQualification?.estimatedDownPayment ?? 0;
+  const escrowTransfer = parseEscrowTransferMeta(personalInfo);
+  const requiredAmount = computeTotalRequiredFunding(
+    existing,
+    fallbackDownPayment,
+    escrowTransfer,
+  );
+  const requestLabel = resolveCurrentRequestLabel(existing, escrowTransfer);
+  const phase = resolveFundingPhase(existing, escrowTransfer);
 
   const downPayment: DownPaymentMeta = {
+    ...existing,
     status: "pending_verification",
     requiredAmount,
+    baseDownPaymentAmount: resolveBaseDownPaymentAmount(existing, fallbackDownPayment),
+    fundingPhase: phase,
+    activeRequest: existing?.activeRequest,
+    requestLabel,
     verificationRequestedAt: new Date().toISOString(),
   };
 
@@ -75,7 +99,10 @@ export async function submitDownPaymentVerificationAction(
   await supabase.from("application_status_history").insert({
     application_id: applicationId,
     status: application.status,
-    note: "Customer submitted down payment for verification.",
+    note:
+      phase === "admin_requested"
+        ? `Customer submitted ${requestLabel} deposit for verification.`
+        : "Customer submitted down payment for verification.",
     changed_by: user.id,
   });
 
@@ -147,14 +174,36 @@ export async function reviewDownPaymentVerificationAction(input: {
 
   const personalInfo = (application.personal_info ?? {}) as Record<string, unknown>;
   const existing = parseDownPaymentMeta(personalInfo);
-  const requiredAmount = existing?.requiredAmount ?? 0;
+  const escrowTransfer = parseEscrowTransferMeta(personalInfo);
+  const onboarding = personalInfo.onboarding as
+    | { preQualification?: { estimatedDownPayment?: number } }
+    | undefined;
+  const fallbackDownPayment =
+    onboarding?.preQualification?.estimatedDownPayment ?? 0;
+  const requiredAmount = computeTotalRequiredFunding(
+    existing,
+    fallbackDownPayment,
+    escrowTransfer,
+  );
+  const phase = resolveFundingPhase(existing, escrowTransfer);
   const alreadyCredited = Number(existing?.pathwardCreditApplied ?? 0);
+  const isAdminRequest = phase === "admin_requested";
 
-  const downPayment: DownPaymentMeta =
+  let downPayment: DownPaymentMeta =
     input.decision === "approve"
       ? {
           status: "verified",
-          requiredAmount,
+          requiredAmount: isAdminRequest ? 0 : requiredAmount,
+          baseDownPaymentAmount: resolveBaseDownPaymentAmount(
+            existing,
+            fallbackDownPayment,
+          ),
+          verifiedDownPaymentAmount:
+            existing?.verifiedDownPaymentAmount ??
+            resolveBaseDownPaymentAmount(existing, fallbackDownPayment),
+          fundingPhase: isAdminRequest ? "escrow_pending" : "down_payment",
+          activeRequest: isAdminRequest ? undefined : existing?.activeRequest,
+          requestLabel: isAdminRequest ? undefined : existing?.requestLabel,
           verificationRequestedAt: existing?.verificationRequestedAt,
           verifiedAt: new Date().toISOString(),
           verifiedBy: user.id,
@@ -164,6 +213,13 @@ export async function reviewDownPaymentVerificationAction(input: {
         ? {
             status: "rejected",
             requiredAmount,
+            baseDownPaymentAmount: resolveBaseDownPaymentAmount(
+              existing,
+              fallbackDownPayment,
+            ),
+            fundingPhase: phase,
+            activeRequest: existing?.activeRequest,
+            requestLabel: existing?.requestLabel,
             verificationRequestedAt: existing?.verificationRequestedAt,
             rejectedReason: input.reason ?? "Deposit could not be verified.",
             pathwardCreditApplied: alreadyCredited,
@@ -171,12 +227,19 @@ export async function reviewDownPaymentVerificationAction(input: {
         : {
             status: "fully_funded",
             requiredAmount,
+            baseDownPaymentAmount: resolveBaseDownPaymentAmount(
+              existing,
+              fallbackDownPayment,
+            ),
+            fundingPhase: phase,
+            activeRequest: existing?.activeRequest,
+            requestLabel: existing?.requestLabel,
             verificationRequestedAt: existing?.verificationRequestedAt,
             rejectedReason: input.reason ?? "Additional proof requested.",
             pathwardCreditApplied: alreadyCredited,
           };
 
-  if (input.decision === "approve" && existing?.status !== "verified") {
+  if (input.decision === "approve") {
     const { data: clientProfile } = await supabase
       .from("profiles")
       .select(
@@ -191,18 +254,108 @@ export async function reviewDownPaymentVerificationAction(input: {
     ) {
       return {
         error:
-          "Link the client's Pathward account before verifying the down payment.",
+          "Link the client's Pathward account before verifying the deposit.",
       };
     }
 
     const currentPathwardBalance = Number(clientProfile.pathward_account_balance ?? 0);
 
-    if (alreadyCredited < requiredAmount && requiredAmount > 0) {
+    if (isAdminRequest && requiredAmount > 0) {
+      const creditAmount = Math.max(
+        0,
+        requiredAmount - Math.max(0, currentPathwardBalance),
+      );
+      const amountToCredit =
+        currentPathwardBalance >= requiredAmount ? requiredAmount : creditAmount;
+
+      if (amountToCredit > 0) {
+        const creditResult = await creditPathwardAccountBalance(
+          supabase,
+          application.user_id,
+          amountToCredit,
+        );
+
+        if (creditResult.error) {
+          return { error: creditResult.error };
+        }
+      }
+
+      const wallet = await getOrCreateWallet(application.user_id);
+      const referenceNumber = generateReferenceNumber("ADM");
+
+      await supabase
+        .from("wallets")
+        .update({
+          pending_balance: wallet.pendingBalance + requiredAmount,
+        })
+        .eq("id", wallet.id);
+
+      const closingMeta = parseClosingFundsMeta(personalInfo);
+      const escrowTransfer = closingMeta?.escrowTransfer;
+      if (escrowTransfer?.withdrawalRequestId) {
+        await supabase
+          .from("withdrawal_requests")
+          .update({
+            amount: Number(escrowTransfer.amount) + requiredAmount,
+          })
+          .eq("id", escrowTransfer.withdrawalRequestId);
+
+        personalInfo.closingFunds = {
+          ...closingMeta,
+          escrowTransfer: {
+            ...escrowTransfer,
+            amount: Number(escrowTransfer.amount) + requiredAmount,
+          },
+        };
+      }
+
+      const { data: creditTx } = await supabase
+        .from("wallet_transactions")
+        .insert({
+          wallet_id: wallet.id,
+          transaction_type: "system_credit",
+          amount: requiredAmount,
+          status: "completed",
+          description: `${existing?.activeRequest?.label ?? "Additional deposit"} credited for escrow transfer`,
+          reference_number: referenceNumber,
+          application_id: input.applicationId,
+          created_by: user.id,
+        })
+        .select("id")
+        .single();
+
+      if (creditTx) {
+        await mirrorWalletTransaction({
+          borrowerId: application.user_id,
+          walletTransactionId: creditTx.id,
+          walletType: "system_credit",
+          amount: requiredAmount,
+          status: "completed",
+          referenceNumber,
+          description: `${existing?.activeRequest?.label ?? "Additional deposit"} credited for escrow transfer`,
+          applicationId: input.applicationId,
+          createdBy: user.id,
+          isCredit: true,
+          notify: {
+            title: "Deposit Verified",
+            message: `Your ${existing?.activeRequest?.label ?? "requested"} deposit of $${requiredAmount.toFixed(2)} has been verified and added to your funding account. Orbit Mortgage will complete your escrow transfer.`,
+          },
+        });
+      }
+
+      downPayment = buildPostAdminDepositVerifiedMeta(
+        existing,
+        fallbackDownPayment,
+        requiredAmount,
+      );
+      downPayment.verifiedBy = user.id;
+    } else if (existing?.status !== "verified" && requiredAmount > 0) {
       const depositAlreadyRecorded =
         currentPathwardBalance >= requiredAmount && alreadyCredited === 0;
 
       if (depositAlreadyRecorded) {
         downPayment.pathwardCreditApplied = requiredAmount;
+        downPayment.verifiedDownPaymentAmount = requiredAmount;
       } else {
         const creditAmount = Math.max(0, requiredAmount - alreadyCredited);
         const creditResult = await creditPathwardAccountBalance(
@@ -216,9 +369,12 @@ export async function reviewDownPaymentVerificationAction(input: {
         }
 
         downPayment.pathwardCreditApplied = alreadyCredited + creditResult.credited;
+        downPayment.verifiedDownPaymentAmount = requiredAmount;
       }
+      downPayment.fundingPhase = "down_payment";
     } else if (requiredAmount > 0) {
       downPayment.pathwardCreditApplied = requiredAmount;
+      downPayment.verifiedDownPaymentAmount = requiredAmount;
     }
   }
 
@@ -238,12 +394,14 @@ export async function reviewDownPaymentVerificationAction(input: {
 
   const note =
     input.decision === "approve"
-      ? downPayment.pathwardCreditApplied &&
-        downPayment.pathwardCreditApplied > alreadyCredited
-        ? `Down payment verified. $${(downPayment.pathwardCreditApplied - alreadyCredited).toFixed(2)} added to Pathward closing funds.`
-        : downPayment.pathwardCreditApplied
-          ? "Down payment verified and included in Pathward closing funds."
-          : "Down payment verified by Orbit Mortgage."
+      ? isAdminRequest
+        ? `${existing?.activeRequest?.label ?? "Additional deposit"} of $${requiredAmount.toFixed(2)} verified and added to the pending escrow transfer.`
+        : downPayment.pathwardCreditApplied &&
+            downPayment.pathwardCreditApplied > alreadyCredited
+          ? `Down payment verified. $${(downPayment.pathwardCreditApplied - alreadyCredited).toFixed(2)} added to Pathward closing funds.`
+          : downPayment.pathwardCreditApplied
+            ? "Down payment verified and included in Pathward closing funds."
+            : "Down payment verified by Orbit Mortgage."
       : input.decision === "reject"
         ? `Down payment rejected: ${input.reason ?? "Could not verify deposit."}`
         : `Additional proof requested: ${input.reason ?? "Please upload supporting documents."}`;
@@ -286,4 +444,187 @@ export async function reviewDownPaymentVerificationAction(input: {
           ? "Down payment rejected."
           : "Additional proof requested.",
   };
+}
+
+export async function addFundingRequirementFeeAction(input: {
+  applicationId: string;
+  label: string;
+  amount: number;
+}): Promise<DownPaymentActionState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "Unauthorized." };
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (!profile || !["super_admin", "admin", "finance_officer"].includes(profile.role)) {
+    return { error: "You do not have permission to request additional deposits." };
+  }
+
+  if (!input.label.trim() || input.amount <= 0) {
+    return { error: "A label and positive amount are required." };
+  }
+
+  const { data: application } = await supabase
+    .from("loan_applications")
+    .select("id, user_id, personal_info, status")
+    .eq("id", input.applicationId)
+    .maybeSingle();
+
+  if (!application) {
+    return { error: "Application not found." };
+  }
+
+  const personalInfo = (application.personal_info ?? {}) as Record<string, unknown>;
+  const escrowTransfer = parseEscrowTransferMeta(personalInfo);
+
+  if (!isEscrowTransferPending(escrowTransfer)) {
+    return {
+      error:
+        "Additional deposits can only be requested while an escrow transfer is pending approval.",
+    };
+  }
+
+  const existing = parseDownPaymentMeta(personalInfo);
+  if (existing?.activeRequest && existing.fundingPhase === "admin_requested") {
+    return {
+      error:
+        "A deposit request is already active. The client must complete it before a new request can be issued.",
+    };
+  }
+
+  const onboarding = personalInfo.onboarding as
+    | { preQualification?: { estimatedDownPayment?: number } }
+    | undefined;
+  const fallbackDownPayment =
+    onboarding?.preQualification?.estimatedDownPayment ?? 0;
+
+  const downPayment = buildAdminRequestedDepositMeta({
+    existing,
+    fallbackDownPayment,
+    label: input.label.trim(),
+    amount: input.amount,
+    addedBy: user.id,
+  });
+
+  const { error } = await supabase
+    .from("loan_applications")
+    .update({
+      personal_info: {
+        ...personalInfo,
+        downPayment,
+      },
+    })
+    .eq("id", input.applicationId);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  const note = `Additional deposit requested: ${input.label.trim()} ($${input.amount.toFixed(2)}). This is the only amount due from the client.`;
+
+  await supabase.from("application_status_history").insert({
+    application_id: input.applicationId,
+    status: application.status,
+    note,
+    changed_by: user.id,
+  });
+
+  await createNotification({
+    userId: application.user_id,
+    title: `${input.label.trim()} Required`,
+    message: `${note} Deposit this amount to your Funding Account. Your original down payment is not due again.`,
+    type: "application_update",
+    metadata: {
+      applicationId: input.applicationId,
+      feeLabel: input.label.trim(),
+      feeAmount: input.amount,
+    },
+  });
+
+  revalidatePath("/dashboard");
+  revalidatePath(`/dashboard/loans/${input.applicationId}`);
+  revalidatePath(`/finance/applications/${input.applicationId}`);
+  revalidatePath("/admin/applications");
+  revalidatePath("/admin/users");
+  revalidatePath("/super-admin/users");
+
+  return { success: note };
+}
+
+export async function removeFundingRequirementFeeAction(input: {
+  applicationId: string;
+  feeId: string;
+}): Promise<DownPaymentActionState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "Unauthorized." };
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (!profile || !["super_admin", "admin", "finance_officer"].includes(profile.role)) {
+    return { error: "You do not have permission to remove deposit requests." };
+  }
+
+  const { data: application } = await supabase
+    .from("loan_applications")
+    .select("id, user_id, personal_info, status")
+    .eq("id", input.applicationId)
+    .maybeSingle();
+
+  if (!application) {
+    return { error: "Application not found." };
+  }
+
+  const personalInfo = (application.personal_info ?? {}) as Record<string, unknown>;
+  const existing = parseDownPaymentMeta(personalInfo);
+
+  if (!existing?.activeRequest || existing.activeRequest.id !== input.feeId) {
+    return { error: "Active deposit request not found." };
+  }
+
+  const onboarding = personalInfo.onboarding as
+    | { preQualification?: { estimatedDownPayment?: number } }
+    | undefined;
+  const fallbackDownPayment =
+    onboarding?.preQualification?.estimatedDownPayment ?? 0;
+
+  const downPayment = buildEscrowPendingFundingMeta(existing, fallbackDownPayment);
+
+  const { error } = await supabase
+    .from("loan_applications")
+    .update({
+      personal_info: {
+        ...personalInfo,
+        downPayment,
+      },
+    })
+    .eq("id", input.applicationId);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath(`/finance/applications/${input.applicationId}`);
+
+  return { success: "Deposit request removed." };
 }

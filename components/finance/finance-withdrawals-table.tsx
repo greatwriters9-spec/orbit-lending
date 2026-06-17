@@ -106,7 +106,9 @@ function WithdrawalRow({ request }: { request: WithdrawalRequest }) {
         {formatCurrency(request.amount)}
       </td>
       <td className="px-6 py-4 text-muted-foreground">
-        {WITHDRAWAL_METHOD_LABELS[request.withdrawalMethod]}
+        {request.destinationDetails.transferType === "escrow_to_seller"
+          ? "Escrow to Seller"
+          : WITHDRAWAL_METHOD_LABELS[request.withdrawalMethod]}
       </td>
       <td className="max-w-[200px] truncate px-6 py-4 text-xs text-muted-foreground">
         {destination || "—"}

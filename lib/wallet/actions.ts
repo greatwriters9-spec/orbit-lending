@@ -13,6 +13,10 @@ import { getOrCreateWallet } from "@/lib/wallet/ledger";
 import { createNotification } from "@/lib/wallet/notifications";
 import { generateReferenceNumber } from "@/lib/wallet/utils";
 import { mirrorWalletTransaction } from "@/lib/transactions/wallet-bridge";
+import {
+  finalizeEscrowTransferApproval,
+  finalizeEscrowTransferRejection,
+} from "@/lib/wallet/escrow-transfer";
 import { syncMortgageToPathwardClosing } from "@/lib/wallet/pathward-closing";
 import type { WalletActionState } from "@/types/wallet";
 
@@ -490,6 +494,8 @@ export async function approveWithdrawalAction(
     metadata: { withdrawalRequestId, amount, referenceNumber },
   });
 
+  await finalizeEscrowTransferApproval(withdrawalRequestId, user.id);
+
   revalidatePath("/finance/withdrawals");
   revalidatePath("/wallet");
   revalidateTransactionPaths();
@@ -612,6 +618,8 @@ export async function rejectWithdrawalAction(
     type: "withdrawal_rejected",
     metadata: { withdrawalRequestId, amount, reason },
   });
+
+  await finalizeEscrowTransferRejection(withdrawalRequestId, user.id, reason);
 
   revalidatePath("/finance/withdrawals");
   revalidatePath("/wallet");

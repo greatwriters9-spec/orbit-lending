@@ -78,7 +78,7 @@ export function QualificationResultScreen({
             onClick={handleViewDetails}
             className="inline-flex h-11 items-center gap-2 rounded-[10px] border border-brand-border bg-white px-6 text-sm font-semibold text-brand-navy transition-colors hover:bg-brand-background"
           >
-            View Mortgage Details
+            View Application
             <ArrowRight className="size-4" />
           </Link>
         </div>

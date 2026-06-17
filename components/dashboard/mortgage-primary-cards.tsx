@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 
 import { submitDownPaymentVerificationAction } from "@/lib/dashboard/down-payment-actions";
+import { initiateEscrowTransferAction } from "@/lib/wallet/escrow-transfer";
 import { formatCurrency } from "@/lib/loans/queries";
 import {
   resolveStatusColorVariant,
@@ -23,8 +24,9 @@ import {
 } from "@/lib/status-colors";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui-kit/button";
+import { Input } from "@/components/ui-kit/input";
 import { StatusLabelBadge } from "@/components/ui-kit/status-badge";
-import type { MortgageDashboardView } from "@/types/mortgage-dashboard";
+import type { MortgageDashboardView, SellerDestinationDetails } from "@/types/mortgage-dashboard";
 
 type FeatureCardVariant = "navy" | "mint" | "surface";
 
@@ -279,17 +281,25 @@ function PathwardBankCardSummary({
 }: {
   bankName: string;
   accountNumber: string;
-  onViewDetails: () => void;
+  onViewDetails?: () => void;
 }) {
   return (
     <div className="py-3">
       <p className="dashboard-label-light">{bankName}</p>
-      <button type="button" onClick={onViewDetails} className="mt-2 w-full text-left">
-        <p className="font-mono text-sm font-semibold tracking-wide text-white tabular-nums">
-          {maskAccountNumberDisplay(accountNumber)}
-        </p>
-        <p className="mt-2 text-xs font-semibold text-white/80">View wire details</p>
-      </button>
+      {onViewDetails ? (
+        <button type="button" onClick={onViewDetails} className="mt-2 w-full text-left">
+          <p className="font-mono text-sm font-semibold tracking-wide text-white tabular-nums">
+            {maskAccountNumberDisplay(accountNumber)}
+          </p>
+          <p className="mt-2 text-xs font-semibold text-white/80">View wire details</p>
+        </button>
+      ) : (
+        <div className="mt-2">
+          <p className="font-mono text-sm font-semibold tracking-wide text-white tabular-nums">
+            {maskAccountNumberDisplay(accountNumber)}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
@@ -420,11 +430,13 @@ function PathwardDepositInstructionsModal({
 }
 
 function PathwardDownPaymentStrip({
+  depositLabel,
   requiredAmount,
   isPendingApproval,
   isVerified,
   onMakePayment,
 }: {
+  depositLabel: string;
   requiredAmount: string;
   isPendingApproval: boolean;
   isVerified: boolean;
@@ -435,7 +447,7 @@ function PathwardDownPaymentStrip({
   return (
     <div className="border-b border-white/10 py-3">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-sm font-medium text-white/65">Required Down Payment</span>
+        <span className="text-sm font-medium text-white/65">{depositLabel}</span>
         <div className="flex items-center gap-2">
           {isVerified ? (
             <span className="inline-flex items-center gap-1 rounded-full bg-brand-success/20 px-2.5 py-0.5 text-xs font-semibold text-emerald-100">
@@ -460,6 +472,194 @@ function PathwardDownPaymentStrip({
           Make Payment
         </button>
       ) : null}
+    </div>
+  );
+}
+
+function PathwardEscrowTransferModal({
+  open,
+  onClose,
+  amount,
+  isSubmitting,
+  onConfirm,
+  error,
+}: {
+  open: boolean;
+  onClose: () => void;
+  amount: string;
+  isSubmitting: boolean;
+  onConfirm: (seller: SellerDestinationDetails) => void;
+  error?: string | null;
+}) {
+  const [accountName, setAccountName] = useState("");
+  const [bankName, setBankName] = useState("");
+  const [routingNumber, setRoutingNumber] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [notes, setNotes] = useState("");
+
+  useEffect(() => {
+    if (!open) return;
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [open, onClose]);
+
+  useEffect(() => {
+    if (!open) {
+      setAccountName("");
+      setBankName("");
+      setRoutingNumber("");
+      setAccountNumber("");
+      setNotes("");
+    }
+  }, [open]);
+
+  if (!open) {
+    return null;
+  }
+
+  const canSubmit =
+    accountName.trim().length >= 2 &&
+    bankName.trim().length >= 2 &&
+    /^\d{9}$/.test(routingNumber.trim()) &&
+    /^\d{6,17}$/.test(accountNumber.trim());
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-brand-navy/50 p-4 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        role="dialog"
+        aria-labelledby="escrow-transfer-title"
+        aria-modal="true"
+        className="w-full max-w-md rounded-2xl border border-brand-border bg-white p-6 shadow-xl"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <h2 id="escrow-transfer-title" className="text-lg font-bold text-brand-navy">
+          Transfer to Seller via Escrow
+        </h2>
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+          Enter the seller&apos;s bank account details for your escrow transfer of{" "}
+          <span className="font-semibold text-brand-navy">{amount}</span>. Once
+          confirmed, your funding and closing balances will show $0.00 while Orbit
+          Mortgage reviews the transfer.
+        </p>
+
+        <div className="mt-5 space-y-4">
+          <EscrowFormField label="Transfer Amount">
+            <Input
+              value={amount}
+              readOnly
+              className="h-10 bg-brand-background/60 font-semibold text-brand-navy"
+            />
+          </EscrowFormField>
+
+          <EscrowFormField label="Seller Account Holder Name">
+            <Input
+              value={accountName}
+              onChange={(e) => setAccountName(e.target.value)}
+              placeholder="Seller or escrow account name"
+              className="h-10"
+            />
+          </EscrowFormField>
+
+          <EscrowFormField label="Seller Bank Name">
+            <Input
+              value={bankName}
+              onChange={(e) => setBankName(e.target.value)}
+              placeholder="Bank name"
+              className="h-10"
+            />
+          </EscrowFormField>
+
+          <EscrowFormField label="Routing Number">
+            <Input
+              value={routingNumber}
+              onChange={(e) => setRoutingNumber(e.target.value.replace(/\D/g, ""))}
+              placeholder="9-digit routing number"
+              maxLength={9}
+              className="h-10 font-mono"
+            />
+          </EscrowFormField>
+
+          <EscrowFormField label="Account Number">
+            <Input
+              value={accountNumber}
+              onChange={(e) => setAccountNumber(e.target.value.replace(/\D/g, ""))}
+              placeholder="Seller account number"
+              maxLength={17}
+              className="h-10 font-mono"
+            />
+          </EscrowFormField>
+
+          <EscrowFormField label="Notes (optional)">
+            <textarea
+              rows={2}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Reference or escrow instructions..."
+              className="w-full rounded-lg border border-brand-border px-3 py-2 text-sm"
+            />
+          </EscrowFormField>
+        </div>
+
+        {error ? (
+          <p className="mt-3 rounded-lg border border-brand-danger/20 bg-brand-danger/5 px-3 py-2 text-sm text-brand-danger">
+            {error}
+          </p>
+        ) : null}
+
+        <div className="mt-6 flex flex-col gap-2 sm:flex-row">
+          <Button
+            type="button"
+            disabled={isSubmitting || !canSubmit}
+            onClick={() =>
+              onConfirm({
+                accountName: accountName.trim(),
+                bankName: bankName.trim(),
+                routingNumber: routingNumber.trim(),
+                accountNumber: accountNumber.trim(),
+                notes: notes.trim() || undefined,
+              })
+            }
+            className="h-10 flex-1 bg-brand-blue text-white hover:bg-brand-blue/90"
+          >
+            {isSubmitting ? "Initiating..." : "Confirm Transfer"}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            className="h-10 flex-1"
+          >
+            Cancel
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EscrowFormField({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <label className="mb-1.5 block text-xs font-semibold text-brand-navy">
+        {label}
+      </label>
+      {children}
     </div>
   );
 }
@@ -539,14 +739,10 @@ export function PathwardFundingAccountCard({ view }: { view: MortgageDashboardVi
   const dp = view.downPayment;
   const accountNumber = view.linkedAccount?.accountNumber ?? `••••${funding.accountNumberLast4}`;
 
-  const isPendingApproval =
-    dp.status === "pending_verification" ||
-    funding.fundingStatus === "Pending";
-  const isVerified =
-    dp.status === "verified" || funding.fundingStatus === "Verified";
-  const requiredDownPayment = formatCurrency(
-    view.summary.requiredDownPayment || funding.requiredDeposit,
-  );
+  const isPendingApproval = dp.status === "pending_verification";
+  const isVerified = dp.status === "verified" && dp.fundingPhase === "down_payment";
+  const depositAmount = formatCurrency(funding.requiredDeposit);
+  const statusLabel = funding.fundingStatusDisplay;
 
   const openDepositModal = () => {
     setSubmitError(null);
@@ -600,7 +796,7 @@ export function PathwardFundingAccountCard({ view }: { view: MortgageDashboardVi
         title="Funding Account"
         icon={<Building2 className="size-5 text-white" strokeWidth={1.75} />}
         variant="navy"
-        statusLabel={funding.fundingStatus}
+        statusLabel={statusLabel}
         footer={<FundingProgressFooter percent={funding.fundingPercent} />}
       >
         <CardPrimaryAmount
@@ -612,17 +808,25 @@ export function PathwardFundingAccountCard({ view }: { view: MortgageDashboardVi
         <NavyInsetPanel>
           {funding.showFundingActions ? (
             <>
-              <PathwardDownPaymentStrip
-                requiredAmount={requiredDownPayment}
-                isPendingApproval={isPendingApproval}
-                isVerified={isVerified}
-                onMakePayment={openDepositModal}
-              />
+              {funding.showDepositUI ? (
+                <PathwardDownPaymentStrip
+                  depositLabel={funding.depositLabel}
+                  requiredAmount={depositAmount}
+                  isPendingApproval={isPendingApproval}
+                  isVerified={isVerified}
+                  onMakePayment={openDepositModal}
+                />
+              ) : (
+                <p className="border-b border-white/10 py-3 text-sm leading-relaxed text-white/70">
+                  Your escrow transfer is pending Orbit Mortgage approval. No deposit is
+                  required at this time.
+                </p>
+              )}
 
               <PathwardBankCardSummary
                 bankName={funding.bankName}
                 accountNumber={accountNumber}
-                onViewDetails={openDepositModal}
+                onViewDetails={funding.showDepositUI ? openDepositModal : undefined}
               />
             </>
           ) : (
@@ -636,12 +840,17 @@ export function PathwardFundingAccountCard({ view }: { view: MortgageDashboardVi
       <PathwardDepositInstructionsModal
         open={depositModalOpen}
         onClose={closeDepositModal}
-        amount={requiredDownPayment}
+        amount={depositAmount}
         bankName={funding.bankName}
         accountHolder={funding.accountHolder}
         routingNumber={funding.routingNumber}
         accountNumber={accountNumber}
-        canMarkPaid={!isPendingApproval && !isVerified && Boolean(view.applicationId)}
+        canMarkPaid={
+          funding.showDepositUI &&
+          !isPendingApproval &&
+          !isVerified &&
+          Boolean(view.applicationId)
+        }
         isSubmitting={isSubmitting}
         onMarkPaid={handleMarkAsPaid}
         error={submitError}
@@ -657,13 +866,43 @@ export function ClosingFundsCard({
   view: MortgageDashboardView;
   className?: string;
 }) {
+  const router = useRouter();
+  const [isSubmitting, startTransition] = useTransition();
+  const [escrowModalOpen, setEscrowModalOpen] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const funds = view.closingFunds;
   const locked = funds.status === "locked";
   const pendingRelease = funds.status === "ready_for_closing";
+  const transferPending = funds.status === "transfer_pending";
+  const transferComplete = funds.status === "transferred";
   const canTransfer = funds.canTransferToEscrow && funds.transferableBalance > 0;
 
+  const openEscrowModal = () => {
+    setSubmitError(null);
+    setEscrowModalOpen(true);
+  };
+  const closeEscrowModal = () => {
+    setSubmitError(null);
+    setEscrowModalOpen(false);
+  };
+
+  const handleEscrowTransfer = (seller: SellerDestinationDetails) => {
+    setSubmitError(null);
+    startTransition(async () => {
+      const result = await initiateEscrowTransferAction(seller);
+      if (result.error) {
+        setSubmitError(result.error);
+        return;
+      }
+      setEscrowModalOpen(false);
+      router.refresh();
+    });
+  };
+
   return (
-    <FeatureCardShell
+    <>
+      <FeatureCardShell
+      id="closing-funds"
       title="Closing Funds"
       eyebrow="Closing Disbursement"
       icon={
@@ -686,14 +925,26 @@ export function ClosingFundsCard({
 
         <MetricTile
           label={
-            pendingRelease ? "Pathward Closing Balance" : "Transferable Balance"
+            transferPending || transferComplete
+              ? "Transferable Balance"
+              : pendingRelease
+                ? "Pathward Closing Balance"
+                : "Transferable Balance"
           }
           value={formatCurrency(
-            pendingRelease ? funds.pendingPathwardBalance : funds.transferableBalance,
+            transferPending || transferComplete
+              ? 0
+              : pendingRelease
+                ? funds.pendingPathwardBalance
+                : funds.transferableBalance,
           )}
           prominent
           className="border-[#4338CA]/25 bg-white/90 shadow-md"
         />
+
+        {submitError ? (
+          <p className="text-sm font-medium text-red-700">{submitError}</p>
+        ) : null}
 
         {locked ? (
           <p className="text-sm font-medium leading-relaxed text-brand-navy/75">
@@ -706,14 +957,26 @@ export function ClosingFundsCard({
             {formatCurrency(funds.pendingPathwardBalance)}). Orbit Mortgage will release
             the full amount for escrow transfer shortly.
           </p>
+        ) : transferPending ? (
+          <p className="text-sm font-medium leading-relaxed text-brand-navy/75">
+            Your escrow transfer of {formatCurrency(funds.projectedTransferAmount)}{" "}
+            is pending Orbit Mortgage approval. Funding and closing balances are $0.00
+            until the transfer is processed.
+          </p>
+        ) : transferComplete ? (
+          <p className="text-sm font-medium leading-relaxed text-brand-navy/75">
+            Your escrow transfer of {formatCurrency(funds.projectedTransferAmount)}{" "}
+            has been approved and sent to the seller.
+          </p>
         ) : canTransfer ? (
-          <Link
-            href="/wallet/withdraw"
+          <Button
+            disabled={isSubmitting}
+            onClick={openEscrowModal}
             className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand-blue px-3 text-sm font-semibold text-white transition-colors hover:bg-brand-blue/90"
           >
             Transfer to seller via escrow
             <ArrowRight className="size-4" />
-          </Link>
+          </Button>
         ) : (
           <p className="text-sm font-medium leading-relaxed text-brand-navy/75">
             Closing funds are being prepared for transfer.
@@ -721,6 +984,16 @@ export function ClosingFundsCard({
         )}
       </div>
     </FeatureCardShell>
+
+      <PathwardEscrowTransferModal
+        open={escrowModalOpen}
+        onClose={closeEscrowModal}
+        amount={formatCurrency(funds.transferableBalance)}
+        isSubmitting={isSubmitting}
+        onConfirm={handleEscrowTransfer}
+        error={submitError}
+      />
+    </>
   );
 }
 
@@ -733,17 +1006,39 @@ function FactBlock({ label, value }: { label: string; value: string }) {
   );
 }
 
-export function MortgageDetailsCard({ view }: { view: MortgageDashboardView }) {
-  return (
-    <section className="dashboard-card p-6 md:p-8">
-      <div className="mb-6 flex items-center gap-3">
-        <div className="flex size-10 items-center justify-center rounded-xl bg-brand-blue/8 ring-1 ring-brand-border">
-          <BadgePercent className="size-5 text-brand-blue" strokeWidth={1.75} />
+export function ApplicationDetailsCard({ view }: { view: MortgageDashboardView }) {
+  const href = view.applicationId
+    ? `/dashboard/loans/${view.applicationId}`
+    : "/dashboard/loans";
+
+  const card = (
+    <section
+      className={cn(
+        "dashboard-card p-6 md:p-8",
+        view.applicationId &&
+          "transition-all hover:border-brand-blue/30 hover:shadow-[var(--shadow-card-hover)]",
+      )}
+    >
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="flex size-10 items-center justify-center rounded-xl bg-brand-blue/8 ring-1 ring-brand-border">
+            <BadgePercent className="size-5 text-brand-blue" strokeWidth={1.75} />
+          </div>
+          <div>
+            <p className="dashboard-label">Your Application</p>
+            <h2 className="mt-1 text-xl font-bold text-brand-navy">
+              Application Details
+            </h2>
+            {view.applicationNumber ? (
+              <p className="mt-1 text-sm text-muted-foreground">
+                {view.applicationNumber}
+              </p>
+            ) : null}
+          </div>
         </div>
-        <div>
-          <p className="dashboard-label">Loan Terms</p>
-          <h2 className="mt-1 text-xl font-bold text-brand-navy">Mortgage Details</h2>
-        </div>
+        {view.applicationId ? (
+          <ArrowRight className="size-5 shrink-0 text-brand-blue transition-transform group-hover:translate-x-0.5" />
+        ) : null}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -757,16 +1052,41 @@ export function MortgageDetailsCard({ view }: { view: MortgageDashboardView }) {
         <FactBlock label="Occupancy Type" value={view.details.propertyUsage} />
         <FactBlock label="LTV" value={`${view.details.loanToValue}%`} />
       </div>
+
+      {view.applicationId ? (
+        <p className="mt-5 text-sm font-semibold text-brand-blue">
+          View and edit application
+        </p>
+      ) : null}
     </section>
   );
+
+  if (!view.applicationId) {
+    return card;
+  }
+
+  return (
+    <Link href={href} className="group block">
+      {card}
+    </Link>
+  );
 }
+
+export const MortgageDetailsCard = ApplicationDetailsCard;
 
 export function RequiredDownPaymentCard({ view }: { view: MortgageDashboardView }) {
   const dp = view.downPayment;
   const linked = view.linkedAccount;
   const funding = view.pathwardFunding;
-  const isVerified = dp.status === "verified";
+
+  if (!dp.showFundingSection) {
+    return null;
+  }
+
+  const isAdminRequest = dp.fundingPhase === "admin_requested";
+  const isVerified = dp.status === "verified" && !isAdminRequest;
   const isComplete = dp.remainingAmount <= 0;
+  const sectionTitle = isAdminRequest ? dp.requestLabel : "Required Down Payment";
 
   return (
     <section id="down-payment" className="dashboard-card overflow-hidden">
@@ -776,43 +1096,67 @@ export function RequiredDownPaymentCard({ view }: { view: MortgageDashboardView 
             <Wallet className="size-5 text-brand-blue" strokeWidth={1.75} />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-brand-navy">Required Down Payment</h2>
+            <h2 className="text-xl font-bold text-brand-navy">{sectionTitle}</h2>
             <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">
-              Deposit funds to your Pathward account after your application is approved.
-              Orbit Mortgage will verify your deposit before closing funds are released.
+              {isAdminRequest
+                ? `Orbit Mortgage has requested an additional deposit of ${formatCurrency(dp.requiredAmount)} for ${dp.requestLabel}. This is the only amount due right now.`
+                : "Deposit your down payment to your Pathward account after your application is approved. Orbit Mortgage will verify your deposit before closing funds are released."}
             </p>
           </div>
         </div>
       </div>
 
       <div className="grid gap-6 px-6 py-6 md:grid-cols-[1.4fr_1fr] md:gap-8 md:px-8 md:py-8">
-        <div className="grid gap-4 sm:grid-cols-3">
-          <MetricTile
-            label="Required Deposit"
-            value={formatCurrency(dp.requiredAmount)}
-          />
-          <MetricTile
-            label="Received Amount"
-            value={formatCurrency(dp.amountReceived)}
-            badge={
-              isVerified ? (
-                <StatusLabelBadge
-                  label="Verified"
-                  className="inline-flex items-center gap-1"
-                  uppercase={false}
-                />
-              ) : undefined
-            }
-          />
-          <MetricTile
-            label="Remaining Amount"
-            value={formatCurrency(dp.remainingAmount)}
-            badge={
-              isComplete ? (
-                <StatusLabelBadge label="Complete" uppercase={false} />
-              ) : undefined
-            }
-          />
+        <div className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-3">
+            <MetricTile
+              label={isAdminRequest ? "Amount Requested" : "Required Deposit"}
+              value={formatCurrency(dp.requiredAmount)}
+            />
+            <MetricTile
+              label="Received Amount"
+              value={formatCurrency(dp.amountReceived)}
+              badge={
+                isVerified ? (
+                  <StatusLabelBadge
+                    label="Verified"
+                    className="inline-flex items-center gap-1"
+                    uppercase={false}
+                  />
+                ) : undefined
+              }
+            />
+            <MetricTile
+              label="Remaining Amount"
+              value={formatCurrency(dp.remainingAmount)}
+              badge={
+                isComplete ? (
+                  <StatusLabelBadge label="Complete" uppercase={false} />
+                ) : undefined
+              }
+            />
+          </div>
+
+          {dp.breakdown.length > 0 ? (
+            <div className="rounded-xl border border-brand-border bg-brand-background/40 px-4 py-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Current Request
+              </p>
+              <ul className="mt-3 space-y-2">
+                {dp.breakdown.map((item) => (
+                  <li
+                    key={item.id}
+                    className="flex items-center justify-between gap-4 text-sm"
+                  >
+                    <span className="text-brand-navy/75">{item.label}</span>
+                    <span className="font-semibold tabular-nums text-brand-navy">
+                      {formatCurrency(item.amount)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </div>
 
         {linked && funding.linked ? (

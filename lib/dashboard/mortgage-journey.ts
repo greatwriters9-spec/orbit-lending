@@ -1,5 +1,19 @@
 import { computePreQualification } from "@/lib/onboarding/pre-qualification";
 import { extractPreQualification, parseOnboardingMeta } from "@/lib/onboarding/parse-application";
+import {
+  buildCurrentFundingBreakdown,
+  resolveCurrentRequiredAmount,
+  resolveCurrentRequestLabel,
+  resolveFundingPhase,
+  resolveFundingStatusDisplay,
+  shouldShowDepositUI,
+  shouldShowFundingSection,
+} from "@/lib/dashboard/funding-requirements";
+import {
+  isEscrowTransferActive,
+  isEscrowTransferPending,
+  parseEscrowTransferMeta,
+} from "@/lib/dashboard/closing-funds-meta";
 import type { ApplicationStatus } from "@/types/application-details";
 import type {
   ClosingFundsStatus,
@@ -7,6 +21,7 @@ import type {
   DownPaymentMeta,
   DownPaymentStatus,
   DownPaymentView,
+  FundingPhase,
   FundingStatusLabel,
   MortgageDashboardState,
   MortgageDetailsView,
@@ -220,30 +235,56 @@ export function buildPathwardFundingView(input: {
   requiredDeposit: number;
   downPaymentStatus: DownPaymentStatus;
   applicationApprovedForFunding: boolean;
+  downPaymentMeta: DownPaymentMeta | null;
+  escrowTransfer?: ReturnType<typeof parseEscrowTransferMeta>;
 }): PathwardFundingView {
-  const currentBalance = input.linkedAccount?.accountBalance ?? 0;
-  const remainingRequired = Math.max(0, input.requiredDeposit - currentBalance);
+  const rawBalance = input.linkedAccount?.accountBalance ?? 0;
+  const phase = resolveFundingPhase(input.downPaymentMeta, input.escrowTransfer);
+  const escrowPending = phase === "escrow_pending";
+  const currentBalance = escrowPending ? 0 : rawBalance;
+  const showDepositUI = shouldShowDepositUI(input.downPaymentMeta, input.escrowTransfer);
+  const requestLabel = resolveCurrentRequestLabel(
+    input.downPaymentMeta,
+    input.escrowTransfer,
+  );
+  const depositLabel =
+    phase === "admin_requested" ? `${requestLabel} Required` : requestLabel;
+  const fundingStatusDisplay = resolveFundingStatusDisplay(
+    input.downPaymentMeta,
+    input.escrowTransfer,
+  );
+  const effectiveRequired = showDepositUI ? input.requiredDeposit : 0;
+  const remainingRequired = Math.max(0, effectiveRequired - currentBalance);
   const fundingPercent =
-    input.requiredDeposit > 0
-      ? Math.min(100, Math.round((currentBalance / input.requiredDeposit) * 100))
-      : 0;
+    effectiveRequired > 0
+      ? Math.min(100, Math.round((currentBalance / effectiveRequired) * 100))
+      : escrowPending
+        ? 100
+        : 0;
   const linked = Boolean(input.linkedAccount);
   const setupPending = input.applicationApprovedForFunding && !linked;
+
+  const fundingStatus = mapFundingStatusLabel(
+    input.downPaymentStatus,
+    currentBalance,
+    effectiveRequired,
+    phase,
+    fundingStatusDisplay,
+  );
 
   return {
     bankName: "Pathward National Bank",
     accountHolder: input.linkedAccount?.accountHolderName ?? "Pending Setup",
     routingNumber: input.linkedAccount?.routingNumber ?? "—",
     accountNumberLast4: input.linkedAccount?.accountNumberLast4 ?? "—",
-    requiredDeposit: input.requiredDeposit,
+    requiredDeposit: effectiveRequired,
     currentBalance,
     remainingRequired,
     fundingPercent,
-    fundingStatus: mapFundingStatusLabel(
-      input.downPaymentStatus,
-      currentBalance,
-      input.requiredDeposit,
-    ),
+    fundingStatus,
+    fundingStatusDisplay,
+    depositLabel,
+    showDepositUI,
     linked,
     setupPending,
     showFundingActions: linked && input.applicationApprovedForFunding,
@@ -254,24 +295,59 @@ export function buildDownPaymentView(input: {
   requiredAmount: number;
   pathwardBalance: number;
   meta: DownPaymentMeta | null;
+  escrowTransfer?: ReturnType<typeof parseEscrowTransferMeta>;
 }): DownPaymentView {
-  const isVerified = input.meta?.status === "verified";
-  const amountReceived = isVerified
-    ? input.meta?.requiredAmount ?? input.requiredAmount
-    : input.pathwardBalance;
-  const remainingAmount = Math.max(0, input.requiredAmount - amountReceived);
-  let status = resolveDownPaymentStatus(input.meta, amountReceived, input.requiredAmount);
+  const phase = resolveFundingPhase(input.meta, input.escrowTransfer);
+  const showFundingSection = shouldShowFundingSection(input.meta, input.escrowTransfer);
+  const showDepositUI = shouldShowDepositUI(input.meta, input.escrowTransfer);
+  const currentRequired = resolveCurrentRequiredAmount(
+    input.meta,
+    input.requiredAmount,
+    input.escrowTransfer,
+  );
+  const requestLabel = resolveCurrentRequestLabel(input.meta, input.escrowTransfer);
+  const isVerified = input.meta?.status === "verified" && phase === "down_payment";
+  const isAdminVerified =
+    input.meta?.status === "verified" && phase !== "admin_requested";
+  const amountReceived =
+    phase === "escrow_pending"
+      ? 0
+      : isVerified
+        ? currentRequired
+        : input.pathwardBalance;
+  const remainingAmount = showDepositUI
+    ? Math.max(0, currentRequired - amountReceived)
+    : 0;
+  const status = showDepositUI
+    ? resolveDownPaymentStatus(input.meta, amountReceived, currentRequired)
+    : (input.meta?.status ?? "verified");
 
   return {
-    requiredAmount: input.requiredAmount,
+    requiredAmount: currentRequired,
     amountReceived,
     remainingAmount,
     status,
-    statusLabel: mapFundingStatusLabel(status, amountReceived, input.requiredAmount),
+    statusLabel: mapFundingStatusLabel(
+      status,
+      amountReceived,
+      currentRequired,
+      phase,
+      resolveFundingStatusDisplay(input.meta, input.escrowTransfer),
+    ),
     canSubmitDepositCompleted:
+      showDepositUI &&
       status !== "pending_verification" &&
-      status !== "verified" &&
+      !isVerified &&
+      !isAdminVerified &&
       input.pathwardBalance > 0,
+    breakdown: buildCurrentFundingBreakdown(
+      input.meta,
+      input.requiredAmount,
+      input.escrowTransfer,
+    ),
+    fundingPhase: phase,
+    requestLabel,
+    showFundingSection,
   };
 }
 
@@ -292,7 +368,15 @@ function mapFundingStatusLabel(
   status: DownPaymentStatus,
   received: number,
   required: number,
+  phase?: FundingPhase,
+  displayOverride?: string,
 ): FundingStatusLabel {
+  if (phase === "escrow_pending") {
+    return "Transfer Pending";
+  }
+  if (phase === "admin_requested" && displayOverride) {
+    return "Amount Required";
+  }
   if (status === "verified") return "Verified";
   if (status === "pending_verification") return "Pending";
   if (received <= 0) return "Awaiting Deposit";
@@ -308,10 +392,15 @@ export function buildClosingFundsView(input: {
   pathwardBalance: number;
   withdrawableBalance: number;
   withdrawableReleased: boolean;
+  escrowTransfer?: ReturnType<typeof parseEscrowTransferMeta>;
 }): ClosingFundsView {
   const projectedTransferAmount = input.mortgageAmount + input.verifiedDownPayment;
-  const bothConditionsMet =
+  const closingDownPaymentComplete =
     input.downPaymentVerified && input.mortgageApproved;
+  const escrowPending = isEscrowTransferPending(input.escrowTransfer);
+  const escrowSettled = input.escrowTransfer?.status === "approved";
+  const bothConditionsMet = closingDownPaymentComplete || escrowPending || escrowSettled;
+  const escrowActive = isEscrowTransferActive(input.escrowTransfer);
 
   let transferableBalance = 0;
   let pendingPathwardBalance = 0;
@@ -319,8 +408,36 @@ export function buildClosingFundsView(input: {
   let statusLabel = "Locked";
   let canTransferToEscrow = false;
 
+  if (escrowPending) {
+    return {
+      projectedTransferAmount,
+      transferableBalance: 0,
+      pendingPathwardBalance: 0,
+      status: "transfer_pending",
+      statusLabel: "Transfer Pending Approval",
+      mortgageApproved: input.mortgageApproved,
+      downPaymentVerified: input.downPaymentVerified,
+      canTransferToEscrow: false,
+      escrowTransfer: input.escrowTransfer,
+    };
+  }
+
+  if (input.escrowTransfer?.status === "approved") {
+    return {
+      projectedTransferAmount,
+      transferableBalance: 0,
+      pendingPathwardBalance: 0,
+      status: "transferred",
+      statusLabel: "Transfer Complete",
+      mortgageApproved: input.mortgageApproved,
+      downPaymentVerified: input.downPaymentVerified,
+      canTransferToEscrow: false,
+      escrowTransfer: input.escrowTransfer,
+    };
+  }
+
   if (bothConditionsMet) {
-    pendingPathwardBalance = input.pathwardBalance;
+    pendingPathwardBalance = escrowActive ? 0 : input.pathwardBalance;
 
     if (input.withdrawableReleased && input.withdrawableBalance > 0) {
       transferableBalance = input.withdrawableBalance;
@@ -342,6 +459,7 @@ export function buildClosingFundsView(input: {
     mortgageApproved: input.mortgageApproved,
     downPaymentVerified: input.downPaymentVerified,
     canTransferToEscrow,
+    escrowTransfer: input.escrowTransfer,
   };
 }
 

@@ -7,7 +7,7 @@ import { OnboardingEmptyState } from "@/components/dashboard/onboarding-empty-st
 import { MortgageJourneyTracker } from "@/components/dashboard/mortgage-journey-tracker";
 import {
   ClosingFundsCard,
-  MortgageDetailsCard,
+  ApplicationDetailsCard,
   MortgageSummaryCard,
   PathwardFundingAccountCard,
   RequiredDownPaymentCard,
@@ -24,9 +24,7 @@ export default async function DashboardPage() {
   const user = await getSessionUser();
   const data = user ? await fetchClientDashboardData(user.id) : null;
   const view = data?.mortgageView;
-  const showDownPaymentSection = view
-    ? ["approved", "closing"].includes(view.state)
-    : false;
+  const showDownPaymentSection = view?.downPayment.showFundingSection ?? false;
 
   return (
     <>
@@ -51,7 +49,7 @@ export default async function DashboardPage() {
 
             <MortgageJourneyTracker currentStage={view.journeyStage} />
 
-            <MortgageDetailsCard view={view} />
+            <ApplicationDetailsCard view={view} />
 
             {showDownPaymentSection ? <RequiredDownPaymentCard view={view} /> : null}
 

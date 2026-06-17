@@ -25,6 +25,11 @@ import {
   resolveMortgageDashboardState,
   resolvePreQualificationFromApplication,
 } from "@/lib/dashboard/mortgage-journey";
+import {
+  isClosingDownPaymentComplete,
+  resolveVerifiedDownPaymentForClosing,
+} from "@/lib/dashboard/funding-requirements";
+import { parseEscrowTransferMeta, isEscrowTransferActive } from "@/lib/dashboard/closing-funds-meta";
 import type { ApplicationStatus } from "@/types/application-details";
 import type {
   DashboardNotification,
@@ -180,7 +185,7 @@ export async function fetchClientDashboardData(
 
   const applicationStatus = latestApplication?.status as ApplicationStatus | undefined;
   const hasProperty = Boolean(onboardingMeta?.propertyAddress?.street);
-  const downPaymentVerified = downPaymentMeta?.status === "verified";
+  const downPaymentVerified = isClosingDownPaymentComplete(downPaymentMeta);
   const applicationApprovedForFunding = isApplicationApprovedForFunding(
     applicationStatus,
   );
@@ -362,6 +367,11 @@ async function buildMortgageDashboardView(input: {
   const applicationApprovedForFunding = isApplicationApprovedForFunding(
     input.applicationStatus,
   );
+  const personalInfo = input.application?.personal_info as
+    | Record<string, unknown>
+    | undefined;
+  const escrowTransfer = parseEscrowTransferMeta(personalInfo);
+  const escrowTransferActive = isEscrowTransferActive(escrowTransfer);
 
   const dashboardState = resolveMortgageDashboardState({
     hasActiveLoan: Boolean(input.portfolio),
@@ -396,25 +406,32 @@ async function buildMortgageDashboardView(input: {
     requiredAmount: summary.requiredDownPayment,
     pathwardBalance: input.linkedAccount?.accountBalance ?? 0,
     meta: input.downPaymentMeta,
+    escrowTransfer,
   });
 
   const pathwardFunding = buildPathwardFundingView({
     linkedAccount: input.linkedAccount,
-    requiredDeposit: summary.requiredDownPayment,
+    requiredDeposit: downPayment.requiredAmount,
     downPaymentStatus: downPayment.status,
     applicationApprovedForFunding: applicationApprovedForFunding,
+    downPaymentMeta: input.downPaymentMeta,
+    escrowTransfer,
   });
+
+  const verifiedDownPaymentAmount = resolveVerifiedDownPaymentForClosing(
+    input.downPaymentMeta,
+    summary.requiredDownPayment,
+  );
 
   const closingFunds = buildClosingFundsView({
     mortgageAmount: summary.approvedMortgageAmount,
-    verifiedDownPayment: input.downPaymentVerified
-      ? summary.requiredDownPayment
-      : 0,
+    verifiedDownPayment: verifiedDownPaymentAmount,
     mortgageApproved: input.mortgageApproved,
     downPaymentVerified: input.downPaymentVerified,
     pathwardBalance: input.linkedAccount?.accountBalance ?? 0,
-    withdrawableBalance: input.withdrawableBalance,
+    withdrawableBalance: escrowTransferActive ? 0 : input.withdrawableBalance,
     withdrawableReleased: input.withdrawableReleased,
+    escrowTransfer,
   });
 
   const nextAction = buildNextAction({
@@ -522,7 +539,7 @@ function buildNextAction(input: {
         message:
           "Your down payment is verified and closing funds are available. Transfer to the seller via escrow to complete your purchase.",
         buttonLabel: "Transfer to Seller via Escrow",
-        buttonHref: "/wallet/withdraw",
+        buttonHref: "/dashboard#closing-funds",
       };
     case "active_mortgage":
       return {
