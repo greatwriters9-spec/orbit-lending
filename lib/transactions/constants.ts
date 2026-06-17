@@ -6,10 +6,10 @@ import type {
 } from "@/types/transactions";
 
 export const TRANSACTION_TYPE_LABELS: Record<PlatformTransactionType, string> = {
-  loan_disbursement: "Loan Disbursement",
+  loan_disbursement: "Mortgage Disbursement",
   repayment_payment: "Repayment Payment",
-  wallet_credit: "Wallet Credit",
-  wallet_debit: "Wallet Debit",
+  wallet_credit: "Funding Account Credit",
+  wallet_debit: "Funding Account Debit",
   withdrawal_request: "Withdrawal Request",
   withdrawal_approved: "Withdrawal Approved",
   withdrawal_rejected: "Withdrawal Rejected",
@@ -21,8 +21,8 @@ export const TRANSACTION_TYPE_LABELS: Record<PlatformTransactionType, string> = 
   manual_correction: "Manual Correction",
   fee_charged: "Fee Charged",
   fee_waived: "Fee Waived",
-  loan_closed: "Loan Closed",
-  loan_write_off: "Loan Write-Off",
+  loan_closed: "Mortgage Closed",
+  loan_write_off: "Mortgage Write-Off",
   administrative_action: "Administrative Action",
 };
 

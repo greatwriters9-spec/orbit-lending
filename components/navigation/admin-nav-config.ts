@@ -34,7 +34,7 @@ export const adminNavSections: NavSection[] = [
     ],
   },
   {
-    label: "Loan Operations",
+    label: "Mortgage Operations",
     items: [
       {
         title: "Loan Officer Dashboard",
@@ -61,6 +61,7 @@ export const adminNavSections: NavSection[] = [
 ];
 
 export const ADMIN_PORTAL = {
-  title: "Orbit Lending",
+  title: "Orbit Mortgage",
   subtitle: "Credit Manager Portal",
 } as const;
+

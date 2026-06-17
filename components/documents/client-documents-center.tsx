@@ -9,7 +9,7 @@ import { StatCard } from "@/components/ui-kit/stat-card";
 import type { ClientDocument, ClientDocumentSource } from "@/types/documents";
 
 const SOURCE_LABELS: Record<ClientDocumentSource, string> = {
-  application: "Loan Application",
+  application: "Mortgage Application",
   document_request: "Officer Request",
   payment_proof: "Payment Proof",
 };
@@ -50,7 +50,7 @@ export function ClientDocumentsCenter({ documents }: ClientDocumentsCenterProps)
       <div>
         <h1 className="heading-primary text-3xl">Documents</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          All documents submitted across your loan applications, officer requests,
+          All documents submitted across your mortgage applications, officer requests,
           and payment proofs.
         </p>
       </div>
@@ -162,7 +162,7 @@ export function ClientDocumentsCenter({ documents }: ClientDocumentsCenterProps)
           <div className="px-6 py-10 text-center text-sm text-muted-foreground">
             {documents.length
               ? "No documents match your filters."
-              : "No documents uploaded yet. Files from loan applications, officer requests, and payment proofs will appear here."}
+              : "No documents uploaded yet. Files from mortgage applications, officer requests, and payment proofs will appear here."}
           </div>
         ) : null}
       </div>

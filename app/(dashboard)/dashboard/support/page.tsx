@@ -8,7 +8,7 @@ import {
 import { processStaleTicketEscalations } from "@/lib/support/actions";
 
 export const metadata = {
-  title: "Support | Orbit Lending",
+  title: "Support | Orbit Mortgage",
 };
 
 export default async function SupportPage() {
@@ -29,3 +29,4 @@ export default async function SupportPage() {
     />
   );
 }
+

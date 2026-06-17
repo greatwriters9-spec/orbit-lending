@@ -9,8 +9,8 @@ import { SectionHeader } from "@/components/ui-kit/section-header";
 import { fetchUserApplications } from "@/lib/applications/queries";
 
 export const metadata = {
-  title: "My Applications | Orbit Lending",
-  description: "Track your loan applications, messages, documents, and offers.",
+  title: "My Applications | Orbit Mortgage",
+  description: "Track your mortgage applications, messages, documents, and offers.",
 };
 
 export default async function MyApplicationsPage() {
@@ -24,11 +24,11 @@ export default async function MyApplicationsPage() {
             My Applications
           </p>
           <h1 className="heading-primary-light mt-2 text-3xl md:text-4xl">
-            Track Your Loan Applications
+            Track Your Mortgage Applications
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/60 md:text-base">
             Monitor application progress, respond to officer messages, upload
-            requested documents, and review financing offers.
+            requested documents, and review mortgage offers.
           </p>
         </div>
       </section>
@@ -44,10 +44,10 @@ export default async function MyApplicationsPage() {
         />
         <Button
           className="h-10 shrink-0 bg-brand-blue px-4 text-white hover:bg-brand-blue/90"
-          render={<Link href="/loans" />}
+          render={<Link href="/get-started" />}
         >
           <PlusCircle className="size-4" />
-          Apply for a Loan
+          Get Pre-Qualified
         </Button>
       </div>
 
@@ -66,17 +66,18 @@ export default async function MyApplicationsPage() {
             No applications yet
           </p>
           <p className="mt-2 max-w-md text-sm text-muted-foreground">
-            Browse available loan products and start an application. Once
+            Get pre-qualified to start your mortgage application. Once
             submitted, you'll track progress here.
           </p>
           <Button
             className="mt-6 h-10 bg-brand-blue px-5 text-white hover:bg-brand-blue/90"
-            render={<Link href="/loans" />}
+            render={<Link href="/get-started" />}
           >
-            Browse Loan Products
+            Get Pre-Qualified
           </Button>
         </div>
       )}
     </div>
   );
 }
+

@@ -6,7 +6,7 @@ import {
 } from "@/lib/transactions/queries";
 
 export const metadata = {
-  title: "Transactions | Orbit Lending",
+  title: "Transactions | Orbit Mortgage",
 };
 
 export default async function TransactionsPage() {
@@ -20,3 +20,4 @@ export default async function TransactionsPage() {
     <ClientTransactionCenter transactions={transactions} summary={summary} />
   );
 }
+

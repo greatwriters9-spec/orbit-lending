@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ShieldAlert } from "lucide-react";
 
+import { OrbitLogo } from "@/components/brand/orbit-logo";
 import { Button } from "@/components/ui-kit/button";
 import { getSessionUser } from "@/lib/auth/actions";
 import { getProfile } from "@/lib/auth/profile";
@@ -9,7 +10,7 @@ import { AUTH_ROUTES } from "@/lib/auth/routes";
 import { redirect } from "next/navigation";
 
 export const metadata = {
-  title: "Access Denied | Orbit Lending",
+  title: "Access Denied | Orbit Mortgage",
 };
 
 export default async function UnauthorizedPage() {
@@ -23,7 +24,8 @@ export default async function UnauthorizedPage() {
   const homeHref = getDefaultRouteForRole(profile?.role);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-brand-background px-4 py-12">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-brand-background px-4 py-12">
+      <OrbitLogo href="/" size="sm" className="mb-8" aria-label="Orbit Mortgage home" />
       <div className="card-surface w-full max-w-md p-8 text-center">
         <div className="mx-auto flex size-14 items-center justify-center rounded-xl bg-brand-warning/10 text-brand-warning">
           <ShieldAlert className="size-7" strokeWidth={1.75} />
@@ -45,3 +47,4 @@ export default async function UnauthorizedPage() {
     </div>
   );
 }
+

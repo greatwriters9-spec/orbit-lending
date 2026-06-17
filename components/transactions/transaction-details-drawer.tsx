@@ -73,7 +73,7 @@ export function TransactionDetailsDrawer({
             <Detail label="Status" value={<TransactionStatusBadge status={transaction.status} />} />
             <Detail label="Type" value={<TransactionTypeLabel type={transaction.transactionType} />} />
             <Detail label="Reference" value={transaction.referenceNumber} />
-            <Detail label="Loan" value={transaction.loanNumber ?? "—"} />
+            <Detail label="Mortgage" value={transaction.loanNumber ?? "—"} />
           </div>
 
           <Detail label="Description" value={transaction.description} />

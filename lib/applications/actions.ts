@@ -224,7 +224,7 @@ export async function respondToOfferAction(
     .maybeSingle();
 
   if (fetchError || !offer) {
-    return { error: "Financing offer not found." };
+    return { error: "Mortgage offer not found." };
   }
 
   if (offer.status !== "pending") {
@@ -249,10 +249,10 @@ export async function respondToOfferAction(
       applicationId,
       "offer_accepted",
       {
-        note: "Client accepted the financing offer.",
+        note: "Client accepted the mortgage offer.",
         auditAction: "application.offer_accepted",
         systemMessage:
-          "You accepted the financing offer. Your application is pending credit manager review.",
+          "You accepted the mortgage offer. Your application is pending credit manager review.",
         skipValidation: true,
       },
     );
@@ -278,10 +278,10 @@ export async function respondToOfferAction(
       applicationId,
       "offer_declined",
       {
-        note: "Client declined the financing offer.",
+        note: "Client declined the mortgage offer.",
         auditAction: "application.offer_declined",
         systemMessage:
-          "You declined the financing offer. A loan officer may follow up with revised terms.",
+          "You declined the mortgage offer. A loan officer may follow up with revised terms.",
         skipValidation: true,
       },
     );

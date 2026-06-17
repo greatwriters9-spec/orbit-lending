@@ -11,15 +11,15 @@ export function RegisterFormPanel({ className }: RegisterFormPanelProps) {
   return (
     <AuthFormPanelShell
       className={className}
-      title="Create Your Lending Account"
-      subtitle="Apply for loans, manage applications, track repayments, and access your lending profile securely."
-      headingSpacing="relaxed"
+      cardClassName="max-w-[520px]"
+      title="Create Your Account"
+      subtitle="Get pre-qualified and manage your mortgage securely."
       footer={
-        <p className="text-sm text-muted-foreground">
+        <p>
           Already have an account?{" "}
           <Link
             href="/login"
-            className="font-semibold text-brand-blue transition-colors hover:text-brand-blue/80"
+            className="font-semibold text-brand-blue hover:text-brand-blue/80"
           >
             Sign in
           </Link>

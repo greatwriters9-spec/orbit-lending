@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 
-import { RegisterOnboardingLayout } from "@/components/auth/register-onboarding-layout";
+import { RegisterFormPanel } from "@/components/auth/register-form-panel";
 
 export const metadata: Metadata = {
-  title: "Create Account | Orbit Lending",
+  title: "Create Account | Orbit Mortgage",
 };
 
 export default function RegisterPage() {
-  return <RegisterOnboardingLayout />;
+  return <RegisterFormPanel />;
 }

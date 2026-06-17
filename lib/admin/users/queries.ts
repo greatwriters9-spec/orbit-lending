@@ -20,6 +20,12 @@ type DbProfile = {
   account_status: AccountStatus;
   account_status_reason: string | null;
   account_status_changed_at: string | null;
+  pathward_account_holder_name: string | null;
+  pathward_routing_number: string | null;
+  pathward_account_number: string | null;
+  pathward_account_balance: number | null;
+  pathward_linked_at: string | null;
+  pathward_withdrawable_approved_at: string | null;
   profile_status: string;
   created_at: string;
 };
@@ -121,6 +127,12 @@ export async function fetchAdminUserDetail(
     accountStatus: p.account_status ?? "active",
     accountStatusReason: p.account_status_reason,
     accountStatusChangedAt: p.account_status_changed_at,
+    pathwardAccountHolderName: p.pathward_account_holder_name,
+    pathwardRoutingNumber: p.pathward_routing_number,
+    pathwardAccountNumber: p.pathward_account_number,
+    pathwardAccountBalance: Number(p.pathward_account_balance ?? 0),
+    pathwardLinkedAt: p.pathward_linked_at,
+    pathwardWithdrawableApprovedAt: p.pathward_withdrawable_approved_at,
     profileStatus: p.profile_status,
     createdAt: p.created_at,
     applicationCount: count ?? 0,

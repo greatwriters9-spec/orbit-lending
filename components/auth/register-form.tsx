@@ -3,22 +3,18 @@
 import Link from "next/link";
 import { useActionState, useState } from "react";
 
-import { AuthTrustStrip } from "@/components/auth/auth-trust-strip";
+import {
+  authButtonClassName,
+  authInputClassName,
+} from "@/components/auth/auth-mortgage-background";
 import { FormField, FormMessage } from "@/components/auth/form-field";
 import { PasswordInput } from "@/components/auth/password-input";
 import { PasswordStrengthIndicator } from "@/components/auth/password-strength-indicator";
 import { Button } from "@/components/ui-kit/button";
 import { Input } from "@/components/ui-kit/input";
 import { registerAction, type AuthActionState } from "@/lib/auth/actions";
-import { cn } from "@/lib/utils";
 
 const initialState: AuthActionState = {};
-
-const inputClassName = cn(
-  "h-11 border-brand-border bg-brand-background text-sm shadow-none",
-  "transition-colors hover:border-brand-blue/30",
-  "focus-visible:border-brand-blue/50 focus-visible:ring-brand-blue/15",
-);
 
 export function RegisterForm() {
   const [state, formAction, isPending] = useActionState(
@@ -40,7 +36,7 @@ export function RegisterForm() {
             autoComplete="given-name"
             placeholder="Jane"
             required
-            className={inputClassName}
+            className={authInputClassName}
           />
         </FormField>
 
@@ -51,7 +47,7 @@ export function RegisterForm() {
             autoComplete="additional-name"
             placeholder="A"
             maxLength={1}
-            className={inputClassName}
+            className={authInputClassName}
           />
         </FormField>
 
@@ -62,7 +58,7 @@ export function RegisterForm() {
             autoComplete="family-name"
             placeholder="Doe"
             required
-            className={inputClassName}
+            className={authInputClassName}
           />
         </FormField>
       </div>
@@ -75,7 +71,7 @@ export function RegisterForm() {
           autoComplete="email"
           placeholder="you@example.com"
           required
-          className={inputClassName}
+          className={authInputClassName}
         />
       </FormField>
 
@@ -86,7 +82,7 @@ export function RegisterForm() {
           autoComplete="new-password"
           placeholder="Create a secure password"
           required
-          className={inputClassName}
+          className={authInputClassName}
           value={password}
           onChange={(event) => setPassword(event.target.value)}
         />
@@ -100,7 +96,7 @@ export function RegisterForm() {
           autoComplete="new-password"
           placeholder="Confirm your password"
           required
-          className={inputClassName}
+          className={authInputClassName}
         />
       </FormField>
 
@@ -108,14 +104,12 @@ export function RegisterForm() {
         <Button
           type="submit"
           disabled={isPending}
-          className="h-11 w-full bg-brand-blue text-sm font-semibold text-white shadow-[var(--shadow-sidebar-active)] transition-colors hover:bg-brand-blue/90 disabled:opacity-60"
+          className={authButtonClassName}
         >
           {isPending ? "Creating account..." : "Create account"}
         </Button>
 
-        <AuthTrustStrip />
-
-        <p className="text-center text-[11px] leading-relaxed text-muted-foreground">
+        <p className="text-center text-[11px] leading-relaxed text-[#64748b]">
           By creating an account, you agree to our{" "}
           <Link
             href="/terms"

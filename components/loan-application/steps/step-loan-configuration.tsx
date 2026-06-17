@@ -31,14 +31,14 @@ export function StepLoanConfiguration() {
 
   return (
     <WizardShell
-      title="Loan Configuration"
+      title="Mortgage Configuration"
       description="Set your requested amount, repayment preferences, and review live payment estimates."
     >
       <WizardStepError message={stepErrors[currentStep]} />
 
       <div className="grid gap-8 xl:grid-cols-[1fr_360px]">
         <div className="space-y-6">
-          <FormField label="Requested Loan Amount" htmlFor="requestedAmount">
+          <FormField label="Requested Mortgage Amount" htmlFor="requestedAmount">
             <Input
               id="requestedAmount"
               type="number"
@@ -100,7 +100,7 @@ export function StepLoanConfiguration() {
             </select>
           </FormField>
 
-          <FormField label="Loan Purpose" htmlFor="purpose">
+          <FormField label="Mortgage Purpose" htmlFor="purpose">
             <textarea
               id="purpose"
               rows={4}

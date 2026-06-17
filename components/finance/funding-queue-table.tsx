@@ -105,7 +105,7 @@ function FundingRow({ item }: { item: FundingQueueItem }) {
             onClick={handleFund}
             className="h-9 bg-brand-success text-white hover:bg-brand-success/90"
           >
-            {isPending ? "Funding..." : "Fund Loan"}
+            {isPending ? "Funding..." : "Fund Mortgage"}
           </Button>
           {feedback ? (
             <span className="text-xs text-brand-success">{feedback}</span>

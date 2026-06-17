@@ -26,13 +26,7 @@ import {
   getLowestApr,
 } from "@/lib/loans/queries";
 
-const categoryLabels = {
-  personal: "Personal Financing",
-  business: "Business Financing",
-  asset_financing: "Asset Financing",
-  property: "Property Financing",
-  education: "Education Financing",
-} as const;
+import { getCategoryLabel } from "@/lib/loans/category-config";
 
 type LoanDetailPageProps = {
   params: Promise<{ slug: string }>;
@@ -49,11 +43,11 @@ export async function generateMetadata({ params }: LoanDetailPageProps) {
   const product = await fetchLoanProductBySlugForClient(slug);
 
   if (!product) {
-    return { title: "Loan Product Not Found | Orbit Lending" };
+    return { title: "Mortgage Product Not Found | Orbit Mortgage" };
   }
 
   return {
-    title: `${product.name} | Orbit Lending`,
+    title: `${product.name} | Orbit Mortgage`,
     description: product.description,
   };
 }
@@ -75,14 +69,14 @@ export default async function LoanDetailPage({ params }: LoanDetailPageProps) {
         className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-brand-blue"
       >
         <ArrowLeft className="size-4" strokeWidth={1.75} />
-        Back to Loan Products
+        Back to Mortgage Products
       </Link>
 
       <section className="card-surface overflow-hidden">
         <div className="border-b border-brand-border bg-brand-navy px-6 py-8 text-white md:px-8 md:py-10">
           <div className="flex flex-wrap items-center gap-2">
             <Badge className="border-white/15 bg-white/10 text-white">
-              {categoryLabels[product.category]}
+              {getCategoryLabel(product.category)}
             </Badge>
             <Badge className="border-brand-blue/30 bg-brand-blue/20 text-blue-100">
               {product.country}
@@ -101,7 +95,7 @@ export default async function LoanDetailPage({ params }: LoanDetailPageProps) {
 
         <div className="grid gap-5 p-6 sm:grid-cols-3 md:p-8">
           <StatCard
-            title="Loan Range"
+            title="Mortgage Range"
             value={`${formatCurrency(product.minAmount)} – ${formatCurrency(product.maxAmount)}`}
             description="Available financing amounts for this product."
             icon={Wallet}
@@ -127,7 +121,7 @@ export default async function LoanDetailPage({ params }: LoanDetailPageProps) {
       <section className="card-surface p-6 md:p-8">
         <SectionHeader
           title="Requirements"
-          description="Documents and information needed to apply for this loan product."
+          description="Documents and information needed to apply for this mortgage product."
         />
         <div className="mt-6">
           <LoanRequirementsList requirements={product.requirements} />

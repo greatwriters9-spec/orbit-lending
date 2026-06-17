@@ -115,7 +115,7 @@ export function ClientTransactionCenter({
         <div>
           <h1 className="heading-primary text-3xl">Transactions</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Complete financial activity ledger for your Orbit Lending account.
+            Complete financial activity ledger for your Orbit Mortgage account.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -151,7 +151,7 @@ export function ClientTransactionCenter({
           icon={ArrowUpRight}
         />
         <StatCard
-          title="Wallet Balance"
+          title="Available Balance"
           value={formatCurrency(summary.walletBalance)}
           description={`${summary.recentActivityCount} events in last 30 days`}
           icon={Wallet}
@@ -272,7 +272,7 @@ export function ClientTransactionCenter({
           <div className="px-6 py-10 text-center text-sm text-muted-foreground">
             {transactions.length
               ? "No transactions match your filters."
-              : "No transactions yet. Activity will appear here after loan funding, repayments, or wallet movements."}
+              : "No transactions yet. Activity will appear here after mortgage funding, repayments, or funding account movements."}
           </div>
         ) : null}
       </div>
@@ -295,3 +295,4 @@ function downloadFile(content: string, filename: string, mime: string) {
   anchor.click();
   URL.revokeObjectURL(url);
 }
+

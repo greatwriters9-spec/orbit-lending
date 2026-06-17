@@ -1,7 +1,7 @@
 import { SectionHeader } from "@/components/ui-kit/section-header";
 
 export const metadata = {
-  title: "Settings | Orbit Lending",
+  title: "Settings | Orbit Mortgage",
 };
 
 export default function AdminSettingsPage() {
@@ -17,3 +17,4 @@ export default function AdminSettingsPage() {
     </div>
   );
 }
+

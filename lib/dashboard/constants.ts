@@ -14,7 +14,7 @@ export const dashboardQuickActions: QuickAction[] = [
     icon: Receipt,
   },
   {
-    label: "Apply for Loan",
+    label: "Get Pre-Qualified",
     href: "/dashboard/loans",
     icon: PlusCircle,
   },

@@ -44,7 +44,7 @@ export function LoanCalculator({ amount, term, className }: LoanCalculatorProps)
       )}
     >
       <p className="text-xs font-semibold tracking-[0.06em] text-brand-blue uppercase">
-        Live Loan Calculator
+        Live Mortgage Calculator
       </p>
 
       <div className="mt-5 grid gap-4 sm:grid-cols-2">

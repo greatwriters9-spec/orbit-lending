@@ -2,7 +2,7 @@ import { SectionHeader } from "@/components/ui-kit/section-header";
 import { SUPPORTED_ROLES, USER_ROLES } from "@/lib/auth/roles";
 
 export const metadata = {
-  title: "Roles & Permissions | Orbit Lending",
+  title: "Roles & Permissions | Orbit Mortgage",
 };
 
 export default function SuperAdminStaffPage() {
@@ -32,10 +32,10 @@ export default function SuperAdminStaffPage() {
 
 function RoleDescription({ role }: { role: string }) {
   const descriptions: Record<string, string> = {
-    [USER_ROLES.client]: "Client dashboard and loan applications",
+    [USER_ROLES.client]: "Client dashboard and mortgage applications",
     [USER_ROLES.financeOfficer]:
       "Loan Officer portal — funding and withdrawals",
-    [USER_ROLES.admin]: "Credit Manager portal + loan operations access",
+    [USER_ROLES.admin]: "Credit Manager portal + mortgage operations access",
     [USER_ROLES.superAdmin]: "Full lending institution control",
   };
 
@@ -45,3 +45,4 @@ function RoleDescription({ role }: { role: string }) {
     </span>
   );
 }
+

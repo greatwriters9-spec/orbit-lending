@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AlertTriangle } from "lucide-react";
 
+import { OrbitLogo } from "@/components/brand/orbit-logo";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { Button } from "@/components/ui-kit/button";
 import { ACCOUNT_STATUS_LABELS } from "@/lib/auth/account-status";
@@ -11,7 +12,7 @@ import type { AccountStatus } from "@/types/profile";
 import { redirect } from "next/navigation";
 
 export const metadata = {
-  title: "Account Status | Orbit Lending",
+  title: "Account Status | Orbit Mortgage",
 };
 
 export default async function AccountStatusPage() {
@@ -31,7 +32,8 @@ export default async function AccountStatusPage() {
   const reason = profile?.account_status_reason;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-brand-background px-4 py-12">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-brand-background px-4 py-12">
+      <OrbitLogo href="/" size="sm" className="mb-8" aria-label="Orbit Mortgage home" />
       <div className="card-surface w-full max-w-lg p-8">
         <div className="mx-auto flex size-14 items-center justify-center rounded-xl bg-brand-warning/10 text-brand-warning">
           <AlertTriangle className="size-7" strokeWidth={1.75} />
@@ -41,9 +43,9 @@ export default async function AccountStatusPage() {
         </h1>
         <p className="mt-3 text-center text-sm leading-relaxed text-muted-foreground">
           {status === "suspended"
-            ? "Your Orbit Lending account has been suspended. Platform access is restricted until this matter is resolved."
+            ? "Your Orbit Mortgage account has been suspended. Platform access is restricted until this matter is resolved."
             : status === "closed"
-              ? "Your Orbit Lending account has been closed. No further activity is permitted on this account."
+              ? "Your Orbit Mortgage account has been closed. No further activity is permitted on this account."
               : "Your account access is currently limited."}
         </p>
         {reason ? (
@@ -71,3 +73,4 @@ export default async function AccountStatusPage() {
     </div>
   );
 }
+

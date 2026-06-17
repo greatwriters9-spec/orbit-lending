@@ -21,8 +21,8 @@ export async function generateMetadata({ params }: ApplicationDetailPageProps) {
 
   return {
     title: application
-      ? `${application.applicationNumber} | Orbit Lending`
-      : "Application Not Found | Orbit Lending",
+      ? `${application.applicationNumber} | Orbit Mortgage`
+      : "Application Not Found | Orbit Mortgage",
   };
 }
 

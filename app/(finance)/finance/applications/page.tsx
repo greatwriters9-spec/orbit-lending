@@ -6,7 +6,7 @@ import { fetchFinanceApplicationsQueue } from "@/lib/finance/queries";
 import type { ApplicationStatus } from "@/types/application-details";
 
 export const metadata = {
-  title: "Applications Queue | Orbit Lending",
+  title: "Applications Queue | Orbit Mortgage",
 };
 
 const FILTERS: Array<{ label: string; value?: ApplicationStatus }> = [
@@ -34,7 +34,7 @@ export default async function FinanceApplicationsPage({ searchParams }: PageProp
         <div className="border-b border-brand-border bg-brand-navy px-6 py-8 text-white md:px-8">
           <h1 className="heading-primary-light text-3xl">Applications Queue</h1>
           <p className="mt-2 max-w-2xl text-sm text-white/60">
-            Review, negotiate, and manage loan applications through the finance
+            Review, negotiate, and manage mortgage applications through the finance
             approval workflow.
           </p>
         </div>
@@ -72,3 +72,4 @@ export default async function FinanceApplicationsPage({ searchParams }: PageProp
     </div>
   );
 }
+

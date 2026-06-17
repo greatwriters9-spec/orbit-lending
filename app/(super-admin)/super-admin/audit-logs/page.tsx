@@ -6,7 +6,7 @@ import { requireSuperAdmin } from "@/lib/auth/guards";
 import { redirect } from "next/navigation";
 
 export const metadata = {
-  title: "Audit Logs | Orbit Lending",
+  title: "Audit Logs | Orbit Mortgage",
 };
 
 export default async function SuperAdminAuditLogsPage() {
@@ -28,3 +28,4 @@ export default async function SuperAdminAuditLogsPage() {
     </div>
   );
 }
+

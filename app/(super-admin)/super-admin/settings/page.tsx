@@ -5,7 +5,7 @@ import { requireSuperAdmin } from "@/lib/auth/guards";
 import { redirect } from "next/navigation";
 
 export const metadata = {
-  title: "System Configuration | Orbit Lending",
+  title: "System Configuration | Orbit Mortgage",
 };
 
 export default async function SuperAdminSettingsPage() {
@@ -58,3 +58,4 @@ export default async function SuperAdminSettingsPage() {
     </div>
   );
 }
+

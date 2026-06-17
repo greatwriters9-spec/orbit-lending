@@ -13,7 +13,9 @@ import {
   resetPasswordSchema,
 } from "@/lib/auth/schemas";
 import { validateCityForState } from "@/lib/auth/validate-city";
+import { ensureOnboardingApplication } from "@/lib/onboarding/finalize-application";
 import { createClient } from "@/lib/supabase/server";
+import type { MortgageApplicationDraft } from "@/types/mortgage-onboarding";
 
 export type AuthActionState = {
   error?: string;
@@ -64,7 +66,7 @@ export async function loginAction(
     await notifySecurityEvent(
       user.id,
       "New Login Detected",
-      "Your Orbit Lending account was accessed. If this wasn't you, contact support immediately.",
+      "Your Orbit Mortgage account was accessed. If this wasn't you, contact support immediately.",
     );
   }
 
@@ -236,11 +238,36 @@ export async function completeProfileAction(
     return { error: error.message };
   }
 
+  const draftRaw = formData.get("onboardingDraft")?.toString();
+  let createdOnboardingApplication = false;
+
+  if (draftRaw) {
+    try {
+      const draft = JSON.parse(draftRaw) as MortgageApplicationDraft;
+      const applicationResult = await ensureOnboardingApplication(
+        supabase,
+        user.id,
+        user.email,
+        draft,
+      );
+      if (applicationResult.error) {
+        return { error: applicationResult.error };
+      }
+      createdOnboardingApplication = true;
+    } catch {
+      return { error: "Could not apply your onboarding answers. Try again." };
+    }
+  }
+
   const { data: profile } = await supabase
     .from("profiles")
     .select("role")
     .eq("id", user.id)
     .maybeSingle();
+
+  if (createdOnboardingApplication) {
+    redirect(AUTH_ROUTES.qualificationResult);
+  }
 
   redirect(getDefaultRouteForRole(profile?.role));
 }
@@ -259,3 +286,4 @@ export async function getSessionUser() {
 
   return user;
 }
+

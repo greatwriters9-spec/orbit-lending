@@ -27,4 +27,4 @@ export async function userHasActiveLoan(userId: string): Promise<boolean> {
 }
 
 export const ACTIVE_LOAN_BLOCK_MESSAGE =
-  "You already have an active loan. New applications are not permitted while a loan is funded or in repayment.";
+  "You already have an active mortgage. New applications are not permitted while a mortgage is funded or in repayment.";

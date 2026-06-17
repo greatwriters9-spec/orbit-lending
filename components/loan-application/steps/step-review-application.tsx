@@ -46,10 +46,10 @@ export function StepReviewApplication() {
   return (
     <WizardShell
       title="Review Application"
-      description="Review all details carefully before submitting your loan application."
+      description="Review all details carefully before submitting your mortgage application."
     >
       <div className="space-y-5">
-        <ReviewSection title="Loan Product">
+        <ReviewSection title="Mortgage Details">
           <ReviewRow label="Product" value={product.name} />
           <ReviewRow
             label="Amount"

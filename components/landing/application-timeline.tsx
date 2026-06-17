@@ -7,19 +7,29 @@ import {
 } from "lucide-react";
 
 import { LANDING_PROCESS_STEPS } from "@/lib/landing/content";
+import { LANDING_SECTION_IMAGES } from "@/lib/landing/images";
 import { cn } from "@/lib/utils";
 
+import { LandingSectionImage } from "./landing-section-image";
 import { SectionHeading, SectionShell } from "./shared/section-shell";
 
 const STEP_ICONS = [UserRoundPlus, FileCheck2, BadgeCheck, CircleDollarSign, Wallet] as const;
 
 export function ApplicationTimeline() {
+  const banner = LANDING_SECTION_IMAGES.process;
+
   return (
     <SectionShell id="process" tone="white">
       <SectionHeading
         eyebrow="Application Journey"
         title="Simple Application Process"
         subtitle="A clear, guided path from account creation to funding — with visibility at every step."
+      />
+
+      <LandingSectionImage
+        {...banner}
+        className="mt-12 min-h-[220px] rounded-2xl shadow-[0_16px_48px_rgba(15,23,42,0.08)] sm:min-h-[280px] md:min-h-[340px]"
+        sizes="100vw"
       />
 
       <div className="mt-14 hidden lg:block">

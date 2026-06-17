@@ -24,9 +24,9 @@ export function LoanStatusWidget({
   if (!status) {
     return (
       <section className={cn("card-surface p-6 md:p-8", className)}>
-        <h2 className="heading-secondary text-lg">Loan Status</h2>
+        <h2 className="heading-secondary text-lg">Mortgage Status</h2>
         <p className="mt-3 text-sm text-muted-foreground">
-          No active application. Browse loan products to get started.
+          No active application. Get pre-qualified to get started.
         </p>
       </section>
     );
@@ -38,7 +38,7 @@ export function LoanStatusWidget({
     <section className={cn("card-surface overflow-hidden", className)}>
       <div className="border-b border-brand-border bg-brand-navy px-6 py-5 text-white md:px-8">
         <p className="text-xs font-semibold uppercase tracking-wider text-white/50">
-          Current Loan Status
+          Current Mortgage Status
         </p>
         <div className="mt-2 flex flex-wrap items-center gap-3">
           <h2 className="text-2xl font-bold">

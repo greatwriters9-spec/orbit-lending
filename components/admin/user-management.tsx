@@ -9,6 +9,9 @@ import {
   restrictAccountAction,
   suspendAccountAction,
   updateAccountStatusAction,
+  updateLinkedPathwardAccountAction,
+  updatePathwardAccountBalanceAction,
+  approveWithdrawableBalanceAction,
   updateUserRoleAction,
 } from "@/lib/admin/users/actions";
 import { RoleBadge } from "@/components/ui-kit/role-badge";
@@ -39,6 +42,21 @@ export function AccountStatusPanel({
     user.accountStatus as AccountStatus,
   );
   const [newRole, setNewRole] = useState(user.role);
+  const [accountHolderName, setAccountHolderName] = useState(
+    user.pathwardAccountHolderName ?? "",
+  );
+  const [routingNumber, setRoutingNumber] = useState(
+    user.pathwardRoutingNumber ?? "",
+  );
+  const [accountNumber, setAccountNumber] = useState(
+    user.pathwardAccountNumber ?? "",
+  );
+  const [accountBalance, setAccountBalance] = useState(
+    String(user.pathwardAccountBalance ?? 0),
+  );
+  const [balanceOnly, setBalanceOnly] = useState(
+    String(user.pathwardAccountBalance ?? 0),
+  );
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -183,6 +201,132 @@ export function AccountStatusPanel({
           </Button>
         </div>
       ) : null}
+
+      <div className="space-y-3 border-t border-brand-border pt-4">
+        <div>
+          <h4 className="text-sm font-semibold text-brand-navy">
+            Linked Pathward Account
+          </h4>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Link after the client&apos;s mortgage application is approved. The client
+            uses this account to deposit their down payment.
+          </p>
+        </div>
+        <Input
+          value={accountHolderName}
+          onChange={(e) => setAccountHolderName(e.target.value)}
+          placeholder="Account holder name"
+          className="h-10"
+        />
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Input
+            value={routingNumber}
+            onChange={(e) => setRoutingNumber(e.target.value)}
+            placeholder="Routing number (9 digits)"
+            className="h-10"
+          />
+          <Input
+            value={accountNumber}
+            onChange={(e) => setAccountNumber(e.target.value)}
+            placeholder="Account number"
+            className="h-10"
+          />
+        </div>
+        <Input
+          type="number"
+          min="0"
+          step="0.01"
+          value={accountBalance}
+          onChange={(e) => setAccountBalance(e.target.value)}
+          placeholder="Account balance (USD)"
+          className="h-10"
+        />
+        <Button
+          type="button"
+          disabled={
+            isPending ||
+            !accountHolderName.trim() ||
+            !routingNumber.trim() ||
+            !accountNumber.trim()
+          }
+          onClick={() =>
+            run(() =>
+              updateLinkedPathwardAccountAction({
+                userId: user.id,
+                accountHolderName,
+                routingNumber,
+                accountNumber,
+                accountBalance: Number(accountBalance),
+              }),
+            )
+          }
+          className="h-10 bg-brand-navy text-white hover:bg-brand-navy/90"
+        >
+          Save Linked Account
+        </Button>
+
+        {user.pathwardRoutingNumber && user.pathwardAccountNumber ? (
+          <div className="space-y-3 border-t border-brand-border pt-4">
+            <p className="text-xs text-muted-foreground">
+              Record a deposit confirmed by Pathward without changing routing or account
+              numbers.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+              <Input
+                type="number"
+                min="0"
+                step="0.01"
+                value={balanceOnly}
+                onChange={(e) => setBalanceOnly(e.target.value)}
+                placeholder="Updated account balance (USD)"
+                className="h-10"
+              />
+              <Button
+                type="button"
+                disabled={isPending}
+                onClick={() =>
+                  run(() =>
+                    updatePathwardAccountBalanceAction({
+                      userId: user.id,
+                      accountBalance: Number(balanceOnly),
+                    }),
+                  )
+                }
+                className="h-10 bg-brand-blue text-white hover:bg-brand-blue/90"
+              >
+                Update Balance
+              </Button>
+            </div>
+
+            <div className="space-y-2 border-t border-brand-border pt-4">
+              <p className="text-xs text-muted-foreground">
+                After down payment is verified, release closing funds so the client can
+                transfer to the seller via escrow.
+              </p>
+              {user.pathwardWithdrawableApprovedAt ? (
+                <p className="text-xs font-medium text-brand-success">
+                  Closing funds released{" "}
+                  {new Date(user.pathwardWithdrawableApprovedAt).toLocaleString()}
+                </p>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  Closing funds not yet released.
+                </p>
+              )}
+              <Button
+                type="button"
+                disabled={isPending || user.pathwardAccountBalance <= 0}
+                onClick={() =>
+                  run(() => approveWithdrawableBalanceAction(user.id))
+                }
+                className="h-10 bg-brand-success text-white hover:bg-brand-success/90"
+              >
+                Release Closing Funds
+              </Button>
+            </div>
+          </div>
+        ) : null}
+      </div>
 
       {feedback ? <p className="text-sm text-muted-foreground">{feedback}</p> : null}
     </section>

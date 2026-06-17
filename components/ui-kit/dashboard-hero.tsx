@@ -17,7 +17,7 @@ export function DashboardHero({
   standing,
   paymentReminder,
   nextAction,
-  nextActionHref = "/loans",
+  nextActionHref = "/get-started",
   showLoanDetails = false,
   className,
 }: DashboardHeroProps) {
@@ -71,7 +71,7 @@ export function DashboardHero({
               className="h-10 border-white/15 bg-white/5 px-4 text-white hover:bg-white/10 hover:text-white"
               render={<Link href="/dashboard/loans" />}
             >
-              View loan details
+              View mortgage details
             </Button>
           ) : null}
         </div>

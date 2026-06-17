@@ -5,7 +5,7 @@ import { requireSuperAdmin } from "@/lib/auth/guards";
 import type { LoanProductCategory } from "@/types/loans";
 
 export const metadata = {
-  title: "Create Product | Orbit Lending",
+  title: "Create Product | Orbit Mortgage",
 };
 
 type PageProps = {
@@ -22,11 +22,11 @@ export default async function SuperAdminCreateProductPage({
   return (
     <div className="space-y-6">
       <SectionHeader
-        title="Create Loan Product"
+        title="Create Mortgage Product"
         description={
           defaultCategory
             ? `Add a new product to ${getCategoryLabel(defaultCategory)}.`
-            : "Define a new lending product for the Orbit Lending catalog."
+            : "Define a new mortgage product for the Orbit Mortgage catalog."
         }
       />
       <ProductForm
@@ -37,3 +37,4 @@ export default async function SuperAdminCreateProductPage({
     </div>
   );
 }
+

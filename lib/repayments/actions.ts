@@ -130,8 +130,8 @@ async function completeLoanIfPaidOff(loanId: string, actorId?: string, actorRole
 
   await notifyRepaymentEvent(
     loan.user_id,
-    "Congratulations! Loan Fully Repaid",
-    `Your Orbit Lending loan ${loan.loan_number ?? ""} has been fully repaid. Thank you for banking with us.`,
+    "Congratulations! Mortgage Fully Repaid",
+    `Your Orbit Mortgage mortgage ${loan.loan_number ?? ""} has been fully repaid. Thank you for banking with us.`,
     "critical",
     { showModal: true, sendEmail: true },
   );
@@ -234,7 +234,7 @@ export async function generateRepaymentScheduleForLoan(
   await notifyRepaymentEvent(
     loan.user_id,
     "Repayment Schedule Created",
-    `Your repayment schedule for loan ${loanNumber} has been generated with ${schedule.length} installments. View your schedule in Repayments.`,
+    `Your mortgage payment schedule for ${loanNumber} has been generated with ${schedule.length} installments. View your schedule in Repayments.`,
     "high",
   );
 
@@ -313,7 +313,7 @@ export async function submitPaymentAction(
   await notifyRepaymentEvent(
     user.id,
     "Payment Submitted",
-    `Your payment of $${parsed.data.amount.toFixed(2)} for installment #${repayment.installment_number} is pending verification.`,
+    `Your mortgage payment of $${parsed.data.amount.toFixed(2)} for installment #${repayment.installment_number} is pending verification.`,
     "high",
   );
 
@@ -480,7 +480,7 @@ export async function approvePaymentAction(
   await notifyRepaymentEvent(
     loan.user_id,
     "Payment Approved",
-    `Your payment of $${amount.toFixed(2)} for installment #${repayment.installment_number} on loan ${loan.loan_number ?? ""} has been approved.`,
+    `Your mortgage payment of $${amount.toFixed(2)} for installment #${repayment.installment_number} on mortgage ${loan.loan_number ?? ""} has been approved.`,
     "high",
   );
 
@@ -570,7 +570,7 @@ export async function rejectPaymentAction(
   await notifyRepaymentEvent(
     submission.borrower_id,
     "Payment Rejected",
-    `Your payment submission for installment #${repayment.installment_number} was rejected. Reason: ${reason}`,
+    `Your mortgage payment submission for installment #${repayment.installment_number} was rejected. Reason: ${reason}`,
     "critical",
   );
 
@@ -647,7 +647,7 @@ export async function waiveInstallmentAction(
   await notifyRepaymentEvent(
     loan.user_id,
     "Installment Waived",
-    `Installment #${repayment.installment_number} on loan ${loan.loan_number ?? ""} has been waived.`,
+    `Installment #${repayment.installment_number} on mortgage ${loan.loan_number ?? ""} has been waived.`,
     "high",
   );
 
@@ -813,7 +813,7 @@ export async function markInstallmentPaidManuallyAction(
   await notifyRepaymentEvent(
     loan.user_id,
     "Payment Applied",
-    `Installment #${repayment.installment_number} on loan ${loan.loan_number ?? ""} has been marked as paid.`,
+    `Installment #${repayment.installment_number} on mortgage ${loan.loan_number ?? ""} has been marked as paid.`,
     "high",
   );
 
@@ -920,7 +920,7 @@ export async function processRepaymentStatusMaintenance(): Promise<{
           await notifyRepaymentEvent(
             loan.user_id,
             "Payment Overdue",
-            `Installment #${installment.installment_number} on loan ${loan.loan_number ?? ""} is overdue. Please submit payment immediately.`,
+            `Installment #${installment.installment_number} on mortgage ${loan.loan_number ?? ""} is overdue. Please submit payment immediately.`,
             "critical",
           );
         }
@@ -993,8 +993,8 @@ export async function processRepaymentReminders(): Promise<{ sent: number }> {
     }
     const titles: Record<string, string> = {
       "7_days_before": "Upcoming Payment Reminder",
-      "3_days_before": "Payment Due in 3 Days",
-      due_today: "Payment Due Today",
+      "3_days_before": "Mortgage Payment Due in 3 Days",
+      due_today: "Mortgage Payment Due Today",
       "1_day_late": "Payment Is Late",
       "7_days_late": "Urgent: Payment Overdue",
     };
@@ -1002,7 +1002,7 @@ export async function processRepaymentReminders(): Promise<{ sent: number }> {
     await notifyRepaymentEvent(
       loan.user_id,
       titles[reminderType] ?? "Repayment Reminder",
-      `Loan ${loan.loan_number ?? ""} — Installment #${installment.installment_number} of $${Number(installment.installment_amount).toFixed(2)} is ${reminderType.replace(/_/g, " ")}.`,
+      `Mortgage ${loan.loan_number ?? ""} — Installment #${installment.installment_number} of $${Number(installment.installment_amount).toFixed(2)} is ${reminderType.replace(/_/g, " ")}.`,
       reminderType.includes("late") ? "critical" : "high",
     );
 
@@ -1059,3 +1059,4 @@ export async function overrideRepaymentStatusAction(
 
   return { success: "Repayment status updated." };
 }
+

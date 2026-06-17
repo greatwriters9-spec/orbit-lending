@@ -22,7 +22,7 @@ export function LoanApplyButton({
         className="h-11 w-full bg-brand-blue text-sm font-semibold text-white shadow-[var(--shadow-sidebar-active)] hover:bg-brand-blue/90 sm:w-auto sm:min-w-[220px]"
         render={<Link href={`/loans/${slug}/apply`} />}
       >
-        Apply for {productName}
+        Get Pre-Qualified for {productName}
         <ArrowRight className="size-4" strokeWidth={2} />
       </Button>
       <p className="text-xs leading-relaxed text-muted-foreground">

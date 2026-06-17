@@ -6,7 +6,7 @@ import { requireAdmin } from "@/lib/auth/guards";
 import { redirect } from "next/navigation";
 
 export const metadata = {
-  title: "User Management | Orbit Lending",
+  title: "User Management | Orbit Mortgage",
 };
 
 type PageProps = {
@@ -42,3 +42,4 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
     </div>
   );
 }
+

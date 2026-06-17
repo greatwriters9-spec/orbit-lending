@@ -37,7 +37,7 @@ export const financeNavSections: NavSection[] = [
         icon: Wallet,
       },
       {
-        title: "Active Loans",
+        title: "Active Mortgages",
         href: "/finance/loans",
         icon: Landmark,
       },
@@ -75,6 +75,7 @@ export const financeNavSections: NavSection[] = [
 ];
 
 export const FINANCE_PORTAL = {
-  title: "Orbit Lending",
+  title: "Orbit Mortgage",
   subtitle: "Loan Officer Portal",
 } as const;
+

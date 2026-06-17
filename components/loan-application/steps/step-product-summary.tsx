@@ -10,13 +10,7 @@ import {
 import { useWizard } from "@/components/loan-application/wizard-context";
 import { WizardShell } from "@/components/loan-application/wizard-shell";
 
-const categoryLabels = {
-  personal: "Personal Financing",
-  business: "Business Financing",
-  asset_financing: "Asset Financing",
-  property: "Property Financing",
-  education: "Education Financing",
-} as const;
+import { getCategoryLabel } from "@/lib/loans/category-config";
 
 export function StepProductSummary() {
   const { product } = useWizard();
@@ -24,13 +18,13 @@ export function StepProductSummary() {
 
   return (
     <WizardShell
-      title="Loan Product Summary"
-      description="Review the loan product details before configuring your application."
+      title="Mortgage Summary"
+      description="Review your mortgage details before configuring your application."
     >
       <div className="space-y-6">
         <div className="flex flex-wrap gap-2">
           <Badge className="border-brand-border bg-brand-background text-brand-navy">
-            {categoryLabels[product.category]}
+            {getCategoryLabel(product.category)}
           </Badge>
           <Badge className="border-brand-blue/20 bg-brand-blue/10 text-brand-blue">
             {product.country}

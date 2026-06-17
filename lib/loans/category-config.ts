@@ -26,39 +26,39 @@ export const DEFAULT_CATEGORY_CONFIG: Record<
   Omit<CategoryConfigEntry, "category">
 > = {
   personal: {
-    label: "Personal Financing",
+    label: "Fixed-Rate Mortgage",
     description:
-      "Flexible consumer lending for personal expenses, emergencies, and major life purchases.",
-    iconName: "Wallet",
+      "Predictable monthly payments with a fixed mortgage rate for the life of your loan.",
+    iconName: "Home",
     illustrationUrl: null,
     illustrationTransform: DEFAULT_ILLUSTRATION_TRANSFORM,
     sortOrder: 1,
     active: true,
   },
   business: {
-    label: "Business Financing",
+    label: "Investment Property Mortgage",
     description:
-      "Working capital, startup funding, and growth financing for businesses of every size.",
-    iconName: "Briefcase",
+      "Financing for rental properties, multi-unit homes, and real estate investments.",
+    iconName: "Building2",
     illustrationUrl: null,
     illustrationTransform: DEFAULT_ILLUSTRATION_TRANSFORM,
     sortOrder: 2,
     active: true,
   },
   asset_financing: {
-    label: "Asset Financing",
+    label: "Construction Financing",
     description:
-      "Vehicle, equipment, and asset-backed loans with competitive terms.",
-    iconName: "Truck",
+      "Build your dream home with structured draws and milestone-based funding.",
+    iconName: "Landmark",
     illustrationUrl: null,
     illustrationTransform: DEFAULT_ILLUSTRATION_TRANSFORM,
     sortOrder: 3,
     active: true,
   },
   property: {
-    label: "Property Financing",
+    label: "Mortgage Refinance",
     description:
-      "Home mortgages, refinancing, and real estate lending solutions.",
+      "Refinance your existing mortgage to lower your rate or access home equity.",
     iconName: "Home",
     illustrationUrl: null,
     illustrationTransform: DEFAULT_ILLUSTRATION_TRANSFORM,
@@ -66,10 +66,10 @@ export const DEFAULT_CATEGORY_CONFIG: Record<
     active: true,
   },
   education: {
-    label: "Education Financing",
+    label: "Home Equity Loan",
     description:
-      "Tuition, training programs, and educational expense financing.",
-    iconName: "GraduationCap",
+      "Borrow against your home equity for renovations, consolidation, or major expenses.",
+    iconName: "PiggyBank",
     illustrationUrl: null,
     illustrationTransform: DEFAULT_ILLUSTRATION_TRANSFORM,
     sortOrder: 5,

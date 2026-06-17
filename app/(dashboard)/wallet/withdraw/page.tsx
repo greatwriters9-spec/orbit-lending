@@ -7,7 +7,7 @@ import { fetchWalletForUser } from "@/lib/wallet/queries";
 import { PATHWARD_BANK } from "@/types/wallet";
 
 export const metadata = {
-  title: "Request Withdrawal | Orbit Lending",
+  title: "Request Withdrawal | Orbit Mortgage",
 };
 
 export default async function WithdrawPage() {
@@ -21,7 +21,7 @@ export default async function WithdrawPage() {
         className="inline-flex items-center gap-2 text-sm font-medium text-brand-blue hover:text-brand-blue/80"
       >
         <ArrowLeft className="size-4" />
-        Back to Wallet
+        Back to Funding Account
       </Link>
 
       <div className="rounded-lg border border-brand-border bg-brand-background/50 px-4 py-3 text-xs text-muted-foreground">
@@ -33,3 +33,4 @@ export default async function WithdrawPage() {
     </div>
   );
 }
+

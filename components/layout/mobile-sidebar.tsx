@@ -9,13 +9,9 @@ import type { PortalKey } from "@/types/portal";
 
 type MobileSidebarProps = {
   portal?: PortalKey;
-  portalSubtitle?: string;
 };
 
-export function MobileSidebar({
-  portal = "client",
-  portalSubtitle,
-}: MobileSidebarProps) {
+export function MobileSidebar({ portal = "client" }: MobileSidebarProps) {
   return (
     <Sheet>
       <SheetTrigger
@@ -23,7 +19,7 @@ export function MobileSidebar({
           <Button
             variant="ghost"
             size="icon"
-            className="lg:hidden"
+            className="text-brand-navy hover:bg-brand-background lg:hidden"
             aria-label="Open navigation menu"
           />
         }
@@ -31,11 +27,7 @@ export function MobileSidebar({
         <Menu className="size-5" />
       </SheetTrigger>
       <SheetContent side="left" className="w-[272px] border-0 p-0">
-        <Sidebar
-          className="w-full"
-          portal={portal}
-          portalSubtitle={portalSubtitle}
-        />
+        <Sidebar className="h-screen w-full" portal={portal} />
       </SheetContent>
     </Sheet>
   );

@@ -157,7 +157,7 @@ export async function sendSystemMessage(
   await supabase.from("application_messages").insert({
     application_id: applicationId,
     sender_role: "system",
-    sender_name: "Orbit Lending",
+    sender_name: "Orbit Mortgage",
     message,
   });
 }
@@ -319,3 +319,4 @@ export async function processApplicationSubmission(applicationId: string) {
     skipValidation: true,
   });
 }
+

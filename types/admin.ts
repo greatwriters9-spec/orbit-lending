@@ -75,6 +75,12 @@ export type AdminUserDetail = AdminUserSummary & {
   country: string | null;
   accountStatusReason: string | null;
   accountStatusChangedAt: string | null;
+  pathwardAccountHolderName: string | null;
+  pathwardRoutingNumber: string | null;
+  pathwardAccountNumber: string | null;
+  pathwardAccountBalance: number;
+  pathwardLinkedAt: string | null;
+  pathwardWithdrawableApprovedAt: string | null;
 };
 
 export type AdminUserApplication = {

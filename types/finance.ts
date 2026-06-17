@@ -39,6 +39,9 @@ export type FinanceApplicationSummary = {
 };
 
 export type FinanceApplicationDetail = FinanceApplicationSummary & {
+  userId: string;
+  approvedAmount?: number;
+  pathwardBalance: number;
   selectedTermId?: string;
   personalInfo: Record<string, unknown>;
   financialInfo: Record<string, unknown>;

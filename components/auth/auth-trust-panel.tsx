@@ -5,9 +5,9 @@ import { RegisterTrustVisual } from "@/components/auth/register-trust-visual";
 import { cn } from "@/lib/utils";
 
 const benefits = [
-  "Fast Application Process",
+  "Fast Pre-Qualification Process",
   "Secure Account Management",
-  "Flexible Repayment Options",
+  "Flexible Mortgage Payment Options",
   "Real-Time Application Tracking",
 ];
 
@@ -35,7 +35,7 @@ export function AuthTrustPanel({ className }: AuthTrustPanelProps) {
         <div className="space-y-6">
           <div className="space-y-4">
             <h2 className="heading-primary-light text-2xl leading-tight md:text-[1.65rem]">
-              Financing Built Around Your Goals
+              Home Financing Built Around Your Goals
             </h2>
 
             <div className="rounded-2xl border border-brand-blue/30 bg-brand-blue/10 px-5 py-4">
@@ -46,7 +46,7 @@ export function AuthTrustPanel({ className }: AuthTrustPanelProps) {
                 Powered by Pathward National Bank
               </p>
               <p className="mt-2 text-sm leading-relaxed text-white/60">
-                Trusted financial infrastructure supporting secure lending,
+                Trusted financial infrastructure supporting secure mortgage financing,
                 account management, and compliance-driven operations.
               </p>
               <div className="mt-3 flex items-center gap-2 text-xs text-white/50">
@@ -56,8 +56,8 @@ export function AuthTrustPanel({ className }: AuthTrustPanelProps) {
             </div>
 
             <p className="text-sm leading-relaxed text-white/55">
-              Flexible lending solutions with secure account access and clear
-              visibility from application through repayment.
+              Digital mortgage solutions with secure account access and clear
+              visibility from pre-qualification through closing and repayment.
             </p>
           </div>
 

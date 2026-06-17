@@ -124,8 +124,8 @@ export async function fetchPriorityActions(userId: string): Promise<PriorityActi
     if (app.status === "offer_sent") {
       actions.push({
         id: `offer-${app.id}`,
-        label: "Review Loan Offer",
-        description: "A financing offer is waiting for your response.",
+        label: "Review Mortgage Offer",
+        description: "A mortgage offer is waiting for your response.",
         href,
         priority: "critical",
       });
@@ -141,8 +141,8 @@ export async function fetchPriorityActions(userId: string): Promise<PriorityActi
     if (pendingOffers?.length && app.status !== "offer_sent") {
       actions.push({
         id: `offer-pending-${app.id}`,
-        label: "Review Loan Offer",
-        description: "Review and respond to your financing offer.",
+        label: "Review Mortgage Offer",
+        description: "Review and respond to your mortgage offer.",
         href,
         priority: "high",
       });

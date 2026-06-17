@@ -144,10 +144,10 @@ export function LoanApplicationWizard({
 
       <div className="card-surface border-brand-border bg-white px-6 py-6 md:px-8 md:py-7">
         <p className="text-[11px] font-semibold tracking-[0.08em] text-muted-foreground uppercase">
-          Loan Application
+          Mortgage Application
         </p>
         <h1 className="heading-primary mt-2 text-2xl md:text-3xl">
-          Apply for {product.name}
+          Get Pre-Qualified for {product.name}
         </h1>
         <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">
           Complete each step to submit your application. You can save your progress

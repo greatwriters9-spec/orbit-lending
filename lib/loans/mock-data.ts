@@ -20,10 +20,10 @@ export const loanProducts: LoanProduct[] = [
     active: true,
     country: "US",
     eligibilitySummary:
-      "Available to verified clients aged 18+ with a stable income source and active Orbit Lending account.",
+      "Available to verified clients aged 18+ with a stable income source and active Orbit Mortgage account.",
     eligibilityCriteria: [
       "Must be at least 18 years of age",
-      "Verified Orbit Lending account in good standing",
+      "Verified Orbit Mortgage account in good standing",
       "Minimum monthly income of $2,000",
       "No active defaulted loans on the platform",
       "US resident with valid government-issued ID",
@@ -92,7 +92,7 @@ export const loanProducts: LoanProduct[] = [
     eligibilitySummary:
       "Designed for existing clients who need short-term access to funds for emergency situations.",
     eligibilityCriteria: [
-      "Active Orbit Lending account for at least 30 days",
+      "Active Orbit Mortgage account for at least 30 days",
       "No overdue repayments on existing loans",
       "Verifiable income source",
       "Completed profile verification",
@@ -152,7 +152,7 @@ export const loanProducts: LoanProduct[] = [
       "Minimum 12 months of operating history",
       "Annual revenue of at least $50,000",
       "Business bank account in good standing",
-      "Authorized signatory on the Orbit Lending account",
+      "Authorized signatory on the Orbit Mortgage account",
     ],
     requirements: [
       {
@@ -560,3 +560,4 @@ export function getLowestApr(product: LoanProduct): number {
   if (activeTerms.length === 0) return 0;
   return Math.min(...activeTerms.map((term) => term.interestRate));
 }
+

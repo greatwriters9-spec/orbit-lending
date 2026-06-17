@@ -55,7 +55,7 @@ export type ApplicationActivityEvent = {
 export const NOTIFICATION_CATEGORY_LABELS: Record<NotificationCategory, string> = {
   application_update: "Application Updates",
   finance_message: "Loan Officer Messages",
-  wallet_activity: "Wallet Activity",
+  wallet_activity: "Funding Account Activity",
   security: "Security Events",
   repayment: "Repayment Events",
   support: "Support Updates",

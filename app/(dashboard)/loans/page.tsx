@@ -9,9 +9,9 @@ import { StatCard } from "@/components/ui-kit/stat-card";
 import { fetchLoanProductsByCategoryForClient } from "@/lib/loans/server-queries";
 
 export const metadata: Metadata = {
-  title: "Loan Products | Orbit Lending",
+  title: "Mortgage Products | Orbit Mortgage",
   description:
-    "Browse available loan products, compare rates, and review requirements before applying.",
+    "Browse available mortgage products, compare rates, and review requirements before applying.",
 };
 
 export default async function LoansPage() {
@@ -26,13 +26,13 @@ export default async function LoansPage() {
       <section className="card-surface overflow-hidden">
         <div className="border-b border-brand-border bg-brand-navy px-6 py-8 text-white md:px-8 md:py-10">
           <p className="text-[11px] font-semibold tracking-[0.08em] text-white/45 uppercase">
-            Loan Products
+            Mortgage Products
           </p>
           <h1 className="heading-primary-light mt-2 text-3xl md:text-4xl">
-            Find the Right Financing
+            Find the Right Home Financing
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/60 md:text-base">
-            Explore our premium product directory, compare APR options, and review
+            Explore our mortgage product directory, compare rates, and review
             requirements before starting your application. Banking infrastructure
             powered by Pathward National Bank.
           </p>
@@ -42,7 +42,7 @@ export default async function LoansPage() {
           <StatCard
             title="Available Products"
             value={String(totalProducts)}
-            description="Active loan products across all categories."
+            description="Active mortgage products across all categories."
             icon={CreditCard}
             variant="featured"
           />
@@ -60,10 +60,10 @@ export default async function LoansPage() {
 
       <div className="space-y-3">
         <h2 className="heading-secondary text-xl md:text-2xl">
-          Available Products
+          Available Mortgage Products
         </h2>
         <p className="max-w-2xl text-sm text-muted-foreground md:text-base">
-          Compare loan amounts, APR ranges, and eligibility requirements for each
+          Compare mortgage amounts, rate ranges, and eligibility requirements for each
           product in your selected category.
         </p>
       </div>
@@ -76,3 +76,4 @@ export default async function LoansPage() {
     </div>
   );
 }
+

@@ -8,7 +8,7 @@ import { requireClient } from "@/lib/auth/guards";
 import { fetchWalletDashboard } from "@/lib/wallet/queries";
 
 export const metadata = {
-  title: "Wallet | Orbit Lending",
+  title: "Funding Account | Orbit Mortgage",
 };
 
 export default async function WalletPage() {
@@ -17,13 +17,17 @@ export default async function WalletPage() {
 
   return (
     <div className="space-y-8 md:space-y-9">
-      <WalletSummary wallet={data.wallet} />
+      <SectionHeader
+        title="Funding Account"
+        description="View your Pathward-linked account, withdrawable balance, and funding activity."
+      />
+      <WalletSummary wallet={data.wallet} linkedAccount={data.linkedAccount} />
 
       <section className="grid gap-8 xl:grid-cols-2">
         <div>
           <SectionHeader
             title="Recent Transactions"
-            description="Complete ledger of all wallet movements."
+            description="Complete ledger of all funding account movements."
             className="mb-4"
           />
           <WalletTransactionTable transactions={data.recentTransactions} />
@@ -42,12 +46,12 @@ export default async function WalletPage() {
         <section>
           <SectionHeader
             title="Funding History"
-            description="Loan disbursements credited to your wallet."
+            description="Mortgage disbursements credited to your funding account."
             className="mb-4"
           />
           <WalletTransactionTable
             transactions={data.fundingHistory}
-            title="Loan Funding"
+            title="Mortgage Funding"
             emptyMessage="No funding history."
           />
         </section>
@@ -55,3 +59,4 @@ export default async function WalletPage() {
     </div>
   );
 }
+

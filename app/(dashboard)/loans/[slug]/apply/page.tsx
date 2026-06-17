@@ -17,12 +17,12 @@ export async function generateMetadata({
   const product = await fetchLoanProductBySlugForClient(slug);
 
   if (!product) {
-    return { title: "Apply | Orbit Lending" };
+    return { title: "Get Pre-Qualified | Orbit Mortgage" };
   }
 
   return {
-    title: `Apply for ${product.name} | Orbit Lending`,
-    description: `Start your ${product.name} application with Orbit Lending.`,
+    title: `Get Pre-Qualified for ${product.name} | Orbit Mortgage`,
+    description: `Start your ${product.name} mortgage application with Orbit Mortgage.`,
   };
 }
 

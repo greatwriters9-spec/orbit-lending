@@ -92,7 +92,7 @@ export function PaymentSubmissionForm({
       </div>
 
       <div className="rounded-lg border border-brand-border bg-brand-background/60 px-4 py-3 text-sm text-muted-foreground">
-        Loan {loanNumber} · Installment #{repayment.installment_number} · Due{" "}
+        Mortgage {loanNumber} · Installment #{repayment.installment_number} · Due{" "}
         {repayment.due_date} · Amount due{" "}
         {formatRepaymentCurrency(repayment.installment_amount)}
       </div>

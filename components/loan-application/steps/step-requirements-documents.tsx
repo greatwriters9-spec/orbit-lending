@@ -153,7 +153,7 @@ export function StepRequirementsDocuments() {
   return (
     <WizardShell
       title="Requirements & Documents"
-      description="Upload documents based on your selected loan product requirements."
+      description="Upload documents based on your mortgage requirements."
     >
       <WizardStepError message={stepErrors[currentStep]} />
 

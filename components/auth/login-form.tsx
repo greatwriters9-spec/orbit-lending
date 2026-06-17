@@ -4,7 +4,10 @@ import Link from "next/link";
 import { useActionState } from "react";
 import { useSearchParams } from "next/navigation";
 
-import { AuthTrustStrip } from "@/components/auth/auth-trust-strip";
+import {
+  authButtonClassName,
+  authInputClassName,
+} from "@/components/auth/auth-mortgage-background";
 import { FormField, FormMessage } from "@/components/auth/form-field";
 import { Button } from "@/components/ui-kit/button";
 import { Input } from "@/components/ui-kit/input";
@@ -18,7 +21,7 @@ export function LoginForm() {
   const [state, formAction, isPending] = useActionState(loginAction, initialState);
 
   return (
-    <form action={formAction} className="space-y-6">
+    <form action={formAction} className="space-y-5">
       {redirectParam ? (
         <input type="hidden" name="redirect" value={redirectParam} />
       ) : null}
@@ -33,7 +36,7 @@ export function LoginForm() {
           autoComplete="email"
           placeholder="you@example.com"
           required
-          className="h-11 border-brand-border bg-[#F8FAFC] text-sm"
+          className={authInputClassName}
         />
       </FormField>
 
@@ -45,28 +48,22 @@ export function LoginForm() {
           autoComplete="current-password"
           placeholder="Enter your password"
           required
-          className="h-11 border-brand-border bg-[#F8FAFC] text-sm"
+          className={authInputClassName}
         />
       </FormField>
 
-      <div className="flex justify-end">
-        <Link
-          href="/forgot-password"
-          className="text-sm font-medium text-brand-blue hover:text-brand-blue/80"
-        >
-          Forgot password?
-        </Link>
-      </div>
-
-      <Button
-        type="submit"
-        disabled={isPending}
-        className="h-11 w-full bg-brand-blue text-sm font-semibold text-white hover:bg-brand-blue/90"
-      >
+      <Button type="submit" disabled={isPending} className={authButtonClassName}>
         {isPending ? "Signing in..." : "Sign in"}
       </Button>
 
-      <AuthTrustStrip />
+      <div className="pt-2 text-center">
+        <Link
+          href="/forgot-password"
+          className="text-sm font-normal text-[#1e4db7] hover:text-[#163b8c]"
+        >
+          Forgot Password?
+        </Link>
+      </div>
     </form>
   );
 }

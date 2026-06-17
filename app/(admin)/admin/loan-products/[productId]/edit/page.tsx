@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: PageProps) {
   const product = await fetchAdminProductById(productId);
   return {
     title: product
-      ? `Edit ${product.name} | Orbit Lending`
+      ? `Edit ${product.name} | Orbit Mortgage`
       : "Product Not Found",
   };
 }

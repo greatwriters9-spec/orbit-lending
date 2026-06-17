@@ -2,13 +2,13 @@ import { z } from "zod";
 
 export const loanConfigurationSchema = z.object({
   requestedAmount: z
-    .number({ error: "Enter a valid loan amount" })
-    .positive("Loan amount must be greater than zero"),
+    .number({ error: "Enter a valid mortgage amount" })
+    .positive("Mortgage amount must be greater than zero"),
   selectedTermId: z.string().min(1, "Select a repayment term"),
   repaymentFrequency: z.string().min(1, "Select a repayment frequency"),
   purpose: z
     .string()
-    .min(10, "Describe your loan purpose in at least 10 characters")
+    .min(10, "Describe your mortgage purpose in at least 10 characters")
     .max(500, "Purpose must be 500 characters or fewer"),
 });
 
@@ -55,21 +55,21 @@ export function validateLoanConfiguration(
   if (!parsed.success) {
     return {
       ok: false,
-      message: parsed.error.issues[0]?.message ?? "Invalid loan configuration.",
+      message: parsed.error.issues[0]?.message ?? "Invalid mortgage configuration.",
     };
   }
 
   if (parsed.data.requestedAmount < minAmount) {
     return {
       ok: false,
-      message: `Minimum loan amount is $${minAmount.toLocaleString()}`,
+      message: `Minimum mortgage amount is $${minAmount.toLocaleString()}`,
     };
   }
 
   if (parsed.data.requestedAmount > maxAmount) {
     return {
       ok: false,
-      message: `Maximum loan amount is $${maxAmount.toLocaleString()}`,
+      message: `Maximum mortgage amount is $${maxAmount.toLocaleString()}`,
     };
   }
 

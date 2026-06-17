@@ -12,14 +12,13 @@ export function LoginFormPanel({ className }: LoginFormPanelProps) {
   return (
     <AuthFormPanelShell
       className={className}
-      title="Sign In to Your Account"
-      subtitle="Access your loans, wallet, and account activity securely."
+      showLoginTabs
       footer={
-        <p className="text-sm text-muted-foreground">
+        <p>
           Don&apos;t have an account?{" "}
           <Link
             href="/register"
-            className="font-semibold text-brand-blue transition-colors hover:text-brand-blue/80"
+            className="font-semibold text-brand-blue hover:text-brand-blue/80"
           >
             Create one
           </Link>

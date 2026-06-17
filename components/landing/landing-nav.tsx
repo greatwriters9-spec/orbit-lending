@@ -4,23 +4,23 @@ import Link from "next/link";
 import { useState } from "react";
 import { ArrowRight, Menu, X } from "lucide-react";
 
+import { OrbitLogo } from "@/components/brand/orbit-logo";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
-  { label: "Financing Solutions", href: "#products" },
-  { label: "Payment Calculator", href: "#calculator" },
+  { label: "Mortgage Calculator", href: "#calculator" },
   { label: "Why Choose Orbit", href: "#why-orbit" },
   { label: "How It Works", href: "#process" },
 ] as const;
 
 const NAV = {
-  height: "76px",
-  maxWidth: "1400px",
+  height: "88px",
+  maxWidth: "1280px",
   paddingX: "32px",
-  menuFontSize: "15px",
-  menuFontWeight: 600,
+  menuFontSize: "16px",
+  menuFontWeight: 500,
   menuGap: "38px",
-  ctaHeight: "40px",
+  ctaHeight: "44px",
   ctaRadius: "10px",
   borderBottom: "1px solid #E5E7EB",
   background: "#FFFFFF",
@@ -95,17 +95,7 @@ export function LandingNav() {
           paddingRight: NAV.paddingX,
         }}
       >
-        <Link href="/" className="flex shrink-0 items-center gap-2.5">
-          <div
-            className="flex size-9 items-center justify-center rounded-lg text-white"
-            style={{ backgroundColor: "#0f172a" }}
-          >
-            <span className="text-sm font-bold">O</span>
-          </div>
-          <span className="heading-primary text-[17px] leading-none md:text-lg">
-            Orbit Lending
-          </span>
-        </Link>
+        <OrbitLogo aria-label="Orbit Mortgage home" />
 
         <nav
           className="hidden flex-1 items-center justify-center md:flex"
@@ -119,9 +109,9 @@ export function LandingNav() {
         </nav>
 
         <div className="hidden shrink-0 items-center gap-5 md:flex">
-          <NavLink href="/login">Log In</NavLink>
+          <NavLink href="/login">Sign In</NavLink>
           <Link
-            href="/register"
+            href="/get-started"
             className="inline-flex items-center justify-center px-5 text-[15px] font-semibold tracking-[-0.01em] text-white transition-colors duration-200 hover:bg-[#1d4ed8]"
             style={{
               height: NAV.ctaHeight,
@@ -190,10 +180,10 @@ export function LandingNav() {
                 color: NAV.text,
               }}
             >
-              Log In
+              Sign In
             </Link>
             <Link
-              href="/register"
+              href="/get-started"
               className="inline-flex items-center justify-center gap-2 text-[15px] font-semibold text-white transition-colors duration-200 hover:bg-[#1d4ed8]"
               style={{
                 height: NAV.ctaHeight,

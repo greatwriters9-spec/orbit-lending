@@ -12,7 +12,7 @@ import {
 } from "@/lib/support/queries";
 
 export const metadata = {
-  title: "Support Ticket | Orbit Lending",
+  title: "Support Ticket | Orbit Mortgage",
 };
 
 export default async function SupportTicketPage({

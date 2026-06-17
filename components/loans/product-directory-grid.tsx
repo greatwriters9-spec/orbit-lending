@@ -20,8 +20,8 @@ export function ProductDirectoryGrid({ categories }: ProductDirectoryGridProps) 
           Product Directory
         </h2>
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground md:text-base">
-          Explore financing categories designed for every stage of your financial
-          journey. Select a category to view available loan products.
+          Explore mortgage categories designed for every stage of your homeownership
+          journey. Select a category to view available mortgage products.
         </p>
       </div>
 

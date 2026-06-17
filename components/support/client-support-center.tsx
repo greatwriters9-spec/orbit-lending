@@ -81,8 +81,8 @@ export function ClientSupportCenter({
       <section className="rounded-2xl border border-brand-border bg-gradient-to-br from-brand-navy to-brand-blue p-8 text-white shadow-[var(--shadow-card)]">
         <h1 className="text-3xl font-bold tracking-tight">How can we help today?</h1>
         <p className="mt-2 max-w-2xl text-sm text-white/80">
-          Search help articles, open a support ticket, or contact your loan team.
-          Orbit Lending support is here for your financing journey.
+          Search help articles, open a support ticket, or contact your mortgage team.
+          Orbit Mortgage support is here for your homeownership journey.
         </p>
         <div className="relative mt-6 max-w-xl">
           <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-white/60" />
@@ -242,3 +242,4 @@ export function ClientSupportCenter({
     </div>
   );
 }
+

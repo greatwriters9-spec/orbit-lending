@@ -30,9 +30,9 @@ export function ApplicationOfferCard({
   if (offers.length === 0) {
     return (
       <section className={cn("card-surface p-6 md:p-8", className)}>
-        <h2 className="heading-secondary text-lg">Financing Offer</h2>
+        <h2 className="heading-secondary text-lg">Mortgage Offer</h2>
         <p className="mt-4 text-sm text-muted-foreground">
-          No financing offer has been prepared yet. You'll be notified when an
+          No mortgage offer has been prepared yet. You'll be notified when an
           offer is available for review.
         </p>
       </section>
@@ -61,7 +61,7 @@ export function ApplicationOfferCard({
   return (
     <section className={cn("card-surface overflow-hidden", className)}>
       <div className="border-b border-brand-border bg-brand-navy px-6 py-5 text-white md:px-8">
-        <h2 className="text-lg font-semibold">Financing Offer</h2>
+        <h2 className="text-lg font-semibold">Mortgage Offer</h2>
         <p className="mt-1 text-sm text-white/60">
           Review your recommended financing terms from the lending team.
         </p>

@@ -29,7 +29,7 @@ export function MessageThreadsList({ threads }: MessageThreadsListProps) {
         <MessageSquare className="mx-auto size-10 text-muted-foreground/40" />
         <p className="mt-4 text-sm text-muted-foreground">
           No application messages yet. Messages appear here when you submit a
-          loan application.
+          mortgage application.
         </p>
       </div>
     );

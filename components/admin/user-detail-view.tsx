@@ -33,7 +33,7 @@ const TABS = [
   { id: "profile", label: "Profile" },
   { id: "applications", label: "Applications" },
   { id: "loans", label: "Loans" },
-  { id: "wallet", label: "Wallet" },
+  { id: "wallet", label: "Funding Account" },
   { id: "transactions", label: "Transactions" },
   { id: "messages", label: "Messages" },
 ] as const;
@@ -108,7 +108,7 @@ export function UserDetailView({
 
       {activeTab === "profile" && <ProfileTab user={user} />}
       {activeTab === "applications" && <ApplicationsTab items={applications} />}
-      {activeTab === "loans" && <ApplicationsTab items={loans} emptyLabel="No active loans." />}
+      {activeTab === "loans" && <ApplicationsTab items={loans} emptyLabel="No active mortgages." />}
       {activeTab === "wallet" && <WalletTab wallet={wallet} />}
       {activeTab === "transactions" && <TransactionsTab items={transactions} />}
       {activeTab === "messages" && <MessagesTab items={messages} />}
@@ -131,6 +131,30 @@ function ProfileTab({ user }: { user: AdminUserDetail }) {
             ? formatApplicationDate(user.accountStatusChangedAt)
             : "—"
         }
+      />
+      <Info
+        label="Pathward Routing Number"
+        value={user.pathwardRoutingNumber ?? "—"}
+      />
+      <Info
+        label="Pathward Account Number"
+        value={
+          user.pathwardAccountNumber
+            ? `••••${user.pathwardAccountNumber.slice(-4)}`
+            : "—"
+        }
+      />
+      <Info
+        label="Linked Account Holder"
+        value={user.pathwardAccountHolderName ?? "—"}
+      />
+      <Info
+        label="Pathward Account Balance"
+        value={formatCurrency(user.pathwardAccountBalance)}
+      />
+      <Info
+        label="Linked On"
+        value={user.pathwardLinkedAt ? formatApplicationDate(user.pathwardLinkedAt) : "—"}
       />
       {user.accountStatusReason ? (
         <div className="sm:col-span-2">
@@ -186,7 +210,7 @@ function ApplicationsTab({
 
 function WalletTab({ wallet }: { wallet: AdminUserWallet | null }) {
   if (!wallet) {
-    return <EmptyState message="No wallet on file for this user." />;
+    return <EmptyState message="No funding account on file for this user." />;
   }
 
   return (

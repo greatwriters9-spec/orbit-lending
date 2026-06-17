@@ -64,7 +64,7 @@ function buildStatementHtml(input: {
 
   return `<!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"><title>Orbit Lending Account Statement</title>
+<head><meta charset="utf-8"><title>Orbit Mortgage Account Statement</title>
 <style>
 body{font-family:Arial,sans-serif;color:#111827;padding:40px}
 .header{border-bottom:2px solid #2563EB;padding-bottom:16px;margin-bottom:24px}
@@ -78,7 +78,7 @@ th{font-size:11px;text-transform:uppercase;color:#6B7280}
 </style></head>
 <body>
   <div class="header">
-    <div class="brand">Orbit Lending</div>
+    <div class="brand">Orbit Mortgage</div>
     <div>Account Statement</div>
   </div>
   <div class="summary">
@@ -156,7 +156,7 @@ export async function generateAccountStatementAction(input?: {
 
   await notifyWalletEvent(ctx.user.id, {
     title: "Statement Generated",
-    message: "Your Orbit Lending account statement has been generated.",
+    message: "Your Orbit Mortgage account statement has been generated.",
     type: "general",
     actionUrl: "/dashboard/transactions",
   });
@@ -225,3 +225,4 @@ export async function softDeleteTransactionAction(
 
   return { success: "Transaction archived (soft delete)." };
 }
+

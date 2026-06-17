@@ -57,7 +57,7 @@ function HealthScore({
   return (
     <div className="flex flex-col items-center justify-center px-5 py-4 md:px-6 md:py-5">
       <p className="text-[11px] font-semibold tracking-[0.06em] text-muted-foreground uppercase">
-        Loan Health Score
+        Mortgage Health Score
       </p>
       <div className="relative mt-3 size-20">
         <svg className="size-20 -rotate-90" viewBox="0 0 80 80">
@@ -120,7 +120,7 @@ export function PortfolioSummary({
           </div>
           <div>
             <h2 className="heading-secondary text-lg tracking-tight">
-              Loan Health
+              Mortgage Health
             </h2>
             <p className="text-sm text-muted-foreground">
               {productName} · {loanId}
@@ -140,12 +140,12 @@ export function PortfolioSummary({
           <Metric
             label="Paid to Date"
             value={paidToDate}
-            detail={`${paidPercent}% of loan repaid`}
+            detail={`${paidPercent}% of mortgage repaid`}
             valueClassName="text-brand-success"
             detailClassName="text-brand-success/80"
           />
           <Metric
-            label="Original Loan Amount"
+            label="Original Mortgage Amount"
             value={principal}
             detail={`${apr} APR · ${termMonths}-month term`}
           />

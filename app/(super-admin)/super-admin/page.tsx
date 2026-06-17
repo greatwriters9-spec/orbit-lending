@@ -5,7 +5,7 @@ import { SectionHeader } from "@/components/ui-kit/section-header";
 import { Settings, Shield, Users, Wallet } from "lucide-react";
 
 export const metadata = {
-  title: "Chief Lending Officer Dashboard | Orbit Lending",
+  title: "Chief Lending Officer Dashboard | Orbit Mortgage",
 };
 
 export default function SuperAdminDashboardPage() {
@@ -82,3 +82,4 @@ function QuickLink({ href, label }: { href: string; label: string }) {
     </Link>
   );
 }
+

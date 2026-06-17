@@ -2,7 +2,7 @@ import { requireClient } from "@/lib/auth/guards";
 import { ClientProfilePage } from "@/components/profile/client-profile-page";
 
 export const metadata = {
-  title: "Profile | Orbit Lending",
+  title: "Profile | Orbit Mortgage",
 };
 
 export default async function ProfilePage() {
@@ -16,3 +16,4 @@ export default async function ProfilePage() {
     <ClientProfilePage profile={ctx.profile} email={ctx.user.email ?? ""} />
   );
 }
+

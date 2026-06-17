@@ -13,6 +13,7 @@ import { getOrCreateWallet } from "@/lib/wallet/ledger";
 import { createNotification } from "@/lib/wallet/notifications";
 import { generateReferenceNumber } from "@/lib/wallet/utils";
 import { mirrorWalletTransaction } from "@/lib/transactions/wallet-bridge";
+import { syncMortgageToPathwardClosing } from "@/lib/wallet/pathward-closing";
 import type { WalletActionState } from "@/types/wallet";
 
 const withdrawSchema = z.object({
@@ -336,6 +337,13 @@ export async function fundLoanAction(
 
   await generateRepaymentScheduleForLoan(createdLoan.id);
 
+  await syncMortgageToPathwardClosing(
+    supabase,
+    application.user_id,
+    applicationId,
+    approvedAmount,
+  );
+
   await mirrorWalletTransaction({
     borrowerId: application.user_id,
     walletTransactionId: fundingTx.id,
@@ -352,14 +360,14 @@ export async function fundLoanAction(
     isCredit: true,
     notify: {
       title: "Loan Disbursement Completed",
-      message: `$${approvedAmount.toFixed(2)} has been disbursed to your wallet.`,
+      message: `$${approvedAmount.toFixed(2)} has been disbursed to your funding account.`,
     },
   });
 
   await createNotification({
     userId: application.user_id,
     title: "Loan Funded",
-    message: `$${approvedAmount.toFixed(2)} has been credited to your wallet. Powered by Pathward National Bank.`,
+    message: `$${approvedAmount.toFixed(2)} has been credited to your funding account. Powered by Pathward National Bank.`,
     type: "loan_funded",
     metadata: { applicationId, amount: approvedAmount, referenceNumber },
   });
@@ -686,7 +694,7 @@ export async function createManualAdjustmentAction(input: {
       createdBy: user.id,
       isCredit,
       notify: {
-        title: isCredit ? "Adjustment Applied" : "Wallet Debit Applied",
+        title: isCredit ? "Adjustment Applied" : "Funding Account Debit Applied",
         message: `A manual ${parsed.data.type} of $${parsed.data.amount.toFixed(2)} was applied. Reason: ${parsed.data.reason}`,
       },
     });
@@ -708,8 +716,8 @@ export async function createManualAdjustmentAction(input: {
 
   await createNotification({
     userId: parsed.data.userId,
-    title: isCredit ? "Wallet Credit" : "Wallet Debit",
-    message: `A manual ${parsed.data.type} of $${parsed.data.amount.toFixed(2)} was applied to your wallet. Reason: ${parsed.data.reason}`,
+    title: isCredit ? "Funding Account Credit" : "Funding Account Debit",
+    message: `A manual ${parsed.data.type} of $${parsed.data.amount.toFixed(2)} was applied to your funding account. Reason: ${parsed.data.reason}`,
     type: isCredit ? "wallet_credit" : "wallet_debit",
     metadata: { amount: parsed.data.amount, reason: parsed.data.reason },
   });

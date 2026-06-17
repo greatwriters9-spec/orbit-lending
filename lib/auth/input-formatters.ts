@@ -1,4 +1,5 @@
 export const US_PHONE_PATTERN = /^\(\d{3}\) \d{3}-\d{4}$/;
+export const US_SSN_PATTERN = /^\d{3}-\d{2}-\d{4}$/;
 export const US_ZIP_PATTERN = /^\d{5}(-\d{4})?$/;
 export const US_STATE_PATTERN = /^[A-Z]{2}$/;
 
@@ -22,6 +23,28 @@ export function formatUSPhoneInput(value: string): string {
 
 export function isCompleteUSPhone(value: string): boolean {
   return US_PHONE_PATTERN.test(value);
+}
+
+export function formatSSNInput(value: string): string {
+  const digits = value.replace(/\D/g, "").slice(0, 9);
+
+  if (digits.length === 0) {
+    return "";
+  }
+
+  if (digits.length <= 3) {
+    return digits;
+  }
+
+  if (digits.length <= 5) {
+    return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+  }
+
+  return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5)}`;
+}
+
+export function isCompleteSSN(value: string): boolean {
+  return US_SSN_PATTERN.test(value);
 }
 
 export function formatZipCodeInput(value: string): string {

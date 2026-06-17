@@ -1,64 +1,51 @@
 import Link from "next/link";
-import { ArrowRight, Building2, ShieldCheck } from "lucide-react";
+import { Building2 } from "lucide-react";
 
+import { HeroBackgroundCarousel } from "@/components/landing/hero-background-carousel";
 import { LANDING_CONTAINER, LANDING_TRUST_METRICS } from "@/lib/landing/content";
-
-import { HeroLoanCard } from "./hero-loan-card";
 
 export function HeroSection() {
   return (
-    <section className="relative overflow-hidden bg-white pt-12 pb-16 md:pt-16 md:pb-20 lg:pt-20 lg:pb-24">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_15%,rgba(37,99,235,0.07),transparent_50%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_10%_85%,rgba(32,23,71,0.04),transparent_45%)]" />
+    <section className="relative w-full min-h-[calc(100dvh-88px-8.5rem)] overflow-hidden md:min-h-[calc(100dvh-88px-11rem)]">
+      <HeroBackgroundCarousel />
 
-      <div className={LANDING_CONTAINER}>
-        <div className="relative grid items-center gap-14 lg:grid-cols-[1fr_1.05fr] lg:gap-16">
-          <div className="max-w-xl">
-            <p className="inline-flex items-center gap-2 rounded-full border border-brand-blue/15 bg-brand-blue/[0.05] px-3.5 py-1.5 text-xs font-semibold tracking-wide text-brand-blue">
-              <ShieldCheck className="size-3.5" strokeWidth={1.75} />
-              Institutional Digital Lending
-            </p>
+      <div className="absolute inset-0 bg-gradient-to-r from-[#0b1528]/82 via-[#0b1528]/35 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#0b1528]/30 via-transparent to-transparent" />
 
-            <h1 className="heading-primary mt-6 text-[2.5rem] leading-[1.06] md:text-5xl lg:text-[3.35rem]">
-              Premium Financing Built for Trust, Speed, and Clarity
-            </h1>
+      <div
+        className={`${LANDING_CONTAINER} relative z-10 flex min-h-[calc(100dvh-88px-8.5rem)] items-center py-10 md:min-h-[calc(100dvh-88px-11rem)] md:py-12`}
+      >
+        <div className="max-w-xl">
+          <h1 className="text-[2.35rem] leading-[1.08] font-bold tracking-tight text-white md:text-5xl lg:text-[3.25rem]">
+            Home Financing Made Simple
+          </h1>
 
-            <p className="mt-5 text-base leading-relaxed text-[#4B5563] md:text-lg md:leading-relaxed">
-              Orbit Lending delivers a secure, transparent borrowing experience —
-              from application to funding — with real-time visibility and
-              bank-grade infrastructure you can rely on.
-            </p>
+          <p className="mt-5 max-w-lg text-base leading-relaxed text-white/85 md:text-lg md:leading-relaxed">
+            Get pre-qualified in minutes.
+            <br />
+            Know exactly how much home you can afford.
+          </p>
 
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link
-                href="/register"
-                className="inline-flex h-11 items-center gap-2 rounded-[10px] bg-brand-blue px-6 text-sm font-semibold text-white transition-colors hover:bg-[#1d4ed8]"
-              >
-                Apply Now
-                <ArrowRight className="size-4" />
-              </Link>
-              <Link
-                href="#products"
-                className="inline-flex h-11 items-center rounded-[10px] border border-[#E5E7EB] bg-white px-6 text-sm font-semibold text-[#374151] transition-colors hover:border-brand-blue/30 hover:text-brand-blue"
-              >
-                Explore Products
-              </Link>
-            </div>
-
-            <TrustMetrics className="mt-10" />
-
-            <div className="mt-8 inline-flex items-center gap-2.5 rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] px-4 py-3">
-              <Building2 className="size-4 text-brand-blue" strokeWidth={1.75} />
-              <p className="text-xs leading-relaxed text-[#4B5563] md:text-sm">
-                <span className="font-semibold text-brand-navy">
-                  Banking Infrastructure Powered by Pathward National Bank
-                </span>
-              </p>
-            </div>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link
+              href="/get-started"
+              className="inline-flex h-11 items-center rounded-[10px] bg-brand-blue px-6 text-sm font-semibold text-white transition-colors hover:bg-[#1d4ed8]"
+            >
+              Get Pre-Qualified
+            </Link>
+            <Link
+              href="/get-started?homeFound=true"
+              className="inline-flex h-11 items-center rounded-[10px] border border-white/70 bg-white/10 px-6 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/20"
+            >
+              I Already Found A Home
+            </Link>
           </div>
 
-          <div className="relative flex justify-center lg:justify-end">
-            <HeroLoanCard />
+          <div className="mt-10 inline-flex items-center gap-2.5 text-sm text-white/80">
+            <span className="flex size-8 items-center justify-center rounded-full border border-white/25 bg-white/10">
+              <Building2 className="size-4 text-white" strokeWidth={1.75} />
+            </span>
+            <span>Powered by Pathward National Bank</span>
           </div>
         </div>
       </div>

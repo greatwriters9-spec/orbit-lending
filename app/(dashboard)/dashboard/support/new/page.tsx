@@ -5,7 +5,7 @@ import { CreateSupportTicketForm } from "@/components/support/create-support-tic
 import type { SupportTicketCategory } from "@/types/support";
 
 export const metadata = {
-  title: "New Support Ticket | Orbit Lending",
+  title: "New Support Ticket | Orbit Mortgage",
 };
 
 export default async function NewSupportTicketPage({
@@ -34,3 +34,4 @@ export default async function NewSupportTicketPage({
     </div>
   );
 }
+

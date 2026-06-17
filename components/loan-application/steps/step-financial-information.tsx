@@ -30,7 +30,7 @@ export function StepFinancialInformation() {
   return (
     <WizardShell
       title="Financial Information"
-      description="Provide employment and income details to support your loan assessment."
+      description="Provide employment and income details to support your mortgage assessment."
     >
       <WizardStepError message={stepErrors[currentStep]} />
 

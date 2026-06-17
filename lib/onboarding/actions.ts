@@ -1,0 +1,181 @@
+"use server";
+
+import { redirect } from "next/navigation";
+import { headers } from "next/headers";
+import { z } from "zod";
+
+import { AUTH_ROUTES } from "@/lib/auth/routes";
+import { createClient } from "@/lib/supabase/server";
+import { ensureOnboardingApplication } from "@/lib/onboarding/finalize-application";
+import { computePreQualification } from "@/lib/onboarding/pre-qualification";
+import {
+  enrichOnboardingDraft,
+  syncProfileFromOnboardingDraft,
+} from "@/lib/onboarding/sync-profile";
+import type { MortgageApplicationDraft } from "@/types/mortgage-onboarding";
+
+export type OnboardingActionState = {
+  error?: string;
+  success?: string;
+  needsAccount?: boolean;
+};
+
+const onboardingDraftSchema = z.custom<MortgageApplicationDraft>();
+
+const createAccountSchema = z
+  .object({
+    email: z.email("Enter a valid email address"),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .regex(/[A-Z]/, "Include at least one uppercase letter")
+      .regex(/[0-9]/, "Include at least one number"),
+    confirmPassword: z.string(),
+    draft: z.custom<MortgageApplicationDraft>(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+async function getOrigin() {
+  const headersList = await headers();
+  const host = headersList.get("host");
+  const protocol = headersList.get("x-forwarded-proto") ?? "http";
+  return host ? `${protocol}://${host}` : "http://localhost:3000";
+}
+
+async function finalizeOnboardingForUser(
+  userId: string,
+  email: string | undefined,
+  draft: MortgageApplicationDraft,
+): Promise<OnboardingActionState> {
+  if (!draft.firstName || !draft.lastName) {
+    return { error: "Complete the onboarding questions before continuing." };
+  }
+
+  const preQual =
+    draft.preQualification ?? computePreQualification(draft);
+  if (!preQual) {
+    return { error: "Unable to calculate pre-qualification. Try again." };
+  }
+
+  const supabase = await createClient();
+  const enrichedDraft = {
+    ...enrichOnboardingDraft(draft, email),
+    preQualification: preQual,
+  };
+
+  await syncProfileFromOnboardingDraft(supabase, userId, enrichedDraft);
+
+  const applicationResult = await ensureOnboardingApplication(
+    supabase,
+    userId,
+    email,
+    enrichedDraft,
+  );
+
+  if (applicationResult.error) {
+    return { error: applicationResult.error };
+  }
+
+  return {};
+}
+
+export async function finalizeOnboardingAction(
+  draft: MortgageApplicationDraft,
+): Promise<OnboardingActionState> {
+  const parsed = onboardingDraftSchema.safeParse(draft);
+  if (!parsed.success) {
+    return { error: "Invalid onboarding data." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { needsAccount: true };
+  }
+
+  const result = await finalizeOnboardingForUser(
+    user.id,
+    user.email,
+    parsed.data,
+  );
+
+  if (result.error) {
+    return result;
+  }
+
+  redirect(AUTH_ROUTES.qualificationResult);
+}
+
+export async function createAccountFromOnboardingAction(
+  input: z.infer<typeof createAccountSchema>,
+): Promise<OnboardingActionState> {
+  const parsed = createAccountSchema.safeParse(input);
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Invalid input." };
+  }
+
+  const draft = parsed.data.draft;
+  if (!draft.firstName || !draft.lastName || !draft.email) {
+    return { error: "Complete the onboarding questions before creating an account." };
+  }
+
+  const preQual = computePreQualification(draft);
+  if (!preQual) {
+    return { error: "Unable to calculate pre-qualification. Try again." };
+  }
+
+  const origin = await getOrigin();
+  const supabase = await createClient();
+
+  const { data, error } = await supabase.auth.signUp({
+    email: parsed.data.email,
+    password: parsed.data.password,
+    options: {
+      data: {
+        first_name: draft.firstName,
+        middle_name: draft.middleName,
+        last_name: draft.lastName,
+      },
+      emailRedirectTo: `${origin}${AUTH_ROUTES.callback}`,
+    },
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  if (!data.user) {
+    return { error: "Account could not be created. Please try again." };
+  }
+
+  if (!data.session) {
+    return {
+      success:
+        "Account created. Check your email to confirm your address, then sign in to view your pre-qualification.",
+    };
+  }
+
+  const userId = data.user.id;
+  const result = await finalizeOnboardingForUser(
+    userId,
+    parsed.data.email,
+    {
+      ...draft,
+      email: parsed.data.email,
+      preQualification: preQual,
+      completedAt: new Date().toISOString(),
+    },
+  );
+
+  if (result.error) {
+    return { error: result.error };
+  }
+
+  redirect(AUTH_ROUTES.qualificationResult);
+}

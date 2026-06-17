@@ -2,15 +2,15 @@ import {
   Building2,
   CheckCircle2,
   Clock,
-  Landmark,
   Lock,
   ShieldCheck,
   TrendingUp,
   Wallet,
 } from "lucide-react";
 
-import { cn } from "@/lib/utils";
+import { OrbitLogoMark } from "@/components/brand/orbit-logo";
 import { LANDING_HERO_BADGES } from "@/lib/landing/content";
+import { cn } from "@/lib/utils";
 
 export function HeroLoanCard({ className }: { className?: string }) {
   return (
@@ -42,14 +42,12 @@ export function HeroLoanCard({ className }: { className?: string }) {
         <div className="border-b border-[#E5E7EB] bg-gradient-to-br from-[#F8FAFC] to-white px-6 py-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex size-10 items-center justify-center rounded-xl bg-brand-blue text-white shadow-[0_4px_14px_rgba(37,99,235,0.35)]">
-                <Landmark className="size-4.5" strokeWidth={1.75} />
-              </div>
+              <OrbitLogoMark size="sm" />
               <div>
                 <p className="text-[10px] font-semibold tracking-[0.08em] text-muted-foreground uppercase">
-                  Orbit Lending
+                  Orbit Mortgage
                 </p>
-                <p className="text-base font-semibold text-brand-navy">Loan Overview</p>
+                <p className="text-base font-semibold text-brand-navy">Mortgage Overview</p>
               </div>
             </div>
             <span className="rounded-full border border-brand-success/20 bg-brand-success/10 px-3 py-1 text-[11px] font-semibold text-brand-success">
@@ -60,13 +58,13 @@ export function HeroLoanCard({ className }: { className?: string }) {
 
         <div className="space-y-5 p-6">
           <div className="grid grid-cols-2 gap-4">
-            <StatPill icon={Wallet} label="Loan Amount" value="$25,000" />
-            <StatPill icon={TrendingUp} label="Estimated APR" value="9.49%" />
+            <StatPill icon={Wallet} label="Mortgage Amount" value="$385,000" />
+            <StatPill icon={TrendingUp} label="Mortgage Rate" value="6.49%" />
           </div>
 
           <div className="rounded-xl border border-brand-blue/15 bg-gradient-to-br from-brand-blue/[0.05] to-brand-blue/[0.02] p-5">
             <p className="text-xs font-medium text-muted-foreground">
-              Estimated Monthly Payment
+              Estimated Monthly Mortgage Payment
             </p>
             <p className="heading-primary mt-1.5 text-3xl tabular-nums">$798</p>
             <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-[#E5E7EB]">
@@ -129,3 +127,4 @@ function MiniBadge({
     </div>
   );
 }
+

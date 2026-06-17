@@ -1,11 +1,11 @@
 import {
   Building2,
-  Landmark,
   Lock,
   ShieldCheck,
   TrendingUp,
 } from "lucide-react";
 
+import { OrbitLogoMark } from "@/components/brand/orbit-logo";
 import { cn } from "@/lib/utils";
 
 type RegisterTrustVisualProps = {
@@ -26,9 +26,7 @@ export function RegisterTrustVisual({ className }: RegisterTrustVisualProps) {
       <div className="absolute inset-2.5 rounded-xl border border-brand-blue/20 bg-brand-blue/10" />
 
       <div className="relative flex w-full flex-col items-center gap-4 px-6 py-8">
-        <div className="flex size-16 items-center justify-center rounded-2xl bg-brand-blue shadow-[var(--shadow-sidebar-active)] ring-1 ring-white/15">
-          <Landmark className="size-8 text-white" strokeWidth={1.5} />
-        </div>
+        <OrbitLogoMark size="lg" className="shadow-[var(--shadow-sidebar-active)] ring-1 ring-white/15" />
 
         <div className="absolute top-6 right-8 flex size-12 items-center justify-center rounded-xl border border-brand-blue/30 bg-brand-navy/80 shadow-lg">
           <ShieldCheck className="size-6 text-brand-blue" strokeWidth={1.5} />

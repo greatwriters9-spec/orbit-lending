@@ -102,11 +102,11 @@ export function ProductForm({
             defaultValue={product?.category ?? defaultCategory ?? "personal"}
             className="h-10 w-full rounded-lg border border-brand-border bg-transparent px-3 text-sm"
           >
-            <option value="personal">Personal Financing</option>
-            <option value="business">Business Financing</option>
-            <option value="asset_financing">Asset Financing</option>
-            <option value="property">Property Financing</option>
-            <option value="education">Education Financing</option>
+            <option value="personal">Fixed-Rate Mortgage</option>
+            <option value="business">Investment Property Mortgage</option>
+            <option value="asset_financing">Construction Financing</option>
+            <option value="property">Mortgage Refinance</option>
+            <option value="education">Home Equity Loan</option>
           </select>
         </Field>
         <Field label="Country" required>

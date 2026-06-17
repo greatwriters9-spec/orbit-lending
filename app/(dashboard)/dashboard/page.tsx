@@ -1,144 +1,83 @@
-import Link from "next/link";
-
 import { DashboardCriticalAlerts } from "@/components/notifications/dashboard-critical-alerts";
-import { LoanStatusWidget } from "@/components/notifications/loan-status-widget";
+import { DocumentCenterWidget } from "@/components/dashboard/document-center-widget";
+import { MessagesWidget } from "@/components/dashboard/messages-widget";
+import { MortgageActivitySection } from "@/components/dashboard/mortgage-activity-section";
+import { ClearOnboardingDraft } from "@/components/dashboard/clear-onboarding-draft";
+import { OnboardingEmptyState } from "@/components/dashboard/onboarding-empty-state";
+import { MortgageJourneyTracker } from "@/components/dashboard/mortgage-journey-tracker";
+import {
+  ClosingFundsCard,
+  MortgageDetailsCard,
+  MortgageSummaryCard,
+  PathwardFundingAccountCard,
+  RequiredDownPaymentCard,
+} from "@/components/dashboard/mortgage-primary-cards";
+import { QualificationResultGuard } from "@/components/dashboard/qualification-result-guard";
 import { PriorityActionsWidget } from "@/components/notifications/priority-actions-widget";
 import { SupportDashboardWidget } from "@/components/support/support-dashboard-widget";
-import {
-  DashboardHero,
-  PortfolioSummary,
-  QuickActions,
-  SectionHeader,
-  StatCard,
-  TransactionList,
-  NotificationTimeline,
-} from "@/components/ui-kit";
+import { PortfolioSummary, QuickActions } from "@/components/ui-kit";
 import { getSessionUser } from "@/lib/auth/actions";
-import { getDisplayName, getProfile } from "@/lib/auth/profile";
 import { dashboardQuickActions } from "@/lib/dashboard/constants";
 import { fetchClientDashboardData } from "@/lib/dashboard/queries";
-import { buildProgressSteps } from "@/lib/applications/status-utils";
-
-const statVariants = ["featured", "growth", "success"] as const;
-
-function getGreeting() {
-  const hour = new Date().getHours();
-  if (hour < 12) return "Good morning";
-  if (hour < 17) return "Good afternoon";
-  return "Good evening";
-}
 
 export default async function DashboardPage() {
   const user = await getSessionUser();
-  const profile = user ? await getProfile(user.id) : null;
-  const firstName = getDisplayName(profile, user?.email);
-
   const data = user ? await fetchClientDashboardData(user.id) : null;
-
-  const stats = data?.stats ?? [];
-  const progressSteps = data?.loanStatus.status
-    ? buildProgressSteps(data.loanStatus.status)
-    : data?.progressSteps ?? [];
+  const view = data?.mortgageView;
+  const showDownPaymentSection = view
+    ? ["approved", "closing"].includes(view.state)
+    : false;
 
   return (
     <>
+      {user && view && data?.isPreQualified ? (
+        <QualificationResultGuard userId={user.id} shouldPrompt />
+      ) : null}
+
       {data?.criticalAlerts.length ? (
         <DashboardCriticalAlerts alerts={data.criticalAlerts} />
       ) : null}
 
-      <div className="space-y-8 md:space-y-9">
-        <DashboardHero
-          greeting={getGreeting()}
-          userName={firstName}
-          standing={data?.hero.standing ?? "Welcome to Orbit Lending."}
-          paymentReminder={
-            data?.hero.paymentReminder ?? "Browse loan products to get started."
-          }
-          nextAction={data?.hero.nextAction ?? "Browse loans"}
-          nextActionHref={data?.hero.nextActionHref ?? "/loans"}
-          showLoanDetails={data?.hero.showLoanDetails ?? false}
-        />
+      <div className="space-y-8 md:space-y-10">
+        {view ? (
+          <>
+            <ClearOnboardingDraft />
 
-        <section className="grid gap-5 lg:grid-cols-2">
-          <LoanStatusWidget
-            status={data?.loanStatus.status}
-            applicationNumber={data?.loanStatus.applicationNumber}
-            productName={data?.loanStatus.productName}
-            progressSteps={progressSteps}
-          />
-          <PriorityActionsWidget actions={data?.priorityActions ?? []} />
-        </section>
+            <div className="grid gap-6 lg:grid-cols-3 lg:items-stretch">
+              <MortgageSummaryCard view={view} />
+              <PathwardFundingAccountCard view={view} />
+              <ClosingFundsCard view={view} />
+            </div>
 
-        {data?.supportSummary ? (
-          <SupportDashboardWidget summary={data.supportSummary} />
-        ) : null}
+            <MortgageJourneyTracker currentStage={view.journeyStage} />
 
-        {stats.length > 0 ? (
-          <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-            {stats.map((stat, index) => (
-              <StatCard
-                key={stat.title}
-                {...stat}
-                variant={statVariants[index] ?? "featured"}
+            <MortgageDetailsCard view={view} />
+
+            {showDownPaymentSection ? <RequiredDownPaymentCard view={view} /> : null}
+
+            <div className="grid gap-6 lg:grid-cols-2 lg:items-stretch">
+              <DocumentCenterWidget documents={view.documents} />
+              <MortgageActivitySection
+                activities={view.activities}
+                transactions={data?.transactions ?? []}
               />
-            ))}
-          </section>
-        ) : null}
+            </div>
+
+            <MessagesWidget messages={view.messages} />
+
+            {data?.supportSummary ? (
+              <SupportDashboardWidget summary={data.supportSummary} />
+            ) : null}
+          </>
+        ) : (
+          <OnboardingEmptyState />
+        )}
 
         <QuickActions actions={dashboardQuickActions} />
 
+        <PriorityActionsWidget actions={data?.priorityActions ?? []} />
+
         {data?.portfolio ? <PortfolioSummary {...data.portfolio} /> : null}
-
-        <div className="grid gap-7 xl:grid-cols-5">
-          <section className="card-surface overflow-hidden xl:col-span-3">
-            <div className="border-b border-brand-border px-6 py-6 md:px-8">
-              <SectionHeader
-                title="Account Statement"
-                description="Your latest wallet activity and repayment history."
-                action={
-                  <Link
-                    href="/dashboard/transactions"
-                    className="text-sm font-semibold text-brand-blue transition-colors hover:text-brand-blue/80"
-                  >
-                    View all
-                  </Link>
-                }
-              />
-            </div>
-            {data?.transactions.length ? (
-              <TransactionList transactions={data.transactions} />
-            ) : (
-              <div className="px-6 py-10 text-center text-sm text-muted-foreground md:px-8">
-                No transactions yet. Activity will appear here after loan funding
-                or wallet movements.
-              </div>
-            )}
-          </section>
-
-          <section className="card-surface p-6 md:p-8 xl:col-span-2">
-            <SectionHeader
-              title="Activity Timeline"
-              description="Alerts and updates that need your attention."
-              action={
-                <Link
-                  href="/dashboard/notifications"
-                  className="text-sm font-semibold text-brand-blue transition-colors hover:text-brand-blue/80"
-                >
-                  View all
-                </Link>
-              }
-            />
-            <div className="mt-7">
-              {data?.notifications.length ? (
-                <NotificationTimeline notifications={data.notifications} />
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  No notifications yet. You&apos;re all caught up.
-                </p>
-              )}
-            </div>
-          </section>
-        </div>
       </div>
     </>
   );

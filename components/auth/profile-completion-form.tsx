@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 
 import { FormField, FormMessage } from "@/components/auth/form-field";
 import { UsCityInput } from "@/components/auth/us-city-input";
@@ -8,13 +8,22 @@ import { UsStateSelect } from "@/components/auth/us-state-select";
 import { USPhoneInput } from "@/components/auth/us-phone-input";
 import { Button } from "@/components/ui-kit/button";
 import { Input } from "@/components/ui-kit/input";
-import { formatZipCodeInput } from "@/lib/auth/input-formatters";
+import {
+  formatUSPhoneInput,
+  formatZipCodeInput,
+} from "@/lib/auth/input-formatters";
 import {
   completeProfileAction,
   type AuthActionState,
 } from "@/lib/auth/actions";
+import {
+  buildProfileCompletionFields,
+  type ProfileCompletionFields,
+} from "@/lib/auth/profile-completion-fields";
+import {
+  readMortgageApplicationDraft,
+} from "@/lib/onboarding/draft-storage";
 import { cn } from "@/lib/utils";
-import type { UserProfile } from "@/types/profile";
 
 const initialState: AuthActionState = {};
 
@@ -23,32 +32,56 @@ const inputClassName = cn(
 );
 
 type ProfileCompletionFormProps = {
-  profile: UserProfile | null;
+  defaults: ProfileCompletionFields;
 };
 
-export function ProfileCompletionForm({ profile }: ProfileCompletionFormProps) {
+export function ProfileCompletionForm({ defaults }: ProfileCompletionFormProps) {
   const [state, formAction, isPending] = useActionState(
     completeProfileAction,
     initialState,
   );
-  const [stateCode, setStateCode] = useState(profile?.state ?? "");
-  const [city, setCity] = useState(profile?.city ?? "");
+  const [fields, setFields] = useState<ProfileCompletionFields | null>(null);
+  const [onboardingDraftJson, setOnboardingDraftJson] = useState("");
 
-  function handleStateChange(nextState: string) {
-    setStateCode(nextState);
-    setCity("");
+  useEffect(() => {
+    const draft = readMortgageApplicationDraft();
+    const merged = buildProfileCompletionFields({
+      existing: defaults,
+      draft,
+    });
+
+    setFields(merged);
+
+    if (draft) {
+      setOnboardingDraftJson(JSON.stringify(draft));
+    }
+  }, [defaults]);
+
+  if (!fields) {
+    return null;
   }
 
   return (
     <form action={formAction} className="space-y-5">
       <FormMessage message={state.error} variant="error" />
 
+      {onboardingDraftJson ? (
+        <input type="hidden" name="onboardingDraft" value={onboardingDraftJson} />
+      ) : null}
+
       <div className="grid gap-5 sm:grid-cols-2">
         <FormField label="First name" htmlFor="firstName">
           <Input
             id="firstName"
             name="firstName"
-            defaultValue={profile?.first_name ?? ""}
+            value={fields.firstName}
+            onChange={(event) =>
+              setFields((current) =>
+                current
+                  ? { ...current, firstName: event.target.value }
+                  : current,
+              )
+            }
             required
             className={inputClassName}
           />
@@ -58,7 +91,14 @@ export function ProfileCompletionForm({ profile }: ProfileCompletionFormProps) {
           <Input
             id="lastName"
             name="lastName"
-            defaultValue={profile?.last_name ?? ""}
+            value={fields.lastName}
+            onChange={(event) =>
+              setFields((current) =>
+                current
+                  ? { ...current, lastName: event.target.value }
+                  : current,
+              )
+            }
             required
             className={inputClassName}
           />
@@ -69,7 +109,10 @@ export function ProfileCompletionForm({ profile }: ProfileCompletionFormProps) {
         <USPhoneInput
           id="phone"
           name="phone"
-          defaultValue={profile?.phone ?? ""}
+          value={formatUSPhoneInput(fields.phone)}
+          onValueChange={(phone) =>
+            setFields((current) => (current ? { ...current, phone } : current))
+          }
           required
           className={inputClassName}
         />
@@ -80,7 +123,14 @@ export function ProfileCompletionForm({ profile }: ProfileCompletionFormProps) {
           id="dateOfBirth"
           name="dateOfBirth"
           type="date"
-          defaultValue={profile?.date_of_birth ?? ""}
+          value={fields.dateOfBirth}
+          onChange={(event) =>
+            setFields((current) =>
+              current
+                ? { ...current, dateOfBirth: event.target.value }
+                : current,
+            )
+          }
           required
           className={inputClassName}
         />
@@ -90,7 +140,12 @@ export function ProfileCompletionForm({ profile }: ProfileCompletionFormProps) {
         <Input
           id="address"
           name="address"
-          defaultValue={profile?.address ?? ""}
+          value={fields.address}
+          onChange={(event) =>
+            setFields((current) =>
+              current ? { ...current, address: event.target.value } : current,
+            )
+          }
           placeholder="123 Main Street"
           required
           className={inputClassName}
@@ -102,8 +157,14 @@ export function ProfileCompletionForm({ profile }: ProfileCompletionFormProps) {
           <UsStateSelect
             id="state"
             name="state"
-            value={stateCode}
-            onValueChange={handleStateChange}
+            value={fields.state}
+            onValueChange={(stateCode) =>
+              setFields((current) =>
+                current
+                  ? { ...current, state: stateCode, city: "" }
+                  : current,
+              )
+            }
             required
             className={inputClassName}
           />
@@ -113,11 +174,13 @@ export function ProfileCompletionForm({ profile }: ProfileCompletionFormProps) {
           <UsCityInput
             id="city"
             name="city"
-            stateCode={stateCode}
-            value={city}
-            onValueChange={setCity}
+            stateCode={fields.state}
+            value={fields.city}
+            onValueChange={(city) =>
+              setFields((current) => (current ? { ...current, city } : current))
+            }
             required
-            disabled={!stateCode}
+            disabled={!fields.state}
             className={inputClassName}
           />
         </FormField>
@@ -126,27 +189,34 @@ export function ProfileCompletionForm({ profile }: ProfileCompletionFormProps) {
           <Input
             id="zipCode"
             name="zipCode"
-            defaultValue={profile?.zip_code ?? ""}
+            value={fields.zipCode}
+            onChange={(event) =>
+              setFields((current) =>
+                current
+                  ? {
+                      ...current,
+                      zipCode: formatZipCodeInput(event.target.value),
+                    }
+                  : current,
+              )
+            }
             placeholder="94105"
             required
             inputMode="numeric"
             maxLength={10}
             className={inputClassName}
-            onChange={(event) => {
-              event.target.value = formatZipCodeInput(event.target.value);
-            }}
           />
         </FormField>
       </div>
 
-      <input type="hidden" name="country" value={profile?.country ?? "US"} />
+      <input type="hidden" name="country" value={fields.country || "US"} />
 
       <Button
         type="submit"
         disabled={isPending}
         className="h-10 w-full bg-brand-blue text-white hover:bg-brand-blue/90"
       >
-        {isPending ? "Saving profile..." : "Complete profile"}
+        {isPending ? "Saving profile..." : "Confirm details"}
       </Button>
     </form>
   );

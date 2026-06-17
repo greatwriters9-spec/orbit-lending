@@ -15,12 +15,12 @@ function getFromAddress(): string {
   return (
     process.env.EMAIL_FROM ??
     process.env.RESEND_FROM ??
-    "Orbit Lending <onboarding@resend.dev>"
+    "Orbit Mortgage <onboarding@resend.dev>"
   );
 }
 
 function getDevFallbackFrom(): string {
-  return process.env.RESEND_DEV_FROM ?? "Orbit Lending <onboarding@resend.dev>";
+  return process.env.RESEND_DEV_FROM ?? "Orbit Mortgage <onboarding@resend.dev>";
 }
 
 export async function sendTransactionalEmail(
@@ -119,7 +119,7 @@ async function postResendEmail(
 
 export function buildEmailHtml(title: string, message: string, actionUrl?: string) {
   const actionBlock = actionUrl
-    ? `<p style="margin-top:24px"><a href="${actionUrl}" style="background:#2563EB;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:600">View in Orbit Lending</a></p>`
+    ? `<p style="margin-top:24px"><a href="${actionUrl}" style="background:#2563EB;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:600">View in Orbit Mortgage</a></p>`
     : "";
 
   return `
@@ -127,7 +127,8 @@ export function buildEmailHtml(title: string, message: string, actionUrl?: strin
       <h1 style="color:#0F172A;font-size:20px;margin:0 0 12px">${title}</h1>
       <p style="color:#475569;font-size:15px;line-height:1.6;margin:0">${message}</p>
       ${actionBlock}
-      <p style="color:#94A3B8;font-size:12px;margin-top:32px">Orbit Lending · Secure Client Portal</p>
+      <p style="color:#94A3B8;font-size:12px;margin-top:32px">Orbit Mortgage · Secure Client Portal</p>
     </div>
   `;
 }
+

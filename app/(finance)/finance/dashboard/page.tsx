@@ -10,7 +10,7 @@ import {
 import { ClipboardList, Clock, FileWarning, CheckCircle2 } from "lucide-react";
 
 export const metadata = {
-  title: "Loan Officer Dashboard | Orbit Lending",
+  title: "Loan Officer Dashboard | Orbit Mortgage",
 };
 
 export default async function FinanceDashboardPage() {
@@ -86,3 +86,4 @@ export default async function FinanceDashboardPage() {
     </div>
   );
 }
+

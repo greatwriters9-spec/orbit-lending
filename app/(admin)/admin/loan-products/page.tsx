@@ -6,7 +6,7 @@ import { hasAdminPermission } from "@/lib/admin/permissions";
 import { requireAdmin } from "@/lib/auth/guards";
 
 export const metadata = {
-  title: "Product Directory | Orbit Lending",
+  title: "Product Directory | Orbit Mortgage",
 };
 
 export default async function AdminLoanProductsPage() {
@@ -25,3 +25,4 @@ export default async function AdminLoanProductsPage() {
     />
   );
 }
+

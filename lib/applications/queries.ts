@@ -209,8 +209,9 @@ export async function seedApplicationDetailsOnSubmit(
   await supabase.from("application_messages").insert({
     application_id: applicationId,
     sender_role: "system",
-    sender_name: "Orbit Lending",
+    sender_name: "Orbit Mortgage",
     message:
       "Your application has been received. A loan officer will review your submission within 24 hours.",
   });
 }
+

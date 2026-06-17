@@ -21,7 +21,7 @@ export function FormField({
     <div className={cn("space-y-2", className)}>
       <label
         htmlFor={htmlFor}
-        className="text-sm font-medium text-brand-navy"
+        className="text-sm font-normal text-[#475569]"
       >
         {label}
       </label>

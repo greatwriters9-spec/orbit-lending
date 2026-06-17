@@ -77,6 +77,53 @@ function revalidateApplicationPaths(applicationId: string) {
   revalidatePath(`/dashboard/loans/${applicationId}`);
 }
 
+const eligibilitySchema = z.object({
+  applicationId: z.string().uuid(),
+  eligibleAmount: z.number().positive(),
+  note: z.string().min(3, "Add a note explaining the eligibility decision."),
+});
+
+export async function setMortgageEligibilityAction(
+  input: z.infer<typeof eligibilitySchema>,
+): Promise<FinanceActionState> {
+  const parsed = eligibilitySchema.safeParse(input);
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Invalid input." };
+  }
+
+  const existing = await getApplicationSnapshot(parsed.data.applicationId);
+  if (!existing) {
+    return { error: "Application not found." };
+  }
+
+  const result = await transitionApplicationStatus(
+    parsed.data.applicationId,
+    "pre_qualified",
+    {
+      note: parsed.data.note,
+      auditAction: "application.eligibility_set",
+      auditOldValues: {
+        status: existing.status,
+        approvedAmount: existing.approved_amount,
+      },
+      auditNewValues: {
+        eligibleAmount: parsed.data.eligibleAmount,
+        note: parsed.data.note,
+      },
+      systemMessage: `Your mortgage eligibility has been confirmed at $${parsed.data.eligibleAmount.toLocaleString()}. This amount reflects what you may qualify for — continue your application to proceed toward approval and funding.`,
+      extraUpdates: { approved_amount: parsed.data.eligibleAmount },
+    },
+  );
+
+  if (result.error) {
+    return { error: result.error };
+  }
+
+  revalidateApplicationPaths(parsed.data.applicationId);
+  revalidatePath("/dashboard");
+  return { success: "Mortgage eligibility amount set." };
+}
+
 export async function updateApplicationStatusAction(
   input: z.infer<typeof statusSchema>,
 ): Promise<FinanceActionState> {
@@ -286,13 +333,13 @@ export async function saveOfferAction(
     return { error: error.message };
   }
 
-  const offerMessage = `A financing offer of $${parsed.data.finalAmount.toLocaleString()} at ${parsed.data.offeredInterestRate}% APR over ${parsed.data.repaymentPeriod} months has been prepared. Please review and accept or decline.`;
+  const offerMessage = `A mortgage offer of $${parsed.data.finalAmount.toLocaleString()} at ${parsed.data.offeredInterestRate}% APR over ${parsed.data.repaymentPeriod} months has been prepared. Please review and accept or decline.`;
 
   const result = await transitionApplicationStatus(
     parsed.data.applicationId,
     "offer_sent",
     {
-      note: "Financing offer sent to client for review.",
+      note: "Mortgage offer sent to client for review.",
       auditAction: "application.offer_created",
       auditEntityType: "loan_offer",
       auditEntityId: offer.id,
@@ -312,7 +359,7 @@ export async function saveOfferAction(
   }
 
   revalidateApplicationPaths(parsed.data.applicationId);
-  return { success: "Financing offer saved and sent for client review." };
+  return { success: "Mortgage offer saved and sent for client review." };
 }
 
 export async function approveFundingAction(
@@ -350,7 +397,7 @@ export async function approveFundingAction(
     },
     auditNewValues: { approvedAmount, note },
     systemMessage:
-      "Your application has been approved for funding. Funds will be disbursed to your wallet shortly.",
+      "Your mortgage application has been approved. Your approved loan amount will be funded to your account. Deposit your required down payment into your Pathward Funding Account once it is set up — we will email you with next steps.",
     extraUpdates: { approved_amount: approvedAmount },
   });
 

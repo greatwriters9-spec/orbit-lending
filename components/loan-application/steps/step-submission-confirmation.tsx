@@ -20,7 +20,7 @@ export function StepSubmissionConfirmation({
   return (
     <WizardShell
       title="Submission Confirmation"
-      description="Your loan application has been received and is now in the review queue."
+      description="Your mortgage application has been received and is now in the review queue."
     >
       <div className="mx-auto max-w-2xl text-center">
         <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-brand-success/10 text-brand-success">
@@ -64,10 +64,10 @@ export function StepSubmissionConfirmation({
           <Button
             variant="outline"
             className="h-10 border-brand-border px-5 text-brand-navy"
-            render={<Link href="/loans" />}
+            render={<Link href="/get-started" />}
           >
             <FileText className="size-4" />
-            Browse Loan Products
+            Get Pre-Qualified
           </Button>
         </div>
       </div>

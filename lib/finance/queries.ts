@@ -118,6 +118,12 @@ export async function fetchFinanceApplicationDetail(
   const application = row as DbApplication;
   const summary = mapSummary(application);
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("pathward_account_balance")
+    .eq("id", application.user_id)
+    .maybeSingle();
+
   const [historyRes, offersRes, notesRes, auditRes, docsRes, messagesRes, scoresRes] =
     await Promise.all([
       supabase
@@ -196,6 +202,9 @@ export async function fetchFinanceApplicationDetail(
 
   return {
     ...summary,
+    userId: application.user_id,
+    approvedAmount: Number(application.approved_amount ?? 0) || undefined,
+    pathwardBalance: Number(profile?.pathward_account_balance ?? 0),
     selectedTermId: application.selected_term_id ?? undefined,
     personalInfo: application.personal_info,
     financialInfo: application.financial_info,

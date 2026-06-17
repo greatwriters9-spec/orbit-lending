@@ -191,8 +191,8 @@ export function WithdrawalForm({ wallet }: WithdrawalFormProps) {
         </Button>
 
         <p className="text-xs text-muted-foreground">
-          Funds will move to pending balance until loan officer approval. Your wallet
-          is not debited until the withdrawal is approved.
+          Funds will move to pending balance until loan officer approval. Your funding
+          account is not debited until the withdrawal is approved.
         </p>
       </div>
     </div>

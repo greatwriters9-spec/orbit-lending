@@ -4,12 +4,11 @@ import {
   CreditCard,
   FileText,
   HelpCircle,
-  Landmark,
   LayoutDashboard,
+  Landmark,
   MessageSquare,
   Receipt,
   User,
-  Wallet,
 } from "lucide-react";
 
 import type { NavSection } from "@/types/navigation";
@@ -18,9 +17,8 @@ export const clientNavSections: NavSection[] = [
   {
     items: [
       { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-      { title: "Loan Products", href: "/loans", icon: Landmark },
       { title: "Applications", href: "/dashboard/loans", icon: CreditCard },
-      { title: "Wallet", href: "/wallet", icon: Wallet },
+      { title: "Funding Account", href: "/wallet", icon: Landmark },
       { title: "Repayments", href: "/dashboard/repayments", icon: Receipt },
       {
         title: "Transactions",
@@ -50,6 +48,7 @@ export const clientNavSections: NavSection[] = [
 ];
 
 export const CLIENT_PORTAL = {
-  title: "Orbit Lending",
-  subtitle: "Client Portal",
+  title: "Orbit Mortgage",
+  subtitle: "Mortgage Portal",
 } as const;
+

@@ -1,14 +1,15 @@
 import { PortalPlaceholder } from "@/components/layout/portal-placeholder";
 
 export const metadata = {
-  title: "Applications | Orbit Lending",
+  title: "Applications | Orbit Mortgage",
 };
 
 export default function Page() {
   return (
     <PortalPlaceholder
       title="Applications"
-      description="Overview of all platform loan applications."
+      description="Overview of all platform mortgage applications."
     />
   );
 }
+

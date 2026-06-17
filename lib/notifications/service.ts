@@ -110,15 +110,15 @@ const STATUS_NOTIFICATIONS: Record<
   }
 > = {
   submitted: {
-    title: "Application Submitted",
-    message: "Your loan application has been submitted and is queued for review.",
+    title: "Mortgage Application Submitted",
+    message: "Your mortgage application has been submitted and is queued for review.",
     priority: "normal",
     showModal: false,
     sendEmail: true,
   },
   under_review: {
-    title: "Application Under Review",
-    message: "Your application is now being reviewed by our lending team.",
+    title: "Mortgage Under Review",
+    message: "Your mortgage application is now being reviewed by our mortgage team.",
     priority: "informational",
     showModal: false,
     sendEmail: true,
@@ -131,50 +131,50 @@ const STATUS_NOTIFICATIONS: Record<
     sendEmail: true,
   },
   offer_sent: {
-    title: "Loan Offer Sent",
-    message: "A financing offer is ready for your review. Please accept or decline.",
+    title: "Mortgage Offer Sent",
+    message: "A mortgage offer is ready for your review. Please accept or decline.",
     priority: "critical",
     showModal: true,
     sendEmail: true,
   },
   offer_accepted: {
     title: "Offer Accepted",
-    message: "You accepted the financing offer. Final approval is in progress.",
+    message: "You accepted the mortgage offer. Final approval is in progress.",
     priority: "high",
     showModal: false,
     sendEmail: true,
   },
   approved: {
-    title: "Loan Approved",
-    message: "Congratulations! Your loan application has been approved for funding.",
+    title: "Mortgage Approved",
+    message: "Congratulations! Your mortgage application has been approved for funding.",
     priority: "critical",
     showModal: true,
     sendEmail: true,
   },
   rejected: {
     title: "Application Not Approved",
-    message: "Your loan application was not approved at this time.",
+    message: "Your mortgage application was not approved at this time.",
     priority: "critical",
     showModal: true,
     sendEmail: true,
   },
   funded: {
     title: "Funding Complete",
-    message: "Your loan funds have been credited to your Orbit wallet.",
+    message: "Your mortgage funds have been credited to your Orbit wallet.",
     priority: "critical",
     showModal: true,
     sendEmail: true,
   },
   active: {
-    title: "Loan Active",
-    message: "Your loan is now active. View your dashboard for repayment details.",
+    title: "Mortgage Active",
+    message: "Your mortgage is now active. View your dashboard for payment details.",
     priority: "high",
     showModal: false,
     sendEmail: true,
   },
   completed: {
-    title: "Loan Completed",
-    message: "Your loan has been fully repaid. Thank you for banking with Orbit Lending.",
+    title: "Mortgage Fully Repaid",
+    message: "Your mortgage has been fully repaid. Thank you for banking with Orbit Mortgage.",
     priority: "high",
     showModal: false,
     sendEmail: true,
@@ -211,7 +211,7 @@ export async function notifyApplicationStatusChange(
     eventType: "status_change",
     title: config.title,
     description: config.message,
-    actorName: "Orbit Lending",
+    actorName: "Orbit Mortgage",
   });
 }
 
@@ -318,7 +318,7 @@ const ACCOUNT_STATUS_NOTIFICATIONS: Record<
   restricted: {
     title: "Account Restricted",
     message: (reason) =>
-      `Your account has been restricted.${reason ? ` Reason: ${reason}` : ""} New loan applications and withdrawals are temporarily unavailable.`,
+      `Your account has been restricted.${reason ? ` Reason: ${reason}` : ""} New mortgage applications and withdrawals are temporarily unavailable.`,
   },
   on_hold: {
     title: "Account On Hold",
@@ -328,7 +328,7 @@ const ACCOUNT_STATUS_NOTIFICATIONS: Record<
   suspended: {
     title: "Account Suspended",
     message: (reason) =>
-      `Your account has been suspended.${reason ? ` Reason: ${reason}` : ""} Please contact Orbit Lending support for assistance.`,
+      `Your account has been suspended.${reason ? ` Reason: ${reason}` : ""} Please contact Orbit Mortgage support for assistance.`,
   },
   active: {
     title: "Account Reactivated",
@@ -370,3 +370,4 @@ export async function notifyAccountStatusChange(
     email: email ?? undefined,
   });
 }
+

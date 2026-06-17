@@ -33,18 +33,23 @@ export function LoanCalculator() {
   );
 
   return (
-    <SectionShell id="calculator" tone="muted" className="py-16 md:py-20">
+    <SectionShell
+      id="calculator"
+      tone="muted"
+      className="scroll-mt-24 pt-8 pb-20 md:pt-10 md:pb-28"
+    >
       <SectionHeading
-        eyebrow="Loan Calculator"
-        title="Estimate Your Monthly Payment"
-        subtitle="Adjust loan amount, term, and APR to explore your estimated monthly payment before you apply."
+        className="max-w-3xl"
+        eyebrow="Mortgage Calculator"
+        title="Estimate Your Monthly Mortgage Payment"
+        subtitle="Adjust mortgage amount, term, and rate to explore your estimated monthly payment before you apply."
       />
 
-      <div className="mt-12 overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-[0_16px_48px_rgba(15,23,42,0.06)]">
+      <div className="mx-auto mt-10 max-w-5xl overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-[0_16px_48px_rgba(15,23,42,0.06)] md:mt-12">
         <div className="grid lg:grid-cols-[1.1fr_0.9fr]">
           <div className="space-y-8 border-b border-[#E5E7EB] p-6 md:p-8 lg:border-b-0 lg:border-r">
             <SliderField
-              label="Loan Amount"
+              label="Mortgage Amount"
               value={amount}
               min={MIN_AMOUNT}
               max={MAX_AMOUNT}
@@ -54,7 +59,7 @@ export function LoanCalculator() {
             />
 
             <SliderField
-              label="Estimated APR"
+              label="Mortgage Rate"
               value={apr}
               min={3}
               max={24}
@@ -65,7 +70,7 @@ export function LoanCalculator() {
 
             <div>
               <div className="mb-3 flex items-center justify-between">
-                <span className="text-sm font-medium text-brand-navy">Loan Term</span>
+                <span className="text-sm font-medium text-brand-navy">Mortgage Term</span>
                 <span className="text-sm font-semibold tabular-nums text-brand-blue">
                   {termMonths} months
                 </span>
@@ -92,7 +97,7 @@ export function LoanCalculator() {
           <div className="flex flex-col justify-between bg-gradient-to-br from-brand-navy to-[#1a3270] p-6 text-white md:p-8">
             <div className="space-y-6">
               <div>
-                <p className="text-sm text-white/60">Monthly Payment</p>
+                <p className="text-sm text-white/60">Estimated Monthly Mortgage Payment</p>
                 <p className="heading-primary-light mt-2 text-4xl tabular-nums md:text-5xl">
                   {result ? formatCurrency(result.installmentAmount) : "—"}
                 </p>
@@ -111,10 +116,10 @@ export function LoanCalculator() {
 
             <div className="mt-8 space-y-3">
               <Link
-                href="/register"
+                href="/get-started"
                 className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-[10px] bg-brand-blue text-sm font-semibold text-white transition-colors hover:bg-[#1d4ed8]"
               >
-                Apply with This Estimate
+                Get Pre-Qualified with This Estimate
                 <ArrowRight className="size-4" />
               </Link>
               <p className="text-center text-xs leading-relaxed text-white/50">

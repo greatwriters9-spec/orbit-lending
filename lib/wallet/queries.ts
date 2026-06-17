@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getLoanProductBySlug } from "@/lib/loans/mock-data";
 import { getOrCreateWallet, mapWallet } from "@/lib/wallet/ledger";
+import { fetchPathwardLinkedAccount } from "@/lib/wallet/pathward-account";
 import type {
   FundingQueueItem,
   Wallet,
@@ -82,7 +83,7 @@ export async function fetchWalletDashboard(
   const wallet = await getOrCreateWallet(userId);
   const supabase = await createClient();
 
-  const [transactionsRes, withdrawalsRes] = await Promise.all([
+  const [transactionsRes, withdrawalsRes, linkedAccount] = await Promise.all([
     supabase
       .from("wallet_transactions")
       .select("*")
@@ -95,14 +96,15 @@ export async function fetchWalletDashboard(
       .eq("wallet_id", wallet.id)
       .order("created_at", { ascending: false })
       .limit(10),
+    fetchPathwardLinkedAccount(userId),
   ]);
 
   const transactions = (transactionsRes.data ?? []).map((row) =>
     mapTransaction(row as DbTransaction),
   );
-
   return {
     wallet,
+    linkedAccount,
     recentTransactions: transactions,
     withdrawalRequests: (withdrawalsRes.data ?? []).map((row) =>
       mapWithdrawal(row as DbWithdrawal),

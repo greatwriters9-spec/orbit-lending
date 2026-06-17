@@ -3,7 +3,7 @@ import { getSessionUser } from "@/lib/auth/actions";
 import { fetchUserNotifications } from "@/lib/notifications/queries";
 
 export const metadata = {
-  title: "Notifications | Orbit Lending",
+  title: "Notifications | Orbit Mortgage",
 };
 
 export default async function NotificationsPage() {
@@ -14,3 +14,4 @@ export default async function NotificationsPage() {
 
   return <NotificationCenter notifications={notifications} />;
 }
+

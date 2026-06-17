@@ -36,9 +36,9 @@ export function ProductShowcase({ categories }: ProductShowcaseProps) {
   return (
     <SectionShell id="products" tone="white">
       <SectionHeading
-        eyebrow="Financing Solutions"
-        title="Products Designed for Every Financial Goal"
-        subtitle="Explore Orbit lending categories with competitive starting rates, transparent terms, and a unified digital application experience."
+        eyebrow="Mortgage Solutions"
+        title="Mortgage Products for Every Homeownership Goal"
+        subtitle="Explore digital mortgage options with competitive starting rates, transparent terms, and a unified application experience."
       />
 
       <div className="mt-10 flex flex-wrap justify-center gap-2 md:gap-3">

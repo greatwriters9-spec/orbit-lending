@@ -18,8 +18,9 @@ export async function assertClientAccountAllows(
   }
 
   if (!canAccountPerform(profile.account_status, restriction)) {
-    return "This action is not available due to your current account status. Please contact Orbit Lending support.";
+    return "This action is not available due to your current account status. Please contact Orbit Mortgage support.";
   }
 
   return null;
 }
+

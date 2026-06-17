@@ -2,6 +2,10 @@
 
 import { useActionState } from "react";
 
+import {
+  authButtonClassName,
+  authInputClassName,
+} from "@/components/auth/auth-mortgage-background";
 import { FormField, FormMessage } from "@/components/auth/form-field";
 import { Button } from "@/components/ui-kit/button";
 import { Input } from "@/components/ui-kit/input";
@@ -28,15 +32,11 @@ export function ForgotPasswordForm() {
           autoComplete="email"
           placeholder="you@example.com"
           required
-          className="h-10 border-brand-border bg-brand-background"
+          className={authInputClassName}
         />
       </FormField>
 
-      <Button
-        type="submit"
-        disabled={isPending}
-        className="h-10 w-full bg-brand-blue text-white hover:bg-brand-blue/90"
-      >
+      <Button type="submit" disabled={isPending} className={authButtonClassName}>
         {isPending ? "Sending link..." : "Send reset link"}
       </Button>
     </form>

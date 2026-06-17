@@ -11,7 +11,7 @@ export const SUPPORT_MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024;
 
 export const TICKET_CATEGORY_LABELS: Record<SupportTicketCategory, string> = {
   application_support: "Application Support",
-  loan_status_inquiry: "Loan Status Inquiry",
+  loan_status_inquiry: "Mortgage Status Inquiry",
   repayment_assistance: "Repayment Assistance",
   payment_verification: "Payment Verification",
   withdrawal_issue: "Withdrawal Issue",
@@ -55,10 +55,10 @@ export const ESCALATION_LEVEL_LABELS: Record<SupportEscalationLevel, string> = {
 
 export const KNOWLEDGE_CATEGORY_LABELS: Record<string, string> = {
   getting_started: "Getting Started",
-  applying_for_financing: "Applying For Financing",
-  loan_status_tracking: "Loan Status Tracking",
+  applying_for_financing: "Applying For a Mortgage",
+  loan_status_tracking: "Mortgage Status Tracking",
   repayments: "Repayments",
-  wallet_management: "Wallet Management",
+  wallet_management: "Funding Account Management",
   transactions: "Transactions",
   document_uploads: "Document Uploads",
   account_security: "Account Security",
@@ -83,7 +83,7 @@ export const QUICK_ACTION_CATEGORIES: Array<{
   {
     label: "Message Loan Officer",
     category: "loan_status_inquiry",
-    description: "Questions about your loan or application",
+    description: "Questions about your mortgage or application",
   },
   {
     label: "Report Payment Issue",
@@ -91,7 +91,7 @@ export const QUICK_ACTION_CATEGORIES: Array<{
     description: "Payment not reflected or verification delay",
   },
   {
-    label: "Loan Application Assistance",
+    label: "Mortgage Application Assistance",
     category: "application_support",
     description: "Help completing or updating your application",
   },

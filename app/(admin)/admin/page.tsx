@@ -6,7 +6,7 @@ import { SectionHeader } from "@/components/ui-kit/section-header";
 import { LayoutDashboard, Settings, Users, Wallet } from "lucide-react";
 
 export const metadata = {
-  title: "Credit Manager Dashboard | Orbit Lending",
+  title: "Credit Manager Dashboard | Orbit Mortgage",
 };
 
 export default function AdminDashboardPage() {
@@ -21,7 +21,7 @@ export default function AdminDashboardPage() {
             Credit Manager Dashboard
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/60">
-            Manage platform users, oversee lending operations, and access loan
+            Manage platform users, oversee mortgage operations, and access loan
             officer tools.
           </p>
         </div>
@@ -66,7 +66,7 @@ export default function AdminDashboardPage() {
         <PortalLink
           href="/finance/dashboard"
           title="Loan Officer Portal"
-          description="Review applications, fund loans, and approve withdrawals."
+          description="Review applications, fund mortgages, and approve withdrawals."
           icon={Wallet}
         />
         <PortalLink
@@ -108,3 +108,4 @@ function PortalLink({
     </Link>
   );
 }
+

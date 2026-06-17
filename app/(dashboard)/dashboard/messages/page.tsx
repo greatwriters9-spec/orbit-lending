@@ -4,7 +4,7 @@ import { fetchUserMessageThreads } from "@/lib/notifications/queries";
 import { getLoanProductBySlug } from "@/lib/loans/mock-data";
 
 export const metadata = {
-  title: "Messages | Orbit Lending",
+  title: "Messages | Orbit Mortgage",
 };
 
 export default async function MessagesPage() {
@@ -21,10 +21,11 @@ export default async function MessagesPage() {
       <div>
         <h1 className="heading-primary text-2xl">Messages</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Application communications with your Orbit Lending loan officer.
+          Application communications with your Orbit Mortgage loan officer.
         </p>
       </div>
       <MessageThreadsList threads={enriched} />
     </div>
   );
 }
+

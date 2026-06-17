@@ -63,7 +63,7 @@ export const superAdminNavSections: NavSection[] = [
     ],
   },
   {
-    label: "Loan Operations",
+    label: "Mortgage Operations",
     items: [
       {
         title: "Loan Officer Dashboard",
@@ -90,6 +90,7 @@ export const superAdminNavSections: NavSection[] = [
 ];
 
 export const SUPER_ADMIN_PORTAL = {
-  title: "Orbit Lending",
+  title: "Orbit Mortgage",
   subtitle: "Chief Lending Officer Portal",
 } as const;
+

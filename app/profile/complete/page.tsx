@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
 
 import { AuthCard } from "@/components/auth/auth-card";
+import { AuthPageShell } from "@/components/auth/auth-page-shell";
 import { ProfileCompletionForm } from "@/components/auth/profile-completion-form";
+import { getProfileCompletionDefaults } from "@/lib/auth/profile-completion-defaults";
 import { getProfile, isProfileComplete } from "@/lib/auth/profile";
 import { getDefaultRouteForRole } from "@/lib/auth/roles";
 import { AUTH_ROUTES } from "@/lib/auth/routes";
@@ -20,15 +22,17 @@ export default async function ProfileCompletePage() {
     redirect(getDefaultRouteForRole(profile?.role));
   }
 
+  const defaults = await getProfileCompletionDefaults(user.id);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-brand-background px-4 py-10">
+    <AuthPageShell className="items-start py-10 md:items-center">
       <AuthCard
-        title="Complete your profile"
-        description="We need a few details before you can access your dashboard."
+        title="Confirm your details"
+        description="We saved your answers from onboarding. Review everything below and confirm to continue."
         className="max-w-2xl"
       >
-        <ProfileCompletionForm profile={profile} />
+        <ProfileCompletionForm defaults={defaults} />
       </AuthCard>
-    </div>
+    </AuthPageShell>
   );
 }

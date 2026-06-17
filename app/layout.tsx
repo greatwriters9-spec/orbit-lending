@@ -8,12 +8,14 @@ import "./globals.css";
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Orbit Lending | Loan Management Platform",
+  title: "Orbit Mortgage | Digital Mortgage Platform",
   description:
-    "A secure, professional loan management platform for clients and staff.",
+    "A secure digital mortgage origination platform for homebuyers and staff.",
 };
 
 export default function RootLayout({
@@ -23,9 +25,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
-      <body className="min-h-full bg-brand-background font-sans text-foreground">
+      <body
+        className={`${inter.className} min-h-full bg-brand-background font-sans text-foreground`}
+      >
         <AppProviders>{children}</AppProviders>
       </body>
     </html>
   );
 }
+

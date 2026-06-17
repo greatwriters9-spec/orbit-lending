@@ -2,16 +2,20 @@ import {
   Bell,
   CreditCard,
   FileUp,
-  LayoutDashboard,
   MessageSquare,
   Wallet,
 } from "lucide-react";
 
+import { OrbitLogo } from "@/components/brand/orbit-logo";
 import { LANDING_DASHBOARD_FEATURES } from "@/lib/landing/content";
+import { LANDING_SECTION_IMAGES } from "@/lib/landing/images";
 
+import { LandingSectionImage } from "./landing-section-image";
 import { SectionHeading, SectionShell } from "./shared/section-shell";
 
 export function DashboardPreview() {
+  const image = LANDING_SECTION_IMAGES.dashboard;
+
   return (
     <SectionShell tone="white">
       <SectionHeading
@@ -20,18 +24,17 @@ export function DashboardPreview() {
         subtitle="Track applications, repayments, documents, messages, and funding activity from a single dashboard."
       />
 
-      <div className="relative mt-14">
+      <div className="mt-14 grid items-stretch gap-8 lg:grid-cols-[0.42fr_0.58fr] lg:gap-10">
+        <LandingSectionImage
+          {...image}
+          className="min-h-[280px] rounded-2xl shadow-[0_20px_60px_rgba(15,23,42,0.1)] lg:min-h-full"
+          sizes="(max-width: 1024px) 100vw, 420px"
+        />
+
+        <div className="relative">
         <div className="overflow-hidden rounded-2xl border border-[#E5E7EB] bg-gradient-to-br from-[#F8FAFC] to-white shadow-[0_24px_64px_rgba(15,23,42,0.1)]">
           <div className="border-b border-[#E5E7EB] bg-brand-navy px-6 py-4">
-            <div className="flex items-center gap-3">
-              <LayoutDashboard className="size-5 text-white/80" />
-              <div>
-                <p className="text-xs font-semibold tracking-[0.08em] text-white/45 uppercase">
-                  Orbit Client Portal
-                </p>
-                <p className="heading-primary-light text-base">Application Dashboard</p>
-              </div>
-            </div>
+            <OrbitLogo href={null} size="sm" variant="onDark" className="gap-2.5" />
           </div>
 
           <div className="relative min-h-[420px] p-6 md:min-h-[480px] md:p-8">
@@ -44,7 +47,7 @@ export function DashboardPreview() {
               />
               <DashboardPanel
                 icon={Wallet}
-                title="Wallet Balance"
+                title="Account Balance"
                 value="$12,450"
                 detail="Available after funding"
               />
@@ -63,7 +66,7 @@ export function DashboardPreview() {
                   <p className="text-sm font-semibold text-brand-navy">Messages</p>
                 </div>
                 <p className="mt-3 text-sm text-muted-foreground">
-                  Your lending officer replied regarding income verification.
+                  Your mortgage officer replied regarding income verification.
                 </p>
               </div>
               <div className="rounded-xl border border-[#E5E7EB] bg-white p-5">
@@ -102,6 +105,7 @@ export function DashboardPreview() {
               <p className="mt-1 text-xs text-muted-foreground">{feature.description}</p>
             </div>
           ))}
+        </div>
         </div>
       </div>
     </SectionShell>

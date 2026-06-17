@@ -3,7 +3,7 @@ import { ClientDocumentsCenter } from "@/components/documents/client-documents-c
 import { fetchClientDocuments } from "@/lib/documents/queries";
 
 export const metadata = {
-  title: "Documents | Orbit Lending",
+  title: "Documents | Orbit Mortgage",
 };
 
 export default async function DocumentsPage() {
@@ -12,3 +12,4 @@ export default async function DocumentsPage() {
 
   return <ClientDocumentsCenter documents={documents} />;
 }
+

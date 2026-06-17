@@ -4,13 +4,13 @@ export const WIZARD_STEPS: WizardStepDefinition[] = [
   {
     id: 1,
     key: "product-summary",
-    label: "Loan Product Summary",
+    label: "Mortgage Summary",
     shortLabel: "Product",
   },
   {
     id: 2,
     key: "loan-configuration",
-    label: "Loan Configuration",
+    label: "Mortgage Configuration",
     shortLabel: "Configure",
   },
   {

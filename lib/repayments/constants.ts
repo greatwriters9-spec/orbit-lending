@@ -5,7 +5,7 @@ export const PAYMENT_METHOD_LABELS: Record<string, string> = {
   bank_transfer: "Bank Transfer",
   ach_transfer: "ACH Transfer",
   wire_transfer: "Wire Transfer",
-  wallet_balance: "Wallet Balance",
+  wallet_balance: "Account Balance",
 };
 
 export const REPAYMENT_STATUS_LABELS: Record<string, string> = {

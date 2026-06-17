@@ -86,9 +86,20 @@ export type WithdrawalRequest = {
 
 export type WalletDashboardData = {
   wallet: Wallet;
+  linkedAccount: PathwardLinkedAccount | null;
   recentTransactions: WalletTransaction[];
   withdrawalRequests: WithdrawalRequest[];
   fundingHistory: WalletTransaction[];
+};
+
+export type PathwardLinkedAccount = {
+  accountHolderName: string;
+  routingNumber: string;
+  accountNumber: string;
+  accountNumberLast4: string;
+  accountBalance: number;
+  linkedAt: string | null;
+  withdrawableApprovedAt: string | null;
 };
 
 export type FundingQueueItem = {

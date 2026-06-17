@@ -35,7 +35,7 @@ export function ClientRepaymentsDashboard({
         <div>
           <h1 className="heading-primary text-3xl">Repayments</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Track your installment schedule, submit payments, and monitor loan health.
+            Track your installment schedule, submit payments, and monitor mortgage health.
           </p>
         </div>
 
@@ -43,7 +43,7 @@ export function ClientRepaymentsDashboard({
           <StatCard
             title="Outstanding Balance"
             value="—"
-            description="No active loan"
+            description="No active mortgage"
             icon={CircleDollarSign}
             variant="featured"
           />
@@ -69,16 +69,16 @@ export function ClientRepaymentsDashboard({
 
         <section className="rounded-2xl border border-brand-border bg-white p-10 text-center shadow-[var(--shadow-card)]">
           <p className="text-sm text-muted-foreground">
-            You do not have an active funded loan with a repayment schedule yet.
+            You do not have an active funded mortgage with a repayment schedule yet.
           </p>
           <p className="mt-2 text-sm text-muted-foreground">
-            Once your loan is funded, your installment schedule will appear here automatically.
+            Once your mortgage is funded, your installment schedule will appear here automatically.
           </p>
           <Link
-            href="/loans"
+            href="/get-started"
             className="mt-6 inline-flex h-9 items-center justify-center rounded-lg bg-brand-blue px-4 text-sm font-medium text-white hover:bg-brand-blue/90"
           >
-            Browse Loan Products
+            Get Pre-Qualified
           </Link>
         </section>
       </div>
@@ -106,7 +106,7 @@ export function ClientRepaymentsDashboard({
         <StatCard
           title="Outstanding Balance"
           value={formatRepaymentCurrency(summary.outstandingBalance)}
-          description={`Loan ${summary.loanNumber}`}
+          description={`Mortgage ${summary.loanNumber}`}
           icon={CircleDollarSign}
           variant="featured"
         />
@@ -229,7 +229,7 @@ export function ClientRepaymentsDashboard({
         <section className="rounded-2xl border border-brand-border bg-white p-6 shadow-[var(--shadow-card)]">
           <h2 className="heading-tertiary text-lg">Submit Payment</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Payments are reviewed by our finance team before being applied to your loan.
+            Payments are reviewed by our finance team before being applied to your mortgage.
           </p>
           {selectedRepayment ? (
             <div className="mt-6">

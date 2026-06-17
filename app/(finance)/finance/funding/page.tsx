@@ -4,7 +4,7 @@ import { fetchFundingQueue } from "@/lib/wallet/queries";
 import { PATHWARD_BANK } from "@/types/wallet";
 
 export const metadata = {
-  title: "Funding Queue | Orbit Lending",
+  title: "Funding Queue | Orbit Mortgage",
 };
 
 export default async function FinanceFundingPage() {
@@ -21,14 +21,14 @@ export default async function FinanceFundingPage() {
             Funding Queue
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/60">
-            Approved loans awaiting disbursement. Funding credits the client
+            Approved mortgages awaiting disbursement. Funding credits the client
             wallet automatically via {PATHWARD_BANK.name}.
           </p>
         </div>
       </section>
 
       <SectionHeader
-        title="Approved Loans Awaiting Funding"
+        title="Approved Mortgages Awaiting Funding"
         description={`${queue.length} application${queue.length === 1 ? "" : "s"} ready for disbursement.`}
       />
 
@@ -36,3 +36,4 @@ export default async function FinanceFundingPage() {
     </div>
   );
 }
+

@@ -4,7 +4,7 @@ import { fetchAdminUsers } from "@/lib/admin/users/queries";
 import { requireSuperAdmin } from "@/lib/auth/guards";
 
 export const metadata = {
-  title: "Users | Orbit Lending",
+  title: "Users | Orbit Mortgage",
 };
 
 type PageProps = {
@@ -35,3 +35,4 @@ export default async function SuperAdminUsersPage({ searchParams }: PageProps) {
     </div>
   );
 }
+

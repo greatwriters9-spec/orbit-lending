@@ -30,7 +30,7 @@ export function ProductDirectoryManager({
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <SectionHeader
           title="Product Directory"
-          description="Manage the same categories and products clients see on the Apply for Loan page. Edit category icons, illustrations, display order, and individual product rates from here."
+          description="Manage the same categories and products clients see on the Get Pre-Qualified page. Edit category icons, illustrations, display order, and individual product rates from here."
         />
         <div className="flex flex-wrap gap-3">
           <Link

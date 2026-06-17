@@ -22,8 +22,8 @@ export function ProductList({ products, basePath = "/admin/loan-products" }: Pro
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <SectionHeader
-          title="Loan Products"
-          description="Manage the same products clients see on the Apply for Loan page. Edit rates, amounts, and availability here."
+          title="Mortgage Products"
+          description="Manage the same products clients see on the Get Pre-Qualified page. Edit rates, amounts, and availability here."
         />
         <Link
           href={`${basePath}/new`}
@@ -36,7 +36,7 @@ export function ProductList({ products, basePath = "/admin/loan-products" }: Pro
 
       <p className="text-sm text-muted-foreground">
         Showing {products.length} product{products.length === 1 ? "" : "s"} from
-        the Orbit Lending catalog. Products marked{" "}
+        the Orbit Mortgage catalog. Products marked{" "}
         <span className="font-semibold text-brand-navy">Catalog</span> are
         editable and will be saved to the database on first update.
       </p>
@@ -148,3 +148,4 @@ function StatusPill({ status }: { status: string }) {
     </span>
   );
 }
+

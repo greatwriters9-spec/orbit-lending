@@ -7,6 +7,7 @@ import { useMemo, useState, useTransition } from "react";
 import { ApplicationStatusTimeline } from "@/components/applications/application-status-timeline";
 import { ApplicationStatusBadge } from "@/components/applications/application-status-badge";
 import { ApplicationScoringPanel } from "@/components/finance/application-scoring-panel";
+import { DownPaymentReviewPanel } from "@/components/finance/down-payment-review-panel";
 import {
   addInternalNoteAction,
   approveFundingAction,
@@ -15,6 +16,7 @@ import {
   requestInformationAction,
   saveOfferAction,
   sendFinanceMessageAction,
+  setMortgageEligibilityAction,
   updateApplicationStatusAction,
 } from "@/lib/finance/actions";
 import { getAllowedTransitions } from "@/lib/applications/engine/transitions";
@@ -81,6 +83,9 @@ export function FinanceApplicationReview({
     repaymentPeriod: 24,
     notes: "",
   });
+  const [eligibleAmount, setEligibleAmount] = useState(
+    application.approvedAmount ?? application.requestedAmount,
+  );
 
   function runAction(action: () => Promise<{ error?: string; success?: string }>) {
     startTransition(async () => {
@@ -101,6 +106,16 @@ export function FinanceApplicationReview({
   const canApproveFunding =
     application.status === "pending_finance_approval" ||
     application.status === "offer_accepted";
+
+  const canSetEligibility = [
+    "submitted",
+    "under_review",
+    "information_required",
+  ].includes(application.status);
+
+  const showDownPaymentReview = ["approved", "funded", "active"].includes(
+    application.status,
+  );
 
   return (
     <div className="space-y-8">
@@ -153,6 +168,52 @@ export function FinanceApplicationReview({
           </section>
 
           <ApplicationStatusTimeline entries={application.statusHistory} />
+
+          {canSetEligibility ? (
+            <section className="card-surface p-6 md:p-8">
+              <SectionHeader
+                title="Mortgage Eligibility"
+                description="Set the amount this client is eligible for. This does not fund the account — the client must continue their application toward approval."
+              />
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <InfoBlock
+                  label="Requested Amount"
+                  value={formatCurrency(application.requestedAmount)}
+                />
+                <LabeledInput
+                  label="Eligible Mortgage Amount"
+                  type="number"
+                  value={eligibleAmount}
+                  onChange={(v) => setEligibleAmount(Number(v))}
+                />
+              </div>
+              <Button
+                disabled={isPending || eligibleAmount <= 0}
+                onClick={() =>
+                  runAction(() =>
+                    setMortgageEligibilityAction({
+                      applicationId: application.id,
+                      eligibleAmount,
+                      note:
+                        statusNote ||
+                        `Eligibility confirmed at ${formatCurrency(eligibleAmount)}.`,
+                    }),
+                  )
+                }
+                className="mt-4 h-10 bg-brand-blue text-white hover:bg-brand-blue/90"
+              >
+                Confirm Eligibility Amount
+              </Button>
+            </section>
+          ) : null}
+
+          {showDownPaymentReview ? (
+            <DownPaymentReviewPanel
+              applicationId={application.id}
+              personalInfo={application.personalInfo}
+              pathwardBalance={application.pathwardBalance}
+            />
+          ) : null}
 
           <section className="card-surface p-6 md:p-8">
             <SectionHeader title="Internal Notes" description="Staff-only notes not visible to applicants." />
@@ -397,7 +458,9 @@ export function FinanceApplicationReview({
           <section className="card-surface p-6">
             <h3 className="text-sm font-semibold text-brand-navy">Approval Decision</h3>
             <p className="mt-1 text-xs text-muted-foreground">
-              Approve after the client accepts the offer. Disburse via the Funding Queue.
+              Approve after the client accepts the offer. Fund the mortgage via the Funding
+              Queue, then link the Pathward account so the client can deposit their down
+              payment.
             </p>
             <div className="mt-4 flex flex-col gap-2">
               <Button

@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
-import Link from "next/link";
-import { Landmark } from "lucide-react";
 
+import { OrbitLogo } from "@/components/brand/orbit-logo";
 import { cn } from "@/lib/utils";
 
 type AuthCardProps = {
@@ -20,39 +19,30 @@ export function AuthCard({
   className,
 }: AuthCardProps) {
   return (
-    <div className={cn("w-full max-w-md", className)}>
-      <div className="mb-8 flex flex-col items-center text-center">
-        <Link
-          href="/"
-          className="mb-6 flex items-center gap-3 rounded-xl border border-brand-border bg-white px-4 py-3 shadow-[var(--shadow-card)]"
-        >
-          <div className="flex size-10 items-center justify-center rounded-xl bg-brand-blue text-white shadow-[var(--shadow-sidebar-active)]">
-            <Landmark className="size-5" strokeWidth={1.75} />
-          </div>
-          <div className="text-left">
-            <p className="text-sm font-bold tracking-tight text-brand-navy">
-              Orbit Lending
-            </p>
-            <p className="text-[11px] font-medium text-muted-foreground uppercase">
-              Secure Client Access
-            </p>
-          </div>
-        </Link>
-        <h1 className="heading-primary text-2xl">
-          {title}
-        </h1>
-        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-          {description}
-        </p>
+    <div
+      className={cn(
+        "w-full max-w-[400px] rounded-md bg-white px-9 py-9 shadow-[0_8px_32px_rgba(15,23,42,0.14)] md:px-10 md:py-10",
+        className,
+      )}
+    >
+      <div className="mb-8 flex justify-center">
+        <OrbitLogo href="/" />
       </div>
 
-      <div className="card-surface p-6 md:p-8">{children}</div>
+      <div className="mb-6 text-center">
+        <h1 className="text-base font-bold text-[#1f2937]">{title}</h1>
+        <p className="mt-2 text-sm leading-relaxed text-[#64748b]">{description}</p>
+      </div>
+
+      {children}
 
       {footer ? (
-        <div className="mt-6 text-center text-sm text-muted-foreground">
-          {footer}
-        </div>
+        <div className="mt-6 text-center text-sm text-[#64748b]">{footer}</div>
       ) : null}
+
+      <p className="mt-8 text-center text-[11px] text-[#9aa3af]">
+        © {new Date().getFullYear()} Orbit Mortgage
+      </p>
     </div>
   );
 }

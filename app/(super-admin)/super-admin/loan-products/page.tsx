@@ -3,7 +3,7 @@ import { fetchAdminProductDirectory } from "@/lib/admin/products/directory-data"
 import { requireSuperAdmin } from "@/lib/auth/guards";
 
 export const metadata = {
-  title: "Product Directory | Orbit Lending",
+  title: "Product Directory | Orbit Mortgage",
 };
 
 export default async function SuperAdminLoanProductsPage() {
@@ -17,3 +17,4 @@ export default async function SuperAdminLoanProductsPage() {
     />
   );
 }
+
