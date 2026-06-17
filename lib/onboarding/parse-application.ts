@@ -8,6 +8,7 @@ import type {
 type OnboardingMeta = {
   homeFound?: boolean;
   targetLocation?: TargetLocation;
+  targetHomePrice?: number;
   propertyAddress?: PropertyAddress;
   purchasePrice?: number;
   propertyType?: string;
