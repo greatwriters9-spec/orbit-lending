@@ -10,9 +10,11 @@ import type {
 
 type DbApplication = {
   id: string;
+  user_id: string;
   application_number: string | null;
   loan_product_slug: string;
   requested_amount: number | null;
+  approved_amount: number | null;
   selected_term_id: string | null;
   purpose: string | null;
   status: ApplicationStatus;

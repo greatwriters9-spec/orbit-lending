@@ -354,11 +354,11 @@ export function OnboardingWizard({ isLoggedIn = false }: { isLoggedIn?: boolean 
           setError("Enter a valid 9-digit Social Security number.");
           return false;
         }
-        if (!draft.creditProfile.citizenshipStatus) {
+        if (!draft.creditProfile?.citizenshipStatus) {
           setError("Select your citizenship status.");
           return false;
         }
-        if (!draft.creditProfile.maritalStatus) {
+        if (!draft.creditProfile?.maritalStatus) {
           setError("Select your marital status.");
           return false;
         }

@@ -13,7 +13,7 @@ import type {
   MortgageSummaryView,
   PathwardFundingView,
 } from "@/types/mortgage-dashboard";
-import type { PreQualificationResult } from "@/types/mortgage-onboarding";
+import type { PreQualificationResult, PropertyUse } from "@/types/mortgage-onboarding";
 import type { PathwardLinkedAccount } from "@/types/wallet";
 
 const PROPERTY_TYPE_LABELS: Record<string, string> = {
@@ -395,7 +395,7 @@ export function resolvePreQualificationFromApplication(input: {
     homeFound: meta.homeFound,
     targetHomePrice: meta.targetLocation ? undefined : undefined,
     purchasePrice: meta.purchasePrice,
-    propertyUse: meta.propertyUse,
+    propertyUse: meta.propertyUse as PropertyUse | undefined,
     employment: {
       employerName: "",
       employmentType: "full_time",
