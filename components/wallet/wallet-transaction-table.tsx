@@ -99,10 +99,10 @@ export function WalletTransactionTable({
 function mapTxStatus(status: WalletTransaction["status"]): LoanStatus {
   switch (status) {
     case "completed":
-      return "completed";
+      return "success";
     case "failed":
     case "cancelled":
-      return "rejected";
+      return "danger";
     default:
       return "pending";
   }

@@ -4,7 +4,6 @@ import {
 } from "@/lib/applications/status-utils";
 import { StatusBadge } from "@/components/ui-kit/status-badge";
 import type { ApplicationStatus } from "@/types/application-details";
-import type { LoanStatus } from "@/types/dashboard";
 
 type ApplicationStatusBadgeProps = {
   status: ApplicationStatus;
@@ -15,7 +14,7 @@ export function ApplicationStatusBadge({
   status,
   className,
 }: ApplicationStatusBadgeProps) {
-  const tone = APPLICATION_STATUS_TONE[status] as LoanStatus;
+  const tone = APPLICATION_STATUS_TONE[status];
 
   return (
     <StatusBadge

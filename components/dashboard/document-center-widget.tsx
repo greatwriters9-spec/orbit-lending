@@ -2,6 +2,11 @@ import Link from "next/link";
 import { FileText } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import {
+  STATUS_BADGE_BASE,
+  statusBadgeClasses,
+  type StatusColorVariant,
+} from "@/lib/status-colors";
 import type { DocumentCenterItem } from "@/types/mortgage-dashboard";
 
 type DocumentCenterWidgetProps = {
@@ -9,12 +14,12 @@ type DocumentCenterWidgetProps = {
   className?: string;
 };
 
-const STATUS_STYLES = {
-  approved: "bg-brand-success/10 text-brand-success",
-  pending: "bg-brand-blue/10 text-brand-blue",
-  required: "bg-brand-warning/10 text-brand-warning",
-  rejected: "bg-brand-danger/10 text-brand-danger",
-} as const;
+const STATUS_VARIANTS: Record<DocumentCenterItem["status"], StatusColorVariant> = {
+  approved: "success",
+  pending: "pending",
+  required: "pending",
+  rejected: "danger",
+};
 
 export function DocumentCenterWidget({
   documents,
@@ -51,8 +56,9 @@ export function DocumentCenterWidget({
             <span className="text-sm font-medium text-brand-navy">{doc.name}</span>
             <span
               className={cn(
-                "rounded-full px-2.5 py-1 text-xs font-semibold capitalize",
-                STATUS_STYLES[doc.status],
+                STATUS_BADGE_BASE,
+                "rounded-full capitalize",
+                statusBadgeClasses(STATUS_VARIANTS[doc.status]),
               )}
             >
               {doc.status}

@@ -1,12 +1,17 @@
 import { calculateLoanPayment } from "@/lib/loans/calculator";
 import { getLoanProductBySlug } from "@/lib/loans/mock-data";
+import {
+  DEFAULT_MORTGAGE_CONFIG,
+  downPaymentRateFromConfig,
+  getPrimaryMortgageTerm,
+  type MortgageConfig,
+} from "@/types/mortgage-config";
 import type {
   MortgageApplicationDraft,
   PreQualificationResult,
 } from "@/types/mortgage-onboarding";
 
 const DEFAULT_PRODUCT_SLUG = "home-mortgage";
-const DOWN_PAYMENT_RATE = 0.2;
 const MAX_DTI = 0.43;
 const HOUSING_RATIO = 0.28;
 
@@ -36,6 +41,7 @@ function estimateMaxHomeFromIncome(
   interestRate: number,
   termMonths: number,
   productMax: number,
+  downPaymentRate: number,
 ): number {
   if (annualIncome <= 0) {
     return 0;
@@ -62,7 +68,7 @@ function estimateMaxHomeFromIncome(
 
   const affordableMortgage =
     (availableForMortgage / paymentResult.installmentAmount) * 100_000;
-  const incomeCap = affordableMortgage / (1 - DOWN_PAYMENT_RATE);
+  const incomeCap = affordableMortgage / (1 - downPaymentRate);
   const ruleOfThumbCap = annualIncome * 3.5;
 
   return Math.min(productMax, Math.max(incomeCap, ruleOfThumbCap * 0.85));
@@ -70,15 +76,25 @@ function estimateMaxHomeFromIncome(
 
 export function computePreQualification(
   draft: MortgageApplicationDraft,
+  config: MortgageConfig = DEFAULT_MORTGAGE_CONFIG,
 ): PreQualificationResult | null {
-  const product = getLoanProductBySlug(DEFAULT_PRODUCT_SLUG);
-  if (!product?.terms.length) {
+  const primaryTerm = getPrimaryMortgageTerm(config);
+  if (!primaryTerm) {
     return null;
   }
 
-  const term =
-    product.terms.find((item) => item.repaymentPeriod === 360) ??
-    product.terms[product.terms.length - 1];
+  const downPaymentRate = downPaymentRateFromConfig(config);
+  const minLoanAmount = config.minLoanAmount;
+  const maxLoanAmount = config.maxLoanAmount;
+  const interestRate = primaryTerm.interestRate;
+  const termMonths = primaryTerm.termMonths;
+
+  // Resolve a stable term id from the catalog product when available so the
+  // generated application links to a known term; otherwise use the config id.
+  const product = getLoanProductBySlug(DEFAULT_PRODUCT_SLUG);
+  const loanTermId =
+    product?.terms.find((item) => item.repaymentPeriod === termMonths)?.id ??
+    primaryTerm.id;
 
   const annualIncome = draft.employment?.annualIncome ?? 0;
   const statedHomePrice = resolveHomePrice(draft);
@@ -90,19 +106,20 @@ export function computePreQualification(
   const incomeBasedMax = estimateMaxHomeFromIncome(
     annualIncome,
     0,
-    term.interestRate,
-    term.repaymentPeriod,
-    product.maxAmount,
+    interestRate,
+    termMonths,
+    maxLoanAmount,
+    downPaymentRate,
   );
 
   const assetBasedMax =
     liquidAssets > 0
-      ? liquidAssets / DOWN_PAYMENT_RATE + liquidAssets * 0.5
+      ? liquidAssets / downPaymentRate + liquidAssets * 0.5
       : incomeBasedMax;
 
   const maximumHomePrice = Math.round(
     Math.min(
-      product.maxAmount,
+      maxLoanAmount,
       Math.max(statedHomePrice, incomeBasedMax, assetBasedMax),
     ),
   );
@@ -112,17 +129,17 @@ export function computePreQualification(
       ? Math.min(statedHomePrice, maximumHomePrice)
       : maximumHomePrice;
 
-  const estimatedDownPayment = Math.round(effectiveHomePrice * DOWN_PAYMENT_RATE);
+  const estimatedDownPayment = Math.round(effectiveHomePrice * downPaymentRate);
   const estimatedMortgageAmount = Math.max(
-    product.minAmount,
+    minLoanAmount,
     effectiveHomePrice - estimatedDownPayment,
   );
 
   const payment = calculateLoanPayment({
     principal: estimatedMortgageAmount,
-    annualInterestRate: term.interestRate,
-    repaymentPeriod: term.repaymentPeriod,
-    repaymentFrequency: term.repaymentFrequency,
+    annualInterestRate: interestRate,
+    repaymentPeriod: termMonths,
+    repaymentFrequency: "Monthly",
   });
 
   return {
@@ -130,9 +147,9 @@ export function computePreQualification(
     estimatedMortgageAmount,
     estimatedDownPayment,
     estimatedMonthlyPayment: payment?.installmentAmount ?? 0,
-    interestRate: term.interestRate,
-    loanTermMonths: term.repaymentPeriod,
-    loanTermId: term.id,
+    interestRate,
+    loanTermMonths: termMonths,
+    loanTermId,
     loanProductSlug: DEFAULT_PRODUCT_SLUG,
   };
 }

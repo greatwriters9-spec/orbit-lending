@@ -294,7 +294,7 @@ function mapFundingStatusLabel(
   required: number,
 ): FundingStatusLabel {
   if (status === "verified") return "Verified";
-  if (status === "pending_verification") return "Pending Verification";
+  if (status === "pending_verification") return "Pending";
   if (received <= 0) return "Awaiting Deposit";
   if (received < required) return "Partially Funded";
   return "Fully Funded";

@@ -127,7 +127,7 @@ export function PortfolioSummary({
             </p>
           </div>
         </div>
-        <StatusBadge status="active" />
+        <StatusBadge status="success" />
       </div>
 
       <div className="mt-6 overflow-hidden rounded-xl border border-brand-border bg-brand-background/50">

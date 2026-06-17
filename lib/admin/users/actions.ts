@@ -283,9 +283,9 @@ export async function updateLinkedPathwardAccountAction(
 
   await createNotification({
     userId: parsed.data.userId,
-    title: "Pathward Funding Account Ready",
+    title: "Funding Account Ready",
     message:
-      "Your Pathward Funding Account has been linked. Deposit your required down payment using the wire instructions in your dashboard.",
+      "Your Funding Account has been linked. Deposit your required down payment using the wire instructions in your dashboard.",
     type: "application_update",
   });
 

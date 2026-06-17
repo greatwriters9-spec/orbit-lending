@@ -39,10 +39,16 @@ const messageSchema = z.object({
 
 const requestInfoSchema = z.object({
   applicationId: z.string().uuid(),
-  documentName: z.string().min(2),
-  description: z.string().min(5),
+  documentName: z.string().optional(),
+  description: z.string().optional(),
   dueDate: z.string().optional(),
   message: z.string().min(5),
+});
+
+const approveApplicationSchema = z.object({
+  applicationId: z.string().uuid(),
+  approvedAmount: z.number().positive(),
+  note: z.string().min(3, "Add a note explaining the approval."),
 });
 
 const offerSchema = z.object({
@@ -243,19 +249,23 @@ export async function requestInformationAction(
   }
 
   const senderName = await getStaffName(supabase, user.id);
+  const documentName = parsed.data.documentName?.trim();
+  const description = parsed.data.description?.trim();
 
-  const { error: docError } = await supabase
-    .from("application_document_requests")
-    .insert({
-      application_id: parsed.data.applicationId,
-      document_name: parsed.data.documentName,
-      description: parsed.data.description,
-      required: true,
-      due_date: parsed.data.dueDate || null,
-    });
+  if (documentName) {
+    const { error: docError } = await supabase
+      .from("application_document_requests")
+      .insert({
+        application_id: parsed.data.applicationId,
+        document_name: documentName,
+        description: description || null,
+        required: true,
+        due_date: parsed.data.dueDate || null,
+      });
 
-  if (docError) {
-    return { error: docError.message };
+    if (docError) {
+      return { error: docError.message };
+    }
   }
 
   await sendStaffMessage(
@@ -265,17 +275,83 @@ export async function requestInformationAction(
     "finance",
   );
 
+  const keepCurrentStatus = ["approved", "funded", "active"].includes(
+    existing.status,
+  );
+
+  if (keepCurrentStatus) {
+    await logApplicationAudit(supabase, user.id, {
+      action: "application.information_requested",
+      entityType: "loan_application",
+      entityId: parsed.data.applicationId,
+      oldValues: { status: existing.status },
+      newValues: {
+        documentName: documentName ?? null,
+        message: parsed.data.message,
+        statusUnchanged: true,
+      },
+    });
+  } else {
+    const result = await transitionApplicationStatus(
+      parsed.data.applicationId,
+      "information_required",
+      {
+        note: documentName
+          ? `Document requested: ${documentName}`
+          : parsed.data.message,
+        auditAction: "application.information_requested",
+        auditOldValues: { status: existing.status },
+        auditNewValues: {
+          documentName: documentName ?? null,
+          message: parsed.data.message,
+        },
+        skipValidation: existing.status === "information_required",
+      },
+    );
+
+    if (result.error) {
+      return { error: result.error };
+    }
+  }
+
+  revalidateApplicationPaths(parsed.data.applicationId);
+  return { success: "Information request sent to applicant." };
+}
+
+export async function approveApplicationAction(
+  input: z.infer<typeof approveApplicationSchema>,
+): Promise<FinanceActionState> {
+  const parsed = approveApplicationSchema.safeParse(input);
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Invalid input." };
+  }
+
+  const existing = await getApplicationSnapshot(parsed.data.applicationId);
+  if (!existing) {
+    return { error: "Application not found." };
+  }
+
+  if (["rejected", "defaulted", "completed", "funded", "active"].includes(existing.status)) {
+    return { error: "This application can no longer be approved." };
+  }
+
   const result = await transitionApplicationStatus(
     parsed.data.applicationId,
-    "information_required",
+    "approved",
     {
-      note: `Document requested: ${parsed.data.documentName}`,
-      auditAction: "application.information_requested",
-      auditOldValues: { status: existing.status },
-      auditNewValues: {
-        documentName: parsed.data.documentName,
-        message: parsed.data.message,
+      note: parsed.data.note,
+      auditAction: "application.approved",
+      auditOldValues: {
+        status: existing.status,
+        approvedAmount: existing.approved_amount,
       },
+      auditNewValues: {
+        approvedAmount: parsed.data.approvedAmount,
+        note: parsed.data.note,
+      },
+      systemMessage: `Your mortgage application has been approved for $${parsed.data.approvedAmount.toLocaleString()}. We may request additional documents before funding — check your messages and document requests for next steps.`,
+      extraUpdates: { approved_amount: parsed.data.approvedAmount },
+      skipValidation: false,
     },
   );
 
@@ -284,7 +360,8 @@ export async function requestInformationAction(
   }
 
   revalidateApplicationPaths(parsed.data.applicationId);
-  return { success: "Information request sent to applicant." };
+  revalidatePath("/finance/funding");
+  return { success: "Application approved." };
 }
 
 export async function saveOfferAction(
@@ -381,33 +458,17 @@ export async function approveFundingAction(
     .maybeSingle();
 
   const approvedAmount = Number(
-    offer?.final_amount ?? existing.requested_amount ?? 0,
+    existing.approved_amount ??
+      offer?.final_amount ??
+      existing.requested_amount ??
+      0,
   );
 
-  if (approvedAmount <= 0) {
-    return { error: "Cannot approve without a valid approved amount." };
-  }
-
-  const result = await transitionApplicationStatus(applicationId, "approved", {
-    note: note || "Funding approved by Loan Officer.",
-    auditAction: "application.funding_approved",
-    auditOldValues: {
-      status: existing.status,
-      approvedAmount: existing.approved_amount,
-    },
-    auditNewValues: { approvedAmount, note },
-    systemMessage:
-      "Your mortgage application has been approved. Your approved loan amount will be funded to your account. Deposit your required down payment into your Pathward Funding Account once it is set up — we will email you with next steps.",
-    extraUpdates: { approved_amount: approvedAmount },
+  return approveApplicationAction({
+    applicationId,
+    approvedAmount,
+    note: note || "Application approved by Loan Officer.",
   });
-
-  if (result.error) {
-    return { error: result.error };
-  }
-
-  revalidateApplicationPaths(applicationId);
-  revalidatePath("/finance/funding");
-  return { success: "Application approved for funding." };
 }
 
 export async function rejectFundingAction(

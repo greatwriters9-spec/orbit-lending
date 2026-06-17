@@ -1,12 +1,12 @@
 import { redirect } from "next/navigation";
 
-import { ProductDirectoryManager } from "@/components/admin/product-directory-manager";
-import { fetchAdminProductDirectory } from "@/lib/admin/products/directory-data";
+import { MortgageManagement } from "@/components/admin/mortgage-management";
+import { fetchMortgageConfig } from "@/lib/admin/mortgage/config";
 import { hasAdminPermission } from "@/lib/admin/permissions";
 import { requireAdmin } from "@/lib/auth/guards";
 
 export const metadata = {
-  title: "Product Directory | Orbit Mortgage",
+  title: "Mortgage Management | Orbit Mortgage",
 };
 
 export default async function AdminLoanProductsPage() {
@@ -16,13 +16,7 @@ export default async function AdminLoanProductsPage() {
     redirect("/admin");
   }
 
-  const directory = await fetchAdminProductDirectory();
+  const config = await fetchMortgageConfig();
 
-  return (
-    <ProductDirectoryManager
-      categories={directory}
-      basePath="/admin/loan-products"
-    />
-  );
+  return <MortgageManagement config={config} />;
 }
-

@@ -23,7 +23,7 @@ export type FundingStatusLabel =
   | "Awaiting Deposit"
   | "Partially Funded"
   | "Fully Funded"
-  | "Pending Verification"
+  | "Pending"
   | "Verified";
 
 export type ClosingFundsStatus = "locked" | "ready_for_closing" | "available";

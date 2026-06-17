@@ -2,7 +2,7 @@ import {
   Banknote,
   ClipboardList,
   FileText,
-  Landmark,
+  Home,
   LayoutDashboard,
   MessageSquare,
   Settings,
@@ -30,9 +30,9 @@ export const superAdminNavSections: NavSection[] = [
         icon: Shield,
       },
       {
-        title: "Product Directory",
+        title: "Mortgage Management",
         href: "/super-admin/loan-products",
-        icon: Landmark,
+        icon: Home,
       },
       {
         title: "Applications",

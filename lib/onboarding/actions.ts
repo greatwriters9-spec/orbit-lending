@@ -8,6 +8,7 @@ import { AUTH_ROUTES } from "@/lib/auth/routes";
 import { createClient } from "@/lib/supabase/server";
 import { ensureOnboardingApplication } from "@/lib/onboarding/finalize-application";
 import { computePreQualification } from "@/lib/onboarding/pre-qualification";
+import { fetchMortgageConfig } from "@/lib/admin/mortgage/config";
 import {
   enrichOnboardingDraft,
   syncProfileFromOnboardingDraft,
@@ -54,8 +55,9 @@ async function finalizeOnboardingForUser(
     return { error: "Complete the onboarding questions before continuing." };
   }
 
+  const mortgageConfig = await fetchMortgageConfig();
   const preQual =
-    draft.preQualification ?? computePreQualification(draft);
+    draft.preQualification ?? computePreQualification(draft, mortgageConfig);
   if (!preQual) {
     return { error: "Unable to calculate pre-qualification. Try again." };
   }
@@ -125,7 +127,8 @@ export async function createAccountFromOnboardingAction(
     return { error: "Complete the onboarding questions before creating an account." };
   }
 
-  const preQual = computePreQualification(draft);
+  const mortgageConfig = await fetchMortgageConfig();
+  const preQual = computePreQualification(draft, mortgageConfig);
   if (!preQual) {
     return { error: "Unable to calculate pre-qualification. Try again." };
   }

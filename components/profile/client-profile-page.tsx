@@ -15,7 +15,7 @@ import {
 } from "@/components/ui-kit/avatar";
 import { Button } from "@/components/ui-kit/button";
 import { Input } from "@/components/ui-kit/input";
-import { StatusBadge } from "@/components/ui-kit/status-badge";
+import { StatusLabelBadge } from "@/components/ui-kit/status-badge";
 import { formatZipCodeInput } from "@/lib/auth/input-formatters";
 import {
   updateProfileAction,
@@ -124,8 +124,8 @@ export function ClientProfilePage({ profile, email }: ClientProfilePageProps) {
               <p className="text-xl font-semibold text-brand-navy">{displayName}</p>
               <p className="text-sm text-muted-foreground">{email}</p>
               <div className="mt-3 flex flex-wrap gap-2">
-                <StatusBadge status="active" label={profile.profile_status} />
-                <StatusBadge status="completed" label={profile.account_status} />
+                <StatusLabelBadge label={profile.profile_status} uppercase={false} />
+                <StatusLabelBadge label={profile.account_status} uppercase={false} />
               </div>
             </div>
           </div>

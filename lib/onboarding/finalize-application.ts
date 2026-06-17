@@ -1,6 +1,7 @@
 import { scoreApplication } from "@/lib/applications/engine/processor";
 import { mapMortgageDraftToLoanApplication } from "@/lib/onboarding/map-draft";
 import { computePreQualification } from "@/lib/onboarding/pre-qualification";
+import { fetchMortgageConfig } from "@/lib/admin/mortgage/config";
 import { generateApplicationNumber } from "@/lib/loans/wizard-config";
 import { createNotification } from "@/lib/wallet/notifications";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -31,7 +32,8 @@ export async function ensureOnboardingApplication(
   };
 
   const preQual =
-    enrichedDraft.preQualification ?? computePreQualification(enrichedDraft);
+    enrichedDraft.preQualification ??
+    computePreQualification(enrichedDraft, await fetchMortgageConfig());
   if (!preQual) {
     return {};
   }

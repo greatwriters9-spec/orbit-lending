@@ -99,9 +99,10 @@ const EMPTY_PROGRESS: ProgressStep[] = [
 ];
 
 function mapTransactionStatus(status: string): DashboardTransaction["status"] {
-  if (status === "completed") return "completed";
-  if (status === "pending") return "pending";
-  if (status === "approved") return "approved";
+  if (status === "completed" || status === "approved") return "success";
+  if (status === "failed" || status === "rejected" || status === "cancelled") {
+    return "danger";
+  }
   return "pending";
 }
 
@@ -511,7 +512,7 @@ function buildNextAction(input: {
       return {
         title: "Deposit Your Down Payment",
         message:
-          "Your application is approved. Deposit your required down payment into your Pathward Funding Account. Orbit Mortgage will verify your deposit before closing funds are released.",
+          "Your application is approved. Deposit your required down payment into your Funding Account. Orbit Mortgage will verify your deposit before closing funds are released.",
         buttonLabel: "View Deposit Instructions",
         buttonHref: "/dashboard#down-payment",
       };

@@ -412,8 +412,8 @@
 
   .dashboard-balance-mint {
     color: #0f2d78;
-    font-size: 34px;
-    font-weight: 700;
+    font-size: 36px;
+    font-weight: 800;
     line-height: 1.05;
     letter-spacing: -0.03em;
     font-variant-numeric: tabular-nums;
@@ -436,9 +436,11 @@
 
   .dashboard-card-mint {
     border-radius: 24px;
-    border: 1px solid var(--brand-border);
-    background: var(--brand-mint);
-    box-shadow: var(--shadow-card);
+    border: 1.5px solid rgba(67, 56, 202, 0.28);
+    background: linear-gradient(155deg, #ecfdf5 0%, #e0e7ff 48%, #dbeafe 100%);
+    box-shadow:
+      0 6px 28px rgba(67, 56, 202, 0.12),
+      0 2px 8px rgba(15, 45, 120, 0.06);
   }
 
   .dashboard-label {

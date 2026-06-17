@@ -1,12 +1,8 @@
 import type { LucideIcon } from "lucide-react";
 
-export type LoanStatus =
-  | "approved"
-  | "pending"
-  | "rejected"
-  | "active"
-  | "completed"
-  | "information-required";
+import type { StatusColorVariant } from "@/lib/status-colors";
+
+export type LoanStatus = StatusColorVariant;
 
 export type ProgressStepStatus = "completed" | "current" | "upcoming";
 

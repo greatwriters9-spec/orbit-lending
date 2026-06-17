@@ -63,7 +63,7 @@ export function WithdrawalRequestsList({ requests }: WithdrawalRequestsListProps
 function mapWithdrawalStatus(
   status: WithdrawalRequest["status"],
 ): LoanStatus {
-  if (status === "approved" || status === "completed") return "approved";
-  if (status === "rejected") return "rejected";
+  if (status === "approved" || status === "completed") return "success";
+  if (status === "rejected") return "danger";
   return "pending";
 }

@@ -4,27 +4,31 @@ import type {
 } from "@/types/support";
 import { cn } from "@/lib/utils";
 import {
+  STATUS_BADGE_BASE,
+  statusBadgeClasses,
+  type StatusColorVariant,
+} from "@/lib/status-colors";
+import {
   TICKET_PRIORITY_LABELS,
   TICKET_STATUS_LABELS,
 } from "@/lib/support/constants";
 
-const statusStyles: Record<SupportTicketStatus, string> = {
-  open: "border-brand-blue/20 bg-brand-blue/10 text-brand-blue",
-  assigned: "border-brand-blue/20 bg-brand-blue/10 text-brand-blue",
-  in_progress: "border-brand-warning/20 bg-brand-warning/10 text-brand-warning",
-  waiting_for_client:
-    "border-brand-warning/20 bg-brand-warning/10 text-brand-warning",
-  escalated: "border-brand-danger/20 bg-brand-danger/10 text-brand-danger",
-  resolved: "border-brand-success/20 bg-brand-success/10 text-brand-success",
-  closed: "border-brand-border bg-brand-background text-muted-foreground",
+const statusVariants: Record<SupportTicketStatus, StatusColorVariant> = {
+  open: "pending",
+  assigned: "pending",
+  in_progress: "pending",
+  waiting_for_client: "pending",
+  escalated: "danger",
+  resolved: "success",
+  closed: "neutral",
 };
 
-const priorityStyles: Record<SupportTicketPriority, string> = {
-  low: "border-brand-border bg-brand-background text-muted-foreground",
-  normal: "border-brand-blue/20 bg-brand-blue/10 text-brand-blue",
-  high: "border-brand-warning/20 bg-brand-warning/10 text-brand-warning",
-  urgent: "border-brand-danger/20 bg-brand-danger/10 text-brand-danger",
-  critical: "border-brand-danger/30 bg-brand-danger/15 text-brand-danger",
+const priorityVariants: Record<SupportTicketPriority, StatusColorVariant> = {
+  low: "neutral",
+  normal: "prequalified",
+  high: "pending",
+  urgent: "danger",
+  critical: "danger",
 };
 
 export function SupportStatusBadge({
@@ -37,8 +41,9 @@ export function SupportStatusBadge({
   return (
     <span
       className={cn(
-        "inline-flex rounded-md border px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide",
-        statusStyles[status],
+        STATUS_BADGE_BASE,
+        "uppercase",
+        statusBadgeClasses(statusVariants[status]),
         className,
       )}
     >
@@ -57,8 +62,9 @@ export function SupportPriorityBadge({
   return (
     <span
       className={cn(
-        "inline-flex rounded-md border px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide",
-        priorityStyles[priority],
+        STATUS_BADGE_BASE,
+        "uppercase",
+        statusBadgeClasses(priorityVariants[priority]),
         className,
       )}
     >

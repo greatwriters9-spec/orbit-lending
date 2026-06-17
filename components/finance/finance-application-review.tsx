@@ -6,11 +6,12 @@ import { useMemo, useState, useTransition } from "react";
 
 import { ApplicationStatusTimeline } from "@/components/applications/application-status-timeline";
 import { ApplicationStatusBadge } from "@/components/applications/application-status-badge";
+import { ApplicantDetailsPanel } from "@/components/finance/applicant-details-panel";
 import { ApplicationScoringPanel } from "@/components/finance/application-scoring-panel";
 import { DownPaymentReviewPanel } from "@/components/finance/down-payment-review-panel";
 import {
   addInternalNoteAction,
-  approveFundingAction,
+  approveApplicationAction,
   recalculateScoresAction,
   rejectFundingAction,
   requestInformationAction,
@@ -26,6 +27,7 @@ import {
 } from "@/lib/applications/status-utils";
 import { formatCurrency } from "@/lib/loans/queries";
 import { Button } from "@/components/ui-kit/button";
+import { StatusLabelBadge } from "@/components/ui-kit/status-badge";
 import { SectionHeader } from "@/components/ui-kit/section-header";
 import type { ApplicationStatus } from "@/types/application-details";
 import type { FinanceApplicationDetail } from "@/types/finance";
@@ -41,6 +43,12 @@ const MANUAL_STATUSES: ApplicationStatus[] = [
   "pending_finance_approval",
   "approved",
   "rejected",
+];
+
+const TERMINAL_STATUSES: ApplicationStatus[] = [
+  "completed",
+  "rejected",
+  "defaulted",
 ];
 
 export function FinanceApplicationReview({
@@ -86,6 +94,10 @@ export function FinanceApplicationReview({
   const [eligibleAmount, setEligibleAmount] = useState(
     application.approvedAmount ?? application.requestedAmount,
   );
+  const [approveAmount, setApproveAmount] = useState(
+    application.approvedAmount ?? application.requestedAmount,
+  );
+  const [approveNote, setApproveNote] = useState("");
 
   function runAction(action: () => Promise<{ error?: string; success?: string }>) {
     startTransition(async () => {
@@ -95,17 +107,19 @@ export function FinanceApplicationReview({
     });
   }
 
-  const canSendOffer = [
-    "under_review",
-    "pre_qualified",
-    "pre_approved",
-    "information_required",
-    "offer_declined",
-  ].includes(application.status);
+  const isTerminal = TERMINAL_STATUSES.includes(application.status);
 
-  const canApproveFunding =
-    application.status === "pending_finance_approval" ||
-    application.status === "offer_accepted";
+  const canApprove =
+    !isTerminal &&
+    !["funded", "active", "approved"].includes(application.status);
+
+  const canRequestInfo = !isTerminal;
+
+  const canSendOffer =
+    !isTerminal &&
+    !["funded", "active", "completed"].includes(application.status);
+
+  const canReject = !isTerminal && application.status !== "rejected";
 
   const canSetEligibility = [
     "submitted",
@@ -115,6 +129,10 @@ export function FinanceApplicationReview({
 
   const showDownPaymentReview = ["approved", "funded", "active"].includes(
     application.status,
+  );
+
+  const pendingDocRequests = application.documentRequests.filter(
+    (doc) => !doc.fulfilled,
   );
 
   return (
@@ -133,39 +151,29 @@ export function FinanceApplicationReview({
 
       <div className="grid gap-7 xl:grid-cols-3">
         <div className="space-y-7 xl:col-span-2">
-          <section className="card-surface p-6 md:p-8">
-            <SectionHeader
-              title="Applicant Overview"
-              description="Review submitted personal and financial information."
-            />
-            <div className="mt-6 grid gap-4 sm:grid-cols-2">
-              <InfoBlock label="Applicant" value={application.applicantName} />
-              <InfoBlock
-                label="Requested Amount"
-                value={formatCurrency(application.requestedAmount)}
-              />
-              <InfoBlock label="Product" value={application.productName} />
-              <InfoBlock label="Purpose" value={application.purpose ?? "—"} />
-              <InfoBlock
-                label="Employment"
-                value={String(application.financialInfo.employmentStatus ?? "—")}
-              />
-              <InfoBlock
-                label="Monthly Income"
-                value={formatCurrency(Number(application.financialInfo.monthlyIncome ?? 0))}
-              />
-            </div>
+          <ApplicantDetailsPanel
+            applicantName={application.applicantName}
+            purpose={application.purpose}
+            productName={application.productName}
+            requestedAmount={application.requestedAmount}
+            approvedAmount={application.approvedAmount}
+            pathwardBalance={application.pathwardBalance}
+            personalInfo={application.personalInfo}
+            financialInfo={application.financialInfo}
+          />
+
+          <div className="flex justify-end">
             <Button
               disabled={isPending}
               variant="outline"
               onClick={() =>
                 runAction(() => recalculateScoresAction(application.id))
               }
-              className="mt-4 h-9"
+              className="h-9"
             >
               Recalculate Scores
             </Button>
-          </section>
+          </div>
 
           <ApplicationStatusTimeline entries={application.statusHistory} />
 
@@ -213,6 +221,46 @@ export function FinanceApplicationReview({
               personalInfo={application.personalInfo}
               pathwardBalance={application.pathwardBalance}
             />
+          ) : null}
+
+          {application.documentRequests.length > 0 ? (
+            <section className="card-surface p-6 md:p-8">
+              <SectionHeader
+                title="Document Requests"
+                description="Outstanding and fulfilled requests sent to the applicant."
+              />
+              <ul className="mt-4 space-y-3">
+                {application.documentRequests.map((doc) => (
+                  <li
+                    key={doc.id}
+                    className="rounded-xl border border-brand-border px-4 py-3"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-medium text-brand-navy">
+                          {doc.documentName}
+                        </p>
+                        {doc.description ? (
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            {doc.description}
+                          </p>
+                        ) : null}
+                        <p className="mt-2 text-xs text-muted-foreground">
+                          Requested {formatApplicationDate(doc.requestedAt)}
+                          {doc.dueDate
+                            ? ` · Due ${formatApplicationDate(doc.dueDate)}`
+                            : ""}
+                        </p>
+                      </div>
+                      <StatusLabelBadge
+                        label={doc.fulfilled ? "Received" : "Pending"}
+                        uppercase={false}
+                      />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
           ) : null}
 
           <section className="card-surface p-6 md:p-8">
@@ -310,190 +358,261 @@ export function FinanceApplicationReview({
             <div className="mt-3">
               <ApplicationStatusBadge status={application.status} />
             </div>
-            {statusOptions.length > 1 ? (
-              <>
-                <select
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value as ApplicationStatus)}
-                  className="mt-4 h-10 w-full rounded-lg border border-brand-border bg-brand-background px-3 text-sm"
-                >
-                  {statusOptions.map((option) => (
-                    <option key={option} value={option}>
-                      {APPLICATION_STATUS_LABELS[option]}
-                    </option>
-                  ))}
-                </select>
+            {application.status === "approved" ? (
+              <p className="mt-3 text-xs text-muted-foreground">
+                Approved at {formatCurrency(application.approvedAmount ?? 0)}.
+                You can still request documents before funding.
+              </p>
+            ) : null}
+            {pendingDocRequests.length > 0 ? (
+              <p className="mt-2 text-xs text-brand-warning">
+                {pendingDocRequests.length} pending document request
+                {pendingDocRequests.length === 1 ? "" : "s"}
+              </p>
+            ) : null}
+          </section>
+
+          {canApprove ? (
+            <section className="card-surface p-6">
+              <h3 className="text-sm font-semibold text-brand-navy">
+                Approve Application
+              </h3>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Approve directly without requiring documents first. You can
+                request documents later before funding.
+              </p>
+              <div className="mt-4 space-y-2">
+                <LabeledInput
+                  label="Approved Amount"
+                  type="number"
+                  value={approveAmount}
+                  onChange={(v) => setApproveAmount(Number(v))}
+                />
                 <textarea
                   rows={2}
-                  value={statusNote}
-                  onChange={(e) => setStatusNote(e.target.value)}
-                  placeholder="Reason for status change..."
-                  className="mt-3 w-full rounded-lg border border-brand-border bg-brand-background px-3 py-2 text-sm"
+                  value={approveNote}
+                  onChange={(e) => setApproveNote(e.target.value)}
+                  placeholder="Approval note to applicant..."
+                  className="w-full rounded-lg border border-brand-border bg-brand-background px-3 py-2 text-sm"
                 />
-                <Button
-                  disabled={isPending || status === application.status}
-                  onClick={() =>
-                    runAction(() =>
-                      updateApplicationStatusAction({
-                        applicationId: application.id,
-                        status: status as Extract<
-                          ApplicationStatus,
-                          | "under_review"
-                          | "pre_qualified"
-                          | "information_required"
-                          | "pending_finance_approval"
-                          | "approved"
-                          | "rejected"
-                        >,
-                        note: statusNote,
-                      }),
-                    )
-                  }
-                  className="mt-3 h-10 w-full bg-brand-navy text-white hover:bg-brand-navy/90"
-                >
-                  Update Status
-                </Button>
-              </>
-            ) : (
-              <p className="mt-3 text-xs text-muted-foreground">
-                Status is controlled by the current workflow stage.
-              </p>
-            )}
-          </section>
-
-          <section className="card-surface p-6">
-            <h3 className="text-sm font-semibold text-brand-navy">Request Information</h3>
-            <input
-              value={docName}
-              onChange={(e) => setDocName(e.target.value)}
-              placeholder="Document name"
-              className="mt-3 h-10 w-full rounded-lg border border-brand-border px-3 text-sm"
-            />
-            <textarea
-              rows={2}
-              value={docDescription}
-              onChange={(e) => setDocDescription(e.target.value)}
-              placeholder="Description"
-              className="mt-2 w-full rounded-lg border border-brand-border px-3 py-2 text-sm"
-            />
-            <textarea
-              rows={2}
-              value={docMessage}
-              onChange={(e) => setDocMessage(e.target.value)}
-              placeholder="Message to applicant"
-              className="mt-2 w-full rounded-lg border border-brand-border px-3 py-2 text-sm"
-            />
-            <Button
-              disabled={isPending}
-              onClick={() =>
-                runAction(() =>
-                  requestInformationAction({
-                    applicationId: application.id,
-                    documentName: docName,
-                    description: docDescription,
-                    message: docMessage,
-                  }),
-                )
-              }
-              className="mt-3 h-10 w-full bg-brand-blue text-white hover:bg-brand-blue/90"
-            >
-              Request Documents
-            </Button>
-          </section>
-
-          <section className="card-surface p-6">
-            <h3 className="text-sm font-semibold text-brand-navy">Loan Offer</h3>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Modify amount, APR, and term before sending to the client.
-            </p>
-            <div className="mt-3 space-y-2">
-              <LabeledInput
-                label="Final Amount"
-                type="number"
-                value={offer.finalAmount}
-                onChange={(v) => setOffer({ ...offer, finalAmount: Number(v) })}
-              />
-              <LabeledInput
-                label="Recommended Amount"
-                type="number"
-                value={offer.recommendedAmount}
-                onChange={(v) => setOffer({ ...offer, recommendedAmount: Number(v) })}
-              />
-              <LabeledInput
-                label="Interest Rate / APR (%)"
-                type="number"
-                step="0.01"
-                value={offer.offeredInterestRate}
-                onChange={(v) => setOffer({ ...offer, offeredInterestRate: Number(v) })}
-              />
-              <LabeledInput
-                label="Repayment Period (months)"
-                type="number"
-                value={offer.repaymentPeriod}
-                onChange={(v) => setOffer({ ...offer, repaymentPeriod: Number(v) })}
-              />
-              <LabeledInput
-                label="Repayment Frequency"
-                value={offer.repaymentFrequency}
-                onChange={(v) => setOffer({ ...offer, repaymentFrequency: v })}
-              />
-            </div>
-            <Button
-              disabled={isPending || !canSendOffer}
-              onClick={() =>
-                runAction(() =>
-                  saveOfferAction({
-                    ...offer,
-                    applicationId: application.id,
-                    requestedAmount: application.requestedAmount,
-                  }),
-                )
-              }
-              className="mt-4 h-10 w-full bg-brand-blue text-white hover:bg-brand-blue/90"
-            >
-              Send Offer to Client
-            </Button>
-          </section>
-
-          <section className="card-surface p-6">
-            <h3 className="text-sm font-semibold text-brand-navy">Approval Decision</h3>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Approve after the client accepts the offer. Fund the mortgage via the Funding
-              Queue, then link the Pathward account so the client can deposit their down
-              payment.
-            </p>
-            <div className="mt-4 flex flex-col gap-2">
+              </div>
               <Button
-                disabled={isPending || !canApproveFunding}
+                disabled={isPending || approveAmount <= 0 || !approveNote.trim()}
                 onClick={() =>
                   runAction(() =>
-                    approveFundingAction(application.id, statusNote || "Funding approved."),
+                    approveApplicationAction({
+                      applicationId: application.id,
+                      approvedAmount: approveAmount,
+                      note: approveNote,
+                    }),
                   )
                 }
-                className="h-10 bg-brand-success text-white hover:bg-brand-success/90"
+                className="mt-4 h-10 w-full bg-brand-success text-white hover:bg-brand-success/90"
               >
-                Approve for Funding
+                Approve Now
               </Button>
+            </section>
+          ) : null}
+
+          {canSendOffer ? (
+            <section className="card-surface p-6">
+              <h3 className="text-sm font-semibold text-brand-navy">Send Offer</h3>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Propose a different amount, rate, or term based on your review.
+              </p>
+              <div className="mt-3 space-y-2">
+                <LabeledInput
+                  label="Final Amount"
+                  type="number"
+                  value={offer.finalAmount}
+                  onChange={(v) => setOffer({ ...offer, finalAmount: Number(v) })}
+                />
+                <LabeledInput
+                  label="Recommended Amount"
+                  type="number"
+                  value={offer.recommendedAmount}
+                  onChange={(v) => setOffer({ ...offer, recommendedAmount: Number(v) })}
+                />
+                <LabeledInput
+                  label="Interest Rate / APR (%)"
+                  type="number"
+                  step="0.01"
+                  value={offer.offeredInterestRate}
+                  onChange={(v) => setOffer({ ...offer, offeredInterestRate: Number(v) })}
+                />
+                <LabeledInput
+                  label="Repayment Period (months)"
+                  type="number"
+                  value={offer.repaymentPeriod}
+                  onChange={(v) => setOffer({ ...offer, repaymentPeriod: Number(v) })}
+                />
+                <LabeledInput
+                  label="Repayment Frequency"
+                  value={offer.repaymentFrequency}
+                  onChange={(v) => setOffer({ ...offer, repaymentFrequency: v })}
+                />
+              </div>
+              <Button
+                disabled={isPending}
+                onClick={() =>
+                  runAction(() =>
+                    saveOfferAction({
+                      ...offer,
+                      applicationId: application.id,
+                      requestedAmount: application.requestedAmount,
+                    }),
+                  )
+                }
+                className="mt-4 h-10 w-full bg-brand-blue text-white hover:bg-brand-blue/90"
+              >
+                Send Offer to Client
+              </Button>
+            </section>
+          ) : null}
+
+          {canRequestInfo ? (
+            <section className="card-surface p-6">
+              <h3 className="text-sm font-semibold text-brand-navy">
+                Request Information
+              </h3>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Ask for documents or send a message at any stage — including
+                after approval.
+              </p>
+              <input
+                value={docName}
+                onChange={(e) => setDocName(e.target.value)}
+                placeholder="Document name (optional)"
+                className="mt-3 h-10 w-full rounded-lg border border-brand-border px-3 text-sm"
+              />
+              <textarea
+                rows={2}
+                value={docDescription}
+                onChange={(e) => setDocDescription(e.target.value)}
+                placeholder="Document description (optional)"
+                className="mt-2 w-full rounded-lg border border-brand-border px-3 py-2 text-sm"
+              />
+              <textarea
+                rows={3}
+                value={docMessage}
+                onChange={(e) => setDocMessage(e.target.value)}
+                placeholder="Message to applicant (required)"
+                className="mt-2 w-full rounded-lg border border-brand-border px-3 py-2 text-sm"
+              />
+              <Button
+                disabled={isPending || docMessage.trim().length < 5}
+                onClick={() =>
+                  runAction(() =>
+                    requestInformationAction({
+                      applicationId: application.id,
+                      documentName: docName || undefined,
+                      description: docDescription || undefined,
+                      message: docMessage,
+                    }),
+                  )
+                }
+                className="mt-3 h-10 w-full bg-brand-blue text-white hover:bg-brand-blue/90"
+              >
+                Send Request
+              </Button>
+            </section>
+          ) : null}
+
+          {canReject ? (
+            <section className="card-surface p-6">
+              <h3 className="text-sm font-semibold text-brand-navy">Reject</h3>
+              <textarea
+                rows={2}
+                value={statusNote}
+                onChange={(e) => setStatusNote(e.target.value)}
+                placeholder="Reason for rejection..."
+                className="mt-3 w-full rounded-lg border border-brand-border bg-brand-background px-3 py-2 text-sm"
+              />
               <Button
                 disabled={isPending}
                 variant="outline"
                 onClick={() =>
                   runAction(() =>
-                    rejectFundingAction(application.id, statusNote || "Funding rejected."),
+                    rejectFundingAction(
+                      application.id,
+                      statusNote || "Application rejected.",
+                    ),
                   )
                 }
-                className="h-10 border-brand-danger/30 text-brand-danger"
+                className="mt-3 h-10 w-full border-brand-danger/30 text-brand-danger"
               >
                 Reject Application
               </Button>
+            </section>
+          ) : null}
+
+          {statusOptions.length > 1 ? (
+            <section className="card-surface p-6">
+              <h3 className="text-sm font-semibold text-brand-navy">
+                Manual Status
+              </h3>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Override workflow status when needed.
+              </p>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as ApplicationStatus)}
+                className="mt-3 h-10 w-full rounded-lg border border-brand-border bg-brand-background px-3 text-sm"
+              >
+                {statusOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {APPLICATION_STATUS_LABELS[option]}
+                  </option>
+                ))}
+              </select>
+              <textarea
+                rows={2}
+                value={statusNote}
+                onChange={(e) => setStatusNote(e.target.value)}
+                placeholder="Reason for status change..."
+                className="mt-3 w-full rounded-lg border border-brand-border bg-brand-background px-3 py-2 text-sm"
+              />
+              <Button
+                disabled={isPending || status === application.status}
+                onClick={() =>
+                  runAction(() =>
+                    updateApplicationStatusAction({
+                      applicationId: application.id,
+                      status: status as Extract<
+                        ApplicationStatus,
+                        | "under_review"
+                        | "pre_qualified"
+                        | "information_required"
+                        | "pending_finance_approval"
+                        | "approved"
+                        | "rejected"
+                      >,
+                      note: statusNote,
+                    }),
+                  )
+                }
+                className="mt-3 h-10 w-full bg-brand-navy text-white hover:bg-brand-navy/90"
+              >
+                Update Status
+              </Button>
+            </section>
+          ) : null}
+
+          {application.status === "approved" ? (
+            <section className="card-surface p-6">
+              <h3 className="text-sm font-semibold text-brand-navy">Funding</h3>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Application is approved. Proceed to the Funding Queue to fund
+                the mortgage and link the Pathward account.
+              </p>
               <Link
                 href="/finance/funding"
-                className="text-center text-xs font-medium text-brand-blue hover:underline"
+                className="mt-3 block text-center text-sm font-medium text-brand-blue hover:underline"
               >
                 Open Funding Queue →
               </Link>
-            </div>
-          </section>
+            </section>
+          ) : null}
         </div>
       </div>
     </div>

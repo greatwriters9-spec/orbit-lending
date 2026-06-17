@@ -2,7 +2,7 @@ import {
   Banknote,
   ClipboardList,
   FileText,
-  Landmark,
+  Home,
   LayoutDashboard,
   MessageSquare,
   Settings,
@@ -19,9 +19,9 @@ export const adminNavSections: NavSection[] = [
       { title: "Credit Manager Dashboard", href: "/admin", icon: LayoutDashboard },
       { title: "Users", href: "/admin/users", icon: Users },
       {
-        title: "Product Directory",
+        title: "Mortgage Management",
         href: "/admin/loan-products",
-        icon: Landmark,
+        icon: Home,
       },
       {
         title: "Applications",

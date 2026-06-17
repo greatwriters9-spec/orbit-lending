@@ -1,3 +1,4 @@
+import type { StatusColorVariant } from "@/lib/status-colors";
 import type { ApplicationStatus } from "@/types/application-details";
 import type { ProgressStep } from "@/types/dashboard";
 
@@ -20,26 +21,23 @@ export const APPLICATION_STATUS_LABELS: Record<ApplicationStatus, string> = {
   defaulted: "Defaulted",
 };
 
-export const APPLICATION_STATUS_TONE: Record<
-  ApplicationStatus,
-  "pending" | "approved" | "rejected" | "active" | "completed" | "information-required"
-> = {
+export const APPLICATION_STATUS_TONE: Record<ApplicationStatus, StatusColorVariant> = {
   draft: "pending",
   submitted: "pending",
   under_review: "pending",
-  pre_qualified: "approved",
-  pre_approved: "approved",
-  information_required: "information-required",
+  pre_qualified: "prequalified",
+  pre_approved: "success",
+  information_required: "pending",
   pending_finance_approval: "pending",
-  approved: "approved",
+  approved: "success",
   offer_sent: "pending",
-  offer_accepted: "approved",
-  offer_declined: "rejected",
-  funded: "active",
-  active: "active",
-  completed: "completed",
-  rejected: "rejected",
-  defaulted: "rejected",
+  offer_accepted: "success",
+  offer_declined: "danger",
+  funded: "success",
+  active: "success",
+  completed: "success",
+  rejected: "danger",
+  defaulted: "danger",
 };
 
 const LIFECYCLE_STEPS = [

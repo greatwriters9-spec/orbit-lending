@@ -1,3 +1,4 @@
+import type { StatusColorVariant } from "@/lib/status-colors";
 import type {
   PlatformTransactionCategory,
   PlatformTransactionStatus,
@@ -39,12 +40,12 @@ export const TRANSACTION_STATUS_LABELS: Record<PlatformTransactionStatus, string
 
 export const STATUS_BADGE_TONE: Record<
   PlatformTransactionStatus,
-  "success" | "info" | "warning" | "danger" | "neutral"
+  StatusColorVariant
 > = {
   completed: "success",
-  processing: "info",
-  approved: "info",
-  pending: "warning",
+  approved: "success",
+  processing: "pending",
+  pending: "pending",
   failed: "danger",
   rejected: "danger",
   reversed: "neutral",
