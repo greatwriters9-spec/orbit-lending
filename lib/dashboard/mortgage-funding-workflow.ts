@@ -50,12 +50,34 @@ export type ClosingFundsStatusLabel =
 export type MortgageFundingWorkflowInput = {
   applicationStatus?: ApplicationStatus;
   purchasePrice: number;
+  approvedMortgageAmount: number;
   pathwardBalance: number;
   pathwardLinked: boolean;
   mortgageApproved: boolean;
   mortgageCredited: number;
   escrowTransfer?: EscrowTransferMeta | null;
+  /** Client-side deposit still owed (down payment or admin-requested amount). */
+  outstandingDepositAmount?: number;
 };
+
+/** Amount still needed in the funding account before closing (excludes escrow). */
+export function resolveClosingPendingBalance(input: {
+  escrowActive: boolean;
+  approvedMortgageAmount: number;
+  mortgageCredited: number;
+  outstandingDepositAmount: number;
+}): number {
+  if (input.escrowActive) {
+    return 0;
+  }
+
+  const outstandingMortgage = Math.max(
+    0,
+    input.approvedMortgageAmount - input.mortgageCredited,
+  );
+
+  return Math.max(0, input.outstandingDepositAmount + outstandingMortgage);
+}
 
 export type MortgageFundingWorkflow = {
   stage: MortgageFundingStage;
@@ -131,7 +153,13 @@ export function resolveMortgageFundingWorkflow(
 
   const fundingAccountBalance = escrowActive ? 0 : Math.max(0, input.pathwardBalance);
   const availableBalance = fundingAccountBalance;
-  const pendingBalance = Math.max(0, totalClosingAmount - availableBalance);
+  const outstandingDepositAmount = Math.max(0, input.outstandingDepositAmount ?? 0);
+  const pendingBalance = resolveClosingPendingBalance({
+    escrowActive,
+    approvedMortgageAmount: input.approvedMortgageAmount,
+    mortgageCredited: input.mortgageCredited,
+    outstandingDepositAmount,
+  });
 
   const fundingProgressPercent =
     totalClosingAmount > 0

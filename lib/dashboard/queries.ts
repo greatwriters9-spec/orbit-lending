@@ -423,6 +423,7 @@ async function buildMortgageDashboardView(input: {
     downPaymentMeta: input.downPaymentMeta,
     escrowTransfer,
     purchasePrice,
+    approvedMortgageAmount: summary.approvedMortgageAmount,
     mortgageApproved: input.mortgageApproved,
     mortgageCredited,
     applicationStatus: input.applicationStatus,
@@ -430,11 +431,13 @@ async function buildMortgageDashboardView(input: {
 
   const closingFunds = buildClosingFundsView({
     purchasePrice,
+    approvedMortgageAmount: summary.approvedMortgageAmount,
     pathwardBalance: input.linkedAccount?.accountBalance ?? 0,
     pathwardLinked: Boolean(input.linkedAccount),
     mortgageApproved: input.mortgageApproved,
     mortgageCredited,
     downPaymentVerified: input.downPaymentVerified,
+    outstandingDepositAmount: downPayment.remainingAmount,
     applicationStatus: input.applicationStatus,
     escrowTransfer,
   });

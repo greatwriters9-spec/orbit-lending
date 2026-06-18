@@ -139,7 +139,7 @@ export type ClosingFundsView = {
   totalClosingAmount: number;
   /** Mirrors Funding Account current balance toward closing. */
   availableBalance: number;
-  /** Remaining amount needed before closing can complete. */
+  /** Amount still owed toward closing: uncredited mortgage plus undeposited client payments. */
   pendingBalance: number;
   status: ClosingFundsStatus;
   statusLabel: string;

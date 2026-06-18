@@ -238,6 +238,7 @@ export function buildPathwardFundingView(input: {
   downPaymentMeta: DownPaymentMeta | null;
   escrowTransfer?: ReturnType<typeof parseEscrowTransferMeta>;
   purchasePrice: number;
+  approvedMortgageAmount: number;
   mortgageApproved: boolean;
   mortgageCredited: number;
   applicationStatus?: ApplicationStatus;
@@ -259,6 +260,7 @@ export function buildPathwardFundingView(input: {
   const workflow = resolveMortgageFundingWorkflow({
     applicationStatus: input.applicationStatus,
     purchasePrice: input.purchasePrice,
+    approvedMortgageAmount: input.approvedMortgageAmount,
     pathwardBalance: rawBalance,
     pathwardLinked: linked,
     mortgageApproved: input.mortgageApproved,
@@ -407,22 +409,26 @@ function mapFundingStatusLabel(
 
 export function buildClosingFundsView(input: {
   purchasePrice: number;
+  approvedMortgageAmount: number;
   pathwardBalance: number;
   pathwardLinked: boolean;
   mortgageApproved: boolean;
   mortgageCredited: number;
   downPaymentVerified: boolean;
+  outstandingDepositAmount: number;
   applicationStatus?: ApplicationStatus;
   escrowTransfer?: ReturnType<typeof parseEscrowTransferMeta>;
 }): ClosingFundsView {
   const workflow = resolveMortgageFundingWorkflow({
     applicationStatus: input.applicationStatus,
     purchasePrice: input.purchasePrice,
+    approvedMortgageAmount: input.approvedMortgageAmount,
     pathwardBalance: input.pathwardBalance,
     pathwardLinked: input.pathwardLinked,
     mortgageApproved: input.mortgageApproved,
     mortgageCredited: input.mortgageCredited,
     escrowTransfer: input.escrowTransfer,
+    outstandingDepositAmount: input.outstandingDepositAmount,
   });
 
   return {
