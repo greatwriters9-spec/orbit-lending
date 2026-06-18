@@ -21,6 +21,7 @@ import {
 } from "@/lib/onboarding/draft-storage";
 import { ONBOARDING_ROUTES } from "@/types/mortgage-onboarding";
 import type {
+  AssetInfo,
   BuyingStage,
   EmploymentType,
   MortgageApplicationDraft,
@@ -148,6 +149,18 @@ function parseCurrency(value: string): number {
 
 function formatAmountFieldValue(value?: number): string {
   return value && value > 0 ? String(value) : "";
+}
+
+function buildAssetUpdate(
+  draft: MortgageApplicationDraft,
+  patch: Partial<AssetInfo>,
+): AssetInfo {
+  return {
+    checkingBalance: draft.assets?.checkingBalance ?? 0,
+    savingsBalance: draft.assets?.savingsBalance ?? 0,
+    investmentBalance: draft.assets?.investmentBalance ?? 0,
+    ...patch,
+  };
 }
 
 export function OnboardingWizard({
@@ -975,10 +988,9 @@ export function OnboardingWizard({
                 value={formatAmountFieldValue(draft.assets?.checkingBalance)}
                 onChange={(e) =>
                   updateDraft({
-                    assets: {
-                      ...(draft.assets ?? {}),
+                    assets: buildAssetUpdate(draft, {
                       checkingBalance: parseCurrency(e.target.value),
-                    },
+                    }),
                   })
                 }
                 placeholder="$5,000"
@@ -992,10 +1004,9 @@ export function OnboardingWizard({
                 value={formatAmountFieldValue(draft.assets?.savingsBalance)}
                 onChange={(e) =>
                   updateDraft({
-                    assets: {
-                      ...(draft.assets ?? {}),
+                    assets: buildAssetUpdate(draft, {
                       savingsBalance: parseCurrency(e.target.value),
-                    },
+                    }),
                   })
                 }
                 placeholder="$12,000"
@@ -1009,10 +1020,9 @@ export function OnboardingWizard({
                 value={formatAmountFieldValue(draft.assets?.investmentBalance)}
                 onChange={(e) =>
                   updateDraft({
-                    assets: {
-                      ...(draft.assets ?? {}),
+                    assets: buildAssetUpdate(draft, {
                       investmentBalance: parseCurrency(e.target.value),
-                    },
+                    }),
                   })
                 }
                 placeholder="$25,000"
