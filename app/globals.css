@@ -884,4 +884,66 @@
     cursor: not-allowed;
     opacity: 0.55;
   }
+
+  .mobile-top-nav {
+    position: sticky;
+    border-bottom: 1px solid rgba(229, 231, 235, 0.95);
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    padding-top: env(safe-area-inset-top, 0px);
+    box-shadow:
+      0 1px 0 rgba(37, 99, 235, 0.06),
+      0 8px 24px rgba(15, 45, 120, 0.04);
+  }
+
+  .mobile-top-nav::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #1d4ed8 0%, #3b82f6 50%, #1d4ed8 100%);
+    opacity: 0.9;
+  }
+
+  @media (min-width: 1024px) {
+    .mobile-top-nav {
+      background: #ffffff;
+      box-shadow: none;
+    }
+
+    .mobile-top-nav::after {
+      display: none;
+    }
+  }
+
+  .mobile-top-nav-inner {
+    position: relative;
+    z-index: 1;
+    min-height: 72px;
+  }
+
+  .mobile-top-nav-logo {
+    gap: 0.625rem;
+  }
+
+  .mobile-top-nav-logo span:last-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 9.75rem;
+    font-size: 1.0625rem;
+    line-height: 1.25;
+  }
+
+  @media (min-width: 390px) {
+    .mobile-top-nav-logo span:last-child {
+      max-width: 11rem;
+      font-size: 1.125rem;
+    }
+  }
+
+  .mobile-top-nav-profile {
+    border-radius: 9999px;
+  }
 }

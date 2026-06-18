@@ -148,7 +148,7 @@ export function MobileMortgageDashboard({ view }: MobileMortgageDashboardProps) 
         />
 
         <MobileCard>
-          <MobileSectionTitle className="mb-4">Mortgage Snapshot</MobileSectionTitle>
+          <MobileSectionTitle className="mb-4">Mortgage Summary</MobileSectionTitle>
           <div className="space-y-4">
             <SnapshotRow
               label="Approved Mortgage"
