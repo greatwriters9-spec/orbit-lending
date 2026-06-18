@@ -6,6 +6,7 @@ import { Bell, ChevronDown, MessageSquare, Search, User } from "lucide-react";
 
 import { SignOutMenuItem } from "@/components/auth/sign-out-menu-item";
 import { OrbitLogo } from "@/components/brand/orbit-logo";
+import { PoweredByPathward } from "@/components/brand/powered-by-pathward";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui-kit/avatar";
 import { Button } from "@/components/ui-kit/button";
 import {
@@ -168,6 +169,12 @@ export function TopNavigation({
               <SignOutMenuItem />
             </DropdownMenuContent>
           </DropdownMenu>
+        </div>
+      </div>
+
+      <div className="border-t border-brand-border/60 bg-white/95 px-5 py-1.5 lg:px-8">
+        <div className="flex justify-center lg:justify-end">
+          <PoweredByPathward variant="compact" />
         </div>
       </div>
     </header>

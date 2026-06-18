@@ -5,12 +5,13 @@ import { useState } from "react";
 import { MessageCircle } from "lucide-react";
 
 import { OrbitLogo } from "@/components/brand/orbit-logo";
+import { PoweredByPathward } from "@/components/brand/powered-by-pathward";
 import { AskAssistantModal } from "@/components/support/ask-assistant-modal";
 import {
   ONBOARDING_STEP_FAQS,
   type OnboardingStepKey,
 } from "@/lib/onboarding/faq-content";
-import { LANDING_TESTIMONIALS, PATHWARD_BANK } from "@/lib/landing/content";
+import { LANDING_TESTIMONIALS } from "@/lib/landing/content";
 import { cn } from "@/lib/utils";
 
 export function AskAssistantButton({
@@ -123,9 +124,7 @@ export function OnboardingFooter({ className }: { className?: string }) {
       <div className="mx-auto flex max-w-3xl flex-col items-center justify-between gap-2 px-4 py-3 sm:flex-row md:px-6">
         <div className="flex items-center gap-3">
           <OrbitLogo href="/" size="sm" />
-          <span className="hidden text-xs text-muted-foreground sm:inline">
-            {PATHWARD_BANK.name}
-          </span>
+          <PoweredByPathward variant="compact" className="hidden sm:inline-flex" />
         </div>
         <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1 text-xs font-medium md:text-sm">
           <Link href="/login" className="text-brand-blue hover:text-brand-blue/80">
@@ -141,7 +140,10 @@ export function OnboardingFooter({ className }: { className?: string }) {
             Support
           </Link>
         </nav>
-        <p className="text-[11px] text-muted-foreground sm:text-xs">
+        <div className="sm:hidden">
+          <PoweredByPathward variant="compact" />
+        </div>
+        <p className="hidden text-[11px] text-muted-foreground sm:block sm:text-xs">
           © {new Date().getFullYear()} Orbit Mortgage
         </p>
       </div>

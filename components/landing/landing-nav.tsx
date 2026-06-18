@@ -5,6 +5,7 @@ import { useState } from "react";
 import { ArrowRight, Menu, X } from "lucide-react";
 
 import { OrbitLogo } from "@/components/brand/orbit-logo";
+import { PoweredByPathward } from "@/components/brand/powered-by-pathward";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
@@ -196,6 +197,15 @@ export function LandingNav() {
             </Link>
           </div>
         </nav>
+      </div>
+
+      <div
+        className="border-t border-[#E5E7EB] bg-[#F8FAFC]/90"
+        style={{ paddingLeft: NAV.paddingX, paddingRight: NAV.paddingX }}
+      >
+        <div className="mx-auto flex justify-center py-1.5" style={{ maxWidth: NAV.maxWidth }}>
+          <PoweredByPathward variant="compact" />
+        </div>
       </div>
     </header>
   );

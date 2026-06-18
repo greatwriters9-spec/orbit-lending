@@ -1,13 +1,16 @@
 export const EMAIL_DEPARTMENTS = [
   "system",
   "loan_officer",
-  "lending",
+  "underwriting",
   "funding",
   "closings",
   "support",
+  "executive",
 ] as const;
 
 export type EmailDepartment = (typeof EMAIL_DEPARTMENTS)[number];
+
+export type EmailCommunicationClass = "automated" | "department" | "executive";
 
 export type EmailDeliveryStatus = "pending" | "sent" | "failed" | "skipped";
 

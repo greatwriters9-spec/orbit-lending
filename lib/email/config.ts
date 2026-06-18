@@ -12,9 +12,9 @@ const DEPARTMENT_ENV_KEYS: Record<
     address: "EMAIL_FROM_LOAN_OFFICER",
     displayName: "EMAIL_NAME_LOAN_OFFICER",
   },
-  lending: {
-    address: "EMAIL_FROM_LENDING",
-    displayName: "EMAIL_NAME_LENDING",
+  underwriting: {
+    address: "EMAIL_FROM_UNDERWRITING",
+    displayName: "EMAIL_NAME_UNDERWRITING",
   },
   funding: {
     address: "EMAIL_FROM_FUNDING",
@@ -28,6 +28,10 @@ const DEPARTMENT_ENV_KEYS: Record<
     address: "EMAIL_FROM_SUPPORT",
     displayName: "EMAIL_NAME_SUPPORT",
   },
+  executive: {
+    address: "EMAIL_FROM_EXECUTIVE",
+    displayName: "EMAIL_NAME_EXECUTIVE",
+  },
 };
 
 const DEFAULT_SENDERS: Record<EmailDepartment, { address: string; name: string }> =
@@ -40,21 +44,25 @@ const DEFAULT_SENDERS: Record<EmailDepartment, { address: string; name: string }
       address: "loanofficer@orbitmortgage.com",
       name: "Orbit Mortgage Loan Officer",
     },
-    lending: {
-      address: "lending@orbitmortgage.com",
-      name: "Chief Lending Officer - Orbit Mortgage",
+    underwriting: {
+      address: "underwriting@orbitmortgage.com",
+      name: "Orbit Mortgage Underwriting",
     },
     funding: {
       address: "funding@orbitmortgage.com",
       name: "Orbit Mortgage Funding Department",
     },
     closings: {
-      address: "closings@orbitmortgage.com",
+      address: "closing@orbitmortgage.com",
       name: "Orbit Mortgage Closings Department",
     },
     support: {
       address: "support@orbitmortgage.com",
       name: "Orbit Mortgage Support",
+    },
+    executive: {
+      address: "chief.lending.officer@orbitmortgage.com",
+      name: "Chief Lending Officer — Orbit Mortgage",
     },
   };
 
@@ -64,6 +72,23 @@ export function getAppOrigin(): string {
     "http://localhost:3000"
   );
 }
+
+export function getWebsiteDomain(): string {
+  return (
+    process.env.NEXT_PUBLIC_WEBSITE_DOMAIN?.trim() ||
+    "www.orbittmortgage.com"
+  );
+}
+
+export function getWebsiteUrl(): string {
+  const domain = getWebsiteDomain();
+  if (domain.startsWith("http://") || domain.startsWith("https://")) {
+    return domain.replace(/\/$/, "");
+  }
+  return `https://${domain}`;
+}
+
+export const ORBIT_MORTGAGE_TAGLINE = "Home financing made simple";
 
 export function getSupportEmailAddress(): string {
   return (

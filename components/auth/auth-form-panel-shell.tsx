@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { OrbitLogo } from "@/components/brand/orbit-logo";
+import { PoweredByPathward } from "@/components/brand/powered-by-pathward";
 import { AuthMortgageBackground } from "@/components/auth/auth-mortgage-background";
 import { cn } from "@/lib/utils";
 
@@ -59,6 +60,10 @@ export function AuthFormPanelShell({
         <p className="mt-8 text-center text-[11px] text-[#9aa3af]">
           © {new Date().getFullYear()} Orbit Mortgage
         </p>
+
+        <div className="mt-4 flex justify-center border-t border-[#e2e8f0] pt-4">
+          <PoweredByPathward variant="auth" />
+        </div>
       </div>
     </div>
   );

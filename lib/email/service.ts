@@ -103,7 +103,7 @@ async function createEmailLog(input: {
 }
 
 export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult> {
-  const rendered = renderEmailFromTemplate(input.template, input.data, {
+  const rendered = await renderEmailFromTemplate(input.template, input.data, {
     subject: input.subject,
     customMessage: input.customMessage,
   });

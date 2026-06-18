@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { OrbitLogo } from "@/components/brand/orbit-logo";
+import { PoweredByPathward } from "@/components/brand/powered-by-pathward";
 import { LANDING_CONTAINER, PATHWARD_BANK } from "@/lib/landing/content";
 
 const FOOTER_LINKS = {
@@ -51,7 +52,7 @@ export function LandingFooter() {
 
         <div className="mt-10 flex flex-col gap-3 border-t border-brand-border pt-8 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} Orbit Mortgage. All rights reserved.</p>
-          <p>Banking services provided by {PATHWARD_BANK.name}.</p>
+          <PoweredByPathward variant="default" />
         </div>
       </div>
     </footer>

@@ -9,6 +9,7 @@ import {
   authInputClassName,
 } from "@/components/auth/auth-mortgage-background";
 import { FormField, FormMessage } from "@/components/auth/form-field";
+import { PasswordInput } from "@/components/auth/password-input";
 import { Button } from "@/components/ui-kit/button";
 import { Input } from "@/components/ui-kit/input";
 import { loginAction, type AuthActionState } from "@/lib/auth/actions";
@@ -41,10 +42,9 @@ export function LoginForm() {
       </FormField>
 
       <FormField label="Password" htmlFor="password">
-        <Input
+        <PasswordInput
           id="password"
           name="password"
-          type="password"
           autoComplete="current-password"
           placeholder="Enter your password"
           required

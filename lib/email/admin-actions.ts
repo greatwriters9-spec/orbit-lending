@@ -20,10 +20,11 @@ const sendCommunicationSchema = z.object({
   department: z.enum([
     "system",
     "loan_officer",
-    "lending",
+    "underwriting",
     "funding",
     "closings",
     "support",
+    "executive",
   ]),
   template: z.string().min(1),
   subject: z.string().min(3, "Subject is required."),

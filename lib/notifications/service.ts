@@ -10,6 +10,7 @@ import {
   APPLICATION_STATUS_EMAIL_TEMPLATES,
   sendTimelineEmail,
 } from "@/lib/email/hooks";
+import { selectEmailTemplateForNotification } from "@/lib/email/registry";
 import type { EmailTemplateData, EmailTemplateKey } from "@/lib/email/types";
 
 import { buildEmailHtml, sendTransactionalEmail } from "./email";
@@ -217,7 +218,10 @@ export async function notifyApplicationStatusChange(
   }
 
   const email = await resolveUserEmail(userId);
-  const emailTemplate = APPLICATION_STATUS_EMAIL_TEMPLATES[status];
+  const emailTemplate =
+    APPLICATION_STATUS_EMAIL_TEMPLATES[status] ??
+    selectEmailTemplateForNotification({ status }) ??
+    undefined;
 
   await notifyUser({
     userId,

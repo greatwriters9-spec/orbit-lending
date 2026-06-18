@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 
 import { AppProviders } from "@/components/providers/app-providers";
+import { SitePathwardBadge } from "@/components/brand/site-pathward-badge";
 
 import "./globals.css";
 
@@ -29,6 +30,7 @@ export default function RootLayout({
         className={`${inter.className} min-h-full bg-brand-background font-sans text-foreground`}
       >
         <AppProviders>{children}</AppProviders>
+        <SitePathwardBadge />
       </body>
     </html>
   );

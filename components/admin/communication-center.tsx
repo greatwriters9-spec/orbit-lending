@@ -32,11 +32,12 @@ type CommunicationCenterProps = {
 
 const DEPARTMENT_OPTIONS: Array<{ value: EmailDepartment; label: string }> = [
   { value: "system", label: "Orbit Mortgage System" },
-  { value: "loan_officer", label: "Orbit Mortgage Loan Officer" },
-  { value: "lending", label: "Chief Lending Officer - Orbit Mortgage" },
-  { value: "funding", label: "Orbit Mortgage Funding Department" },
-  { value: "closings", label: "Orbit Mortgage Closings Department" },
-  { value: "support", label: "Orbit Mortgage Support" },
+  { value: "loan_officer", label: "Loan Officer Department" },
+  { value: "underwriting", label: "Underwriting Department" },
+  { value: "funding", label: "Funding Department" },
+  { value: "closings", label: "Closing Department" },
+  { value: "support", label: "Client Support" },
+  { value: "executive", label: "Chief Lending Officer" },
 ];
 
 export function CommunicationCenter({

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ShieldAlert } from "lucide-react";
 
 import { OrbitLogo } from "@/components/brand/orbit-logo";
+import { PoweredByPathward } from "@/components/brand/powered-by-pathward";
 import { Button } from "@/components/ui-kit/button";
 import { getSessionUser } from "@/lib/auth/actions";
 import { getProfile } from "@/lib/auth/profile";
@@ -43,6 +44,10 @@ export default async function UnauthorizedPage() {
         >
           Return to Dashboard
         </Button>
+      </div>
+
+      <div className="mt-8">
+        <PoweredByPathward variant="default" />
       </div>
     </div>
   );
