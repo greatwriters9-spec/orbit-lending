@@ -1,5 +1,5 @@
 import type { EmailCommunicationLog, EmailTemplateKey } from "@/lib/email/types";
-import { EMAIL_TEMPLATE_LABELS } from "@/lib/email/templates/catalog";
+import { getEmailTemplateLabel } from "@/lib/email/templates/catalog";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
 
@@ -37,9 +37,7 @@ function mapEmailLog(row: EmailLogRow): EmailCommunicationLog {
   };
 }
 
-export function getEmailTemplateLabel(templateKey: EmailTemplateKey): string {
-  return EMAIL_TEMPLATE_LABELS[templateKey] ?? templateKey;
-}
+export { getEmailTemplateLabel } from "@/lib/email/templates/catalog";
 
 export async function fetchUserEmailCommunicationLogs(
   userId: string,

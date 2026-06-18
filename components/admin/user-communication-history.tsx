@@ -1,5 +1,5 @@
 import type { EmailCommunicationLog } from "@/lib/email/types";
-import { getEmailTemplateLabel } from "@/lib/email/queries";
+import { getEmailTemplateLabel } from "@/lib/email/templates/catalog";
 import { formatApplicationDate } from "@/lib/applications/status-utils";
 
 type UserCommunicationHistoryProps = {

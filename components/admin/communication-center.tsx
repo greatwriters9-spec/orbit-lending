@@ -10,13 +10,13 @@ import {
 import {
   ADMIN_SENDABLE_TEMPLATES,
   EMAIL_TEMPLATE_LABELS,
+  getEmailTemplateLabel,
   resolveTemplateDepartment,
 } from "@/lib/email/templates/catalog";
 import type { EmailCommunicationLog, EmailDepartment } from "@/lib/email/types";
 import { Button } from "@/components/ui-kit/button";
 import { Input } from "@/components/ui-kit/input";
 import { formatApplicationDate } from "@/lib/applications/status-utils";
-import { getEmailTemplateLabel } from "@/lib/email/queries";
 
 type CommunicationUser = {
   id: string;

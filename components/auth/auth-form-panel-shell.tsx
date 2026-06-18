@@ -12,30 +12,7 @@ type AuthFormPanelShellProps = {
   footer?: ReactNode;
   className?: string;
   cardClassName?: string;
-  showLoginTabs?: boolean;
 };
-
-function AuthLoginTabs() {
-  return (
-    <div className="mb-7 flex gap-8 border-b border-[#dbe2ea]">
-      <button
-        type="button"
-        className="-mb-px border-b-[3px] border-[#1e4db7] pb-2.5 text-sm font-semibold text-[#1e4db7]"
-        aria-current="page"
-      >
-        Sign in with password
-      </button>
-      <button
-        type="button"
-        disabled
-        className="-mb-px cursor-not-allowed border-b-[3px] border-transparent pb-2.5 text-sm font-medium text-[#8b95a5]"
-        aria-disabled
-      >
-        Sign in with SSO
-      </button>
-    </div>
-  );
-}
 
 export function AuthFormPanelShell({
   title,
@@ -44,7 +21,6 @@ export function AuthFormPanelShell({
   footer,
   className,
   cardClassName,
-  showLoginTabs = false,
 }: AuthFormPanelShellProps) {
   return (
     <div
@@ -73,8 +49,6 @@ export function AuthFormPanelShell({
             ) : null}
           </div>
         ) : null}
-
-        {showLoginTabs ? <AuthLoginTabs /> : null}
 
         {children}
 

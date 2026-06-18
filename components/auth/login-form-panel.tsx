@@ -12,7 +12,6 @@ export function LoginFormPanel({ className }: LoginFormPanelProps) {
   return (
     <AuthFormPanelShell
       className={className}
-      showLoginTabs
       footer={
         <p>
           Don&apos;t have an account?{" "}

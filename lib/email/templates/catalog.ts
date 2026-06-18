@@ -524,6 +524,10 @@ export const EMAIL_TEMPLATE_LABELS: Record<EmailTemplateKey, string> = {
   custom_closings_department: "Custom — Closings Department",
 };
 
+export function getEmailTemplateLabel(templateKey: EmailTemplateKey): string {
+  return EMAIL_TEMPLATE_LABELS[templateKey] ?? templateKey;
+}
+
 export const ADMIN_CUSTOM_TEMPLATES: EmailTemplateKey[] = [
   "custom_loan_officer",
   "custom_chief_lending_officer",
