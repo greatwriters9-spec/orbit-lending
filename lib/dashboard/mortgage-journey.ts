@@ -251,7 +251,9 @@ export function buildPathwardFundingView(input: {
     input.escrowTransfer,
   );
   const depositLabel =
-    phase === "admin_requested" ? `${requestLabel} Required` : requestLabel;
+    phase === "admin_requested"
+      ? requestLabel
+      : "Required Down Payment";
   const linked = Boolean(input.linkedAccount);
   const setupPending = input.applicationApprovedForFunding && !linked;
 
@@ -277,6 +279,11 @@ export function buildPathwardFundingView(input: {
     workflow.fundingAccountStatus,
   );
 
+  const depositStatusDisplay = resolveFundingStatusDisplay(
+    input.downPaymentMeta,
+    input.escrowTransfer,
+  );
+
   return {
     bankName: "Pathward National Bank",
     accountHolder: input.linkedAccount?.accountHolderName ?? "Pending Setup",
@@ -287,7 +294,7 @@ export function buildPathwardFundingView(input: {
     remainingRequired,
     fundingPercent: workflow.fundingProgressPercent,
     fundingStatus,
-    fundingStatusDisplay: workflow.fundingAccountStatus,
+    fundingStatusDisplay: showDepositUI ? depositStatusDisplay : workflow.fundingAccountStatus,
     fundingActionLabel: workflow.fundingActionLabel,
     depositLabel,
     showDepositUI,

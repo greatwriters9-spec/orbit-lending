@@ -654,6 +654,25 @@
     color: rgba(255, 255, 255, 0.85);
   }
 
+  .dashboard-premium-make-payment-btn {
+    margin-top: 12px;
+    display: inline-flex;
+    height: 36px;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: #ffffff;
+    font-size: 12px;
+    font-weight: 600;
+    color: #1a4ed2;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+
+  .dashboard-premium-make-payment-btn:hover {
+    background: rgba(255, 255, 255, 0.9);
+  }
+
   .dashboard-premium-badge {
     display: inline-flex;
     height: 28px;

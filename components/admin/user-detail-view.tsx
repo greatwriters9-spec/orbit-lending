@@ -1,6 +1,8 @@
 import Link from "next/link";
 
 import { AccountStatusPanel } from "@/components/admin/user-management";
+import { DownPaymentReviewPanel } from "@/components/finance/down-payment-review-panel";
+import { extractPreQualification } from "@/lib/onboarding/parse-application";
 import { RoleBadge } from "@/components/ui-kit/role-badge";
 import { SectionHeader } from "@/components/ui-kit/section-header";
 import { ACCOUNT_STATUS_LABELS } from "@/lib/auth/account-status";
@@ -10,6 +12,7 @@ import { formatCurrency } from "@/lib/loans/queries";
 import type {
   AdminUserApplication,
   AdminUserDetail,
+  AdminUserFundingApplication,
   AdminUserMessage,
   AdminUserTransaction,
   AdminUserWallet,
@@ -27,6 +30,7 @@ type UserDetailViewProps = {
   canChangeRole: boolean;
   usersBasePath: string;
   activeTab?: string;
+  fundingApplication?: AdminUserFundingApplication | null;
 };
 
 const TABS = [
@@ -49,6 +53,7 @@ export function UserDetailView({
   canChangeRole,
   usersBasePath,
   activeTab = "profile",
+  fundingApplication = null,
 }: UserDetailViewProps) {
   const name =
     user.firstName && user.lastName
@@ -89,6 +94,18 @@ export function UserDetailView({
           usersBasePath={usersBasePath}
         />
       )}
+
+      {canManageStatus && fundingApplication ? (
+        <DownPaymentReviewPanel
+          applicationId={fundingApplication.id}
+          personalInfo={fundingApplication.personalInfo}
+          pathwardBalance={user.pathwardAccountBalance}
+          fallbackDownPayment={
+            extractPreQualification(fundingApplication.personalInfo)
+              ?.estimatedDownPayment ?? 0
+          }
+        />
+      ) : null}
 
       <nav className="flex flex-wrap gap-2 border-b border-brand-border pb-1">
         {TABS.map((tab) => (

@@ -8,6 +8,7 @@ import {
 import {
   fetchAdminUserApplications,
   fetchAdminUserDetail,
+  fetchAdminUserFundingApplication,
   fetchAdminUserLoans,
   fetchAdminUserMessages,
   fetchAdminUserTransactions,
@@ -33,13 +34,14 @@ export default async function SuperAdminUserDetailPage({
     notFound();
   }
 
-  const [applications, loans, wallet, transactions, messages] =
+  const [applications, loans, wallet, transactions, messages, fundingApplication] =
     await Promise.all([
       fetchAdminUserApplications(userId),
       fetchAdminUserLoans(userId),
       fetchAdminUserWallet(userId),
       fetchAdminUserTransactions(userId),
       fetchAdminUserMessages(userId),
+      fetchAdminUserFundingApplication(userId),
     ]);
 
   return (
@@ -54,6 +56,7 @@ export default async function SuperAdminUserDetailPage({
       canChangeRole={canChangeUserRole(ctx.role)}
       usersBasePath="/super-admin/users"
       activeTab={tab ?? "profile"}
+      fundingApplication={fundingApplication}
     />
   );
 }

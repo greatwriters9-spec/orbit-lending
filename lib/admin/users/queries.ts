@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import type {
   AdminUserApplication,
   AdminUserDetail,
+  AdminUserFundingApplication,
   AdminUserMessage,
   AdminUserSummary,
   AdminUserTransaction,
@@ -136,6 +137,31 @@ export async function fetchAdminUserDetail(
     profileStatus: p.profile_status,
     createdAt: p.created_at,
     applicationCount: count ?? 0,
+  };
+}
+
+export async function fetchAdminUserFundingApplication(
+  userId: string,
+): Promise<AdminUserFundingApplication | null> {
+  const supabase = await createClient();
+
+  const { data } = await supabase
+    .from("loan_applications")
+    .select("id, status, personal_info")
+    .eq("user_id", userId)
+    .in("status", ["approved", "funded", "active"])
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!data) {
+    return null;
+  }
+
+  return {
+    id: data.id,
+    status: data.status,
+    personalInfo: (data.personal_info ?? {}) as Record<string, unknown>,
   };
 }
 

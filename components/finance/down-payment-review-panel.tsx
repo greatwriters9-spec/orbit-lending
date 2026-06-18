@@ -11,6 +11,7 @@ import {
 import { parseEscrowTransferMeta } from "@/lib/dashboard/closing-funds-meta";
 import {
   buildCurrentFundingBreakdown,
+  isClosingDownPaymentComplete,
   resolveCurrentRequiredAmount,
 } from "@/lib/dashboard/funding-requirements";
 import { parseDownPaymentMeta } from "@/lib/dashboard/mortgage-journey";
@@ -65,8 +66,10 @@ export function DownPaymentReviewPanel({
   );
   const activeRequest = downPayment?.activeRequest;
   const escrowPending = escrowTransfer?.status === "pending";
+  const downPaymentComplete = isClosingDownPaymentComplete(downPayment);
   const canReview = status === "pending_verification";
-  const canRequestDeposit = escrowPending && phase !== "admin_requested";
+  const canRequestDeposit =
+    downPaymentComplete && phase !== "admin_requested" && !activeRequest;
 
   function runReview(decision: "approve" | "reject" | "request_proof") {
     startTransition(async () => {
@@ -116,8 +119,9 @@ export function DownPaymentReviewPanel({
       <div>
         <h3 className="text-sm font-semibold text-brand-navy">Funding Requirements</h3>
         <p className="mt-1 text-xs text-muted-foreground">
-          Only one deposit is shown to the client at a time. After escrow transfer is
-          pending, you may request a single additional amount if more funds are needed.
+          Only one deposit is shown to the client at a time. After the down payment is
+          verified, you may request additional required amounts using the same deposit
+          and verification flow.
         </p>
       </div>
 
@@ -260,9 +264,13 @@ export function DownPaymentReviewPanel({
         <p className="text-sm text-muted-foreground">
           {status === "verified" && phase === "down_payment"
             ? "Down payment verified. Release closing funds from the client profile when ready."
+            : phase === "admin_requested"
+              ? "Additional deposit requested. The client will deposit, mark Paid, and await verification."
             : phase === "escrow_pending"
               ? "Escrow transfer pending. Request an additional deposit above if needed."
-              : "Customer has not submitted a deposit for verification yet."}
+              : downPaymentComplete
+                ? "Request an additional required deposit above when more funds are needed."
+                : "Customer has not submitted a deposit for verification yet."}
         </p>
       )}
     </section>

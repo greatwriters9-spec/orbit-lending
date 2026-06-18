@@ -754,25 +754,140 @@ function FundingProgressFooter({ percent }: { percent: number }) {
   );
 }
 
+function FundingDepositStrip({
+  depositLabel,
+  requiredAmount,
+  isPendingApproval,
+  isVerified,
+  onMakePayment,
+}: {
+  depositLabel: string;
+  requiredAmount: string;
+  isPendingApproval: boolean;
+  isVerified: boolean;
+  onMakePayment?: () => void;
+}) {
+  const needsPayment = !isVerified && !isPendingApproval && Boolean(onMakePayment);
+
+  return (
+    <div className="border-b border-white/10 py-3">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-sm font-medium text-white/65">{depositLabel}</span>
+        <div className="flex items-center gap-2">
+          {isVerified ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-brand-success/20 px-2.5 py-0.5 text-xs font-semibold text-emerald-100">
+              <Check className="size-3.5" />
+              Verified
+            </span>
+          ) : isPendingApproval ? (
+            <PremiumStatusBadge label="Pending" variant="pending" />
+          ) : null}
+          <span className="text-[15px] font-semibold tracking-tight tabular-nums text-white">
+            {requiredAmount}
+          </span>
+        </div>
+      </div>
+
+      {needsPayment ? (
+        <button
+          type="button"
+          onClick={onMakePayment}
+          className="dashboard-premium-make-payment-btn"
+        >
+          Make Payment
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
+function FundingBankSummary({
+  bankName,
+  accountNumber,
+  onViewDetails,
+}: {
+  bankName: string;
+  accountNumber: string;
+  onViewDetails?: () => void;
+}) {
+  return (
+    <div className="py-3">
+      <p className="dashboard-label-light">{bankName}</p>
+      {onViewDetails ? (
+        <button type="button" onClick={onViewDetails} className="mt-2 w-full text-left">
+          <p className="font-mono text-sm font-semibold tracking-wide text-white tabular-nums">
+            {maskAccountNumberDisplay(accountNumber)}
+          </p>
+          <p className="mt-2 text-xs font-semibold text-white/80">View wire details</p>
+        </button>
+      ) : (
+        <div className="mt-2">
+          <p className="font-mono text-sm font-semibold tracking-wide text-white tabular-nums">
+            {maskAccountNumberDisplay(accountNumber)}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function FundingAccountPanel({
   bankName,
   accountNumber,
   statusLabel,
-  actionLabel,
-  onAction,
+  depositLabel,
+  depositAmount,
+  showDepositUI,
+  showFundingActions,
+  isPendingApproval,
+  isVerified,
+  onMakePayment,
+  onViewDetails,
 }: {
   bankName: string;
   accountNumber: string;
   statusLabel: string;
-  actionLabel: string;
-  onAction?: () => void;
+  depositLabel?: string;
+  depositAmount?: string;
+  showDepositUI?: boolean;
+  showFundingActions?: boolean;
+  isPendingApproval?: boolean;
+  isVerified?: boolean;
+  onMakePayment?: () => void;
+  onViewDetails?: () => void;
 }) {
   return (
     <PremiumInsetPanel funding>
-      <PremiumInfoRow label="Status" value={statusLabel} />
-      <PremiumActionRow label="Action" value={actionLabel} onClick={onAction} />
-      <PremiumInfoRow label="Bank" value={bankName} />
-      <PremiumInfoRow label="Account" value={maskAccountNumberDisplay(accountNumber)} />
+      {showFundingActions ? (
+        <>
+          {showDepositUI && depositLabel && depositAmount ? (
+            <FundingDepositStrip
+              depositLabel={depositLabel}
+              requiredAmount={depositAmount}
+              isPendingApproval={Boolean(isPendingApproval)}
+              isVerified={Boolean(isVerified)}
+              onMakePayment={onMakePayment}
+            />
+          ) : (
+            <p className="border-b border-white/10 py-3 text-sm leading-relaxed text-white/70">
+              Your escrow transfer is pending Orbit Mortgage approval. No deposit is
+              required at this time.
+            </p>
+          )}
+
+          <FundingBankSummary
+            bankName={bankName}
+            accountNumber={accountNumber}
+            onViewDetails={showDepositUI ? onViewDetails : undefined}
+          />
+        </>
+      ) : (
+        <>
+          <PremiumInfoRow label="Status" value={statusLabel} />
+          <PremiumInfoRow label="Bank" value={bankName} />
+          <PremiumInfoRow label="Account" value={maskAccountNumberDisplay(accountNumber)} />
+        </>
+      )}
     </PremiumInsetPanel>
   );
 }
@@ -864,6 +979,11 @@ export function PathwardFundingAccountCard({ view }: { view: MortgageDashboardVi
   const isVerified = dp.status === "verified" && dp.fundingPhase === "down_payment";
   const depositAmount = formatCurrency(funding.requiredDeposit);
   const statusLabel = funding.fundingStatusDisplay;
+  const showMakePayment =
+    funding.showFundingActions &&
+    funding.showDepositUI &&
+    !isPendingApproval &&
+    !isVerified;
 
   const openDepositModal = () => {
     setSubmitError(null);
@@ -907,7 +1027,6 @@ export function PathwardFundingAccountCard({ view }: { view: MortgageDashboardVi
               bankName="Pathward National Bank"
               accountNumber="••••0000"
               statusLabel={statusLabel}
-              actionLabel={funding.fundingActionLabel}
             />
             <FundingProgressFooter percent={funding.fundingPercent} />
           </PremiumCardFooter>
@@ -916,14 +1035,6 @@ export function PathwardFundingAccountCard({ view }: { view: MortgageDashboardVi
     );
   }
 
-  const actionLabel = funding.fundingActionLabel;
-
-  const showMakePayment =
-    funding.showFundingActions &&
-    funding.showDepositUI &&
-    !isPendingApproval &&
-    !isVerified;
-
   return (
     <>
       <PremiumMortgageCard id="pathward-funding" variant="funding">
@@ -931,6 +1042,13 @@ export function PathwardFundingAccountCard({ view }: { view: MortgageDashboardVi
           title="Funding Account"
           icon={<Building2 className="size-4 text-white" strokeWidth={1.75} />}
           badgeLabel={statusLabel}
+          badgeVariant={
+            isPendingApproval
+              ? "pending"
+              : isVerified
+                ? "success"
+                : resolveStatusColorVariant(statusLabel)
+          }
         />
 
         <PremiumCardBody>
@@ -944,8 +1062,14 @@ export function PathwardFundingAccountCard({ view }: { view: MortgageDashboardVi
               bankName={funding.bankName}
               accountNumber={accountNumber}
               statusLabel={statusLabel}
-              actionLabel={actionLabel}
-              onAction={showMakePayment ? openDepositModal : undefined}
+              depositLabel={funding.depositLabel}
+              depositAmount={depositAmount}
+              showDepositUI={funding.showDepositUI}
+              showFundingActions={funding.showFundingActions}
+              isPendingApproval={isPendingApproval}
+              isVerified={isVerified}
+              onMakePayment={showMakePayment ? openDepositModal : undefined}
+              onViewDetails={funding.showDepositUI ? openDepositModal : undefined}
             />
             <FundingProgressFooter percent={funding.fundingPercent} />
           </PremiumCardFooter>

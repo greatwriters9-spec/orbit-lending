@@ -10,6 +10,7 @@ import {
   buildEscrowPendingFundingMeta,
   buildPostAdminDepositVerifiedMeta,
   computeTotalRequiredFunding,
+  isClosingDownPaymentComplete,
   resolveBaseDownPaymentAmount,
   resolveCurrentRequestLabel,
   resolveFundingPhase,
@@ -261,107 +262,121 @@ export async function reviewDownPaymentVerificationAction(input: {
     const currentPathwardBalance = Number(clientProfile.pathward_account_balance ?? 0);
 
     if (isAdminRequest && requiredAmount > 0) {
-      const creditAmount = Math.max(
-        0,
-        requiredAmount - Math.max(0, currentPathwardBalance),
+      const creditResult = await creditPathwardAccountBalance(
+        supabase,
+        application.user_id,
+        requiredAmount,
       );
-      const amountToCredit =
-        currentPathwardBalance >= requiredAmount ? requiredAmount : creditAmount;
 
-      if (amountToCredit > 0) {
-        const creditResult = await creditPathwardAccountBalance(
-          supabase,
-          application.user_id,
-          amountToCredit,
-        );
-
-        if (creditResult.error) {
-          return { error: creditResult.error };
-        }
+      if (creditResult.error) {
+        return { error: creditResult.error };
       }
 
-      const wallet = await getOrCreateWallet(application.user_id);
-      const referenceNumber = generateReferenceNumber("ADM");
+      const escrowPending = isEscrowTransferPending(escrowTransfer);
 
-      await supabase
-        .from("wallets")
-        .update({
-          pending_balance: wallet.pendingBalance + requiredAmount,
-        })
-        .eq("id", wallet.id);
+      if (escrowPending) {
+        const wallet = await getOrCreateWallet(application.user_id);
+        const referenceNumber = generateReferenceNumber("ADM");
 
-      const closingMeta = parseClosingFundsMeta(personalInfo);
-      const escrowTransfer = closingMeta?.escrowTransfer;
-      if (escrowTransfer?.withdrawalRequestId) {
         await supabase
-          .from("withdrawal_requests")
+          .from("wallets")
           .update({
-            amount: Number(escrowTransfer.amount) + requiredAmount,
+            pending_balance: wallet.pendingBalance + requiredAmount,
           })
-          .eq("id", escrowTransfer.withdrawalRequestId);
+          .eq("id", wallet.id);
 
-        personalInfo.closingFunds = {
-          ...closingMeta,
-          escrowTransfer: {
-            ...escrowTransfer,
-            amount: Number(escrowTransfer.amount) + requiredAmount,
-          },
+        const closingMeta = parseClosingFundsMeta(personalInfo);
+        const pendingEscrow = closingMeta?.escrowTransfer;
+        if (pendingEscrow?.withdrawalRequestId) {
+          await supabase
+            .from("withdrawal_requests")
+            .update({
+              amount: Number(pendingEscrow.amount) + requiredAmount,
+            })
+            .eq("id", pendingEscrow.withdrawalRequestId);
+
+          personalInfo.closingFunds = {
+            ...closingMeta,
+            escrowTransfer: {
+              ...pendingEscrow,
+              amount: Number(pendingEscrow.amount) + requiredAmount,
+            },
+          };
+        }
+
+        const { data: creditTx } = await supabase
+          .from("wallet_transactions")
+          .insert({
+            wallet_id: wallet.id,
+            transaction_type: "system_credit",
+            amount: requiredAmount,
+            status: "completed",
+            description: `${existing?.activeRequest?.label ?? "Additional deposit"} credited for escrow transfer`,
+            reference_number: referenceNumber,
+            application_id: input.applicationId,
+            created_by: user.id,
+          })
+          .select("id")
+          .single();
+
+        if (creditTx) {
+          await mirrorWalletTransaction({
+            borrowerId: application.user_id,
+            walletTransactionId: creditTx.id,
+            walletType: "system_credit",
+            amount: requiredAmount,
+            status: "completed",
+            referenceNumber,
+            description: `${existing?.activeRequest?.label ?? "Additional deposit"} credited for escrow transfer`,
+            applicationId: input.applicationId,
+            createdBy: user.id,
+            isCredit: true,
+            notify: {
+              title: "Deposit Verified",
+              message: `Your ${existing?.activeRequest?.label ?? "requested"} deposit of $${requiredAmount.toFixed(2)} has been verified and added to your funding account. Orbit Mortgage will complete your escrow transfer.`,
+            },
+          });
+        }
+
+        downPayment = buildPostAdminDepositVerifiedMeta(
+          existing,
+          fallbackDownPayment,
+          requiredAmount,
+        );
+      } else {
+        const base = resolveBaseDownPaymentAmount(existing, fallbackDownPayment);
+        downPayment = {
+          status: "verified",
+          requiredAmount: 0,
+          baseDownPaymentAmount: base,
+          verifiedDownPaymentAmount: base,
+          fundingPhase: "down_payment",
+          activeRequest: undefined,
+          requestLabel: undefined,
+          verificationRequestedAt: existing?.verificationRequestedAt,
+          verifiedAt: new Date().toISOString(),
+          verifiedBy: user.id,
+          pathwardCreditApplied:
+            Number(existing?.pathwardCreditApplied ?? 0) + creditResult.credited,
         };
       }
 
-      const { data: creditTx } = await supabase
-        .from("wallet_transactions")
-        .insert({
-          wallet_id: wallet.id,
-          transaction_type: "system_credit",
-          amount: requiredAmount,
-          status: "completed",
-          description: `${existing?.activeRequest?.label ?? "Additional deposit"} credited for escrow transfer`,
-          reference_number: referenceNumber,
-          application_id: input.applicationId,
-          created_by: user.id,
-        })
-        .select("id")
-        .single();
-
-      if (creditTx) {
-        await mirrorWalletTransaction({
-          borrowerId: application.user_id,
-          walletTransactionId: creditTx.id,
-          walletType: "system_credit",
-          amount: requiredAmount,
-          status: "completed",
-          referenceNumber,
-          description: `${existing?.activeRequest?.label ?? "Additional deposit"} credited for escrow transfer`,
-          applicationId: input.applicationId,
-          createdBy: user.id,
-          isCredit: true,
-          notify: {
-            title: "Deposit Verified",
-            message: `Your ${existing?.activeRequest?.label ?? "requested"} deposit of $${requiredAmount.toFixed(2)} has been verified and added to your funding account. Orbit Mortgage will complete your escrow transfer.`,
-          },
-        });
-      }
-
-      downPayment = buildPostAdminDepositVerifiedMeta(
-        existing,
-        fallbackDownPayment,
-        requiredAmount,
-      );
       downPayment.verifiedBy = user.id;
     } else if (existing?.status !== "verified" && requiredAmount > 0) {
-      const depositAlreadyRecorded =
-        currentPathwardBalance >= requiredAmount && alreadyCredited === 0;
+      const closingMeta = parseClosingFundsMeta(personalInfo);
+      const mortgageBaseline = Number(closingMeta?.mortgageCreditedToPathward ?? 0);
+      const depositBalance = Math.max(0, currentPathwardBalance - mortgageBaseline);
+      const creditNeeded = Math.max(0, requiredAmount - alreadyCredited);
+      const externalDepositRecorded =
+        creditNeeded > 0 &&
+        depositBalance >= requiredAmount &&
+        alreadyCredited === 0;
 
-      if (depositAlreadyRecorded) {
-        downPayment.pathwardCreditApplied = requiredAmount;
-        downPayment.verifiedDownPaymentAmount = requiredAmount;
-      } else {
-        const creditAmount = Math.max(0, requiredAmount - alreadyCredited);
+      if (creditNeeded > 0 && !externalDepositRecorded) {
         const creditResult = await creditPathwardAccountBalance(
           supabase,
           application.user_id,
-          creditAmount,
+          creditNeeded,
         );
 
         if (creditResult.error) {
@@ -369,8 +384,14 @@ export async function reviewDownPaymentVerificationAction(input: {
         }
 
         downPayment.pathwardCreditApplied = alreadyCredited + creditResult.credited;
-        downPayment.verifiedDownPaymentAmount = requiredAmount;
+      } else {
+        downPayment.pathwardCreditApplied = Math.max(
+          requiredAmount,
+          alreadyCredited,
+        );
       }
+
+      downPayment.verifiedDownPaymentAmount = requiredAmount;
       downPayment.fundingPhase = "down_payment";
     } else if (requiredAmount > 0) {
       downPayment.pathwardCreditApplied = requiredAmount;
@@ -487,10 +508,9 @@ export async function addFundingRequirementFeeAction(input: {
   const personalInfo = (application.personal_info ?? {}) as Record<string, unknown>;
   const escrowTransfer = parseEscrowTransferMeta(personalInfo);
 
-  if (!isEscrowTransferPending(escrowTransfer)) {
+  if (!["approved", "funded", "active"].includes(application.status)) {
     return {
-      error:
-        "Additional deposits can only be requested while an escrow transfer is pending approval.",
+      error: "Additional deposits can only be requested for approved applications.",
     };
   }
 
@@ -499,6 +519,14 @@ export async function addFundingRequirementFeeAction(input: {
     return {
       error:
         "A deposit request is already active. The client must complete it before a new request can be issued.",
+    };
+  }
+
+  const downPaymentComplete = isClosingDownPaymentComplete(existing);
+  if (!downPaymentComplete && !isEscrowTransferPending(escrowTransfer)) {
+    return {
+      error:
+        "Verify the client's down payment before requesting additional deposits.",
     };
   }
 

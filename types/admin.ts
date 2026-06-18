@@ -83,6 +83,12 @@ export type AdminUserDetail = AdminUserSummary & {
   pathwardWithdrawableApprovedAt: string | null;
 };
 
+export type AdminUserFundingApplication = {
+  id: string;
+  status: string;
+  personalInfo: Record<string, unknown>;
+};
+
 export type AdminUserApplication = {
   id: string;
   applicationNumber: string;
