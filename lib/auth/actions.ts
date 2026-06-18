@@ -13,6 +13,7 @@ import {
   resetPasswordSchema,
 } from "@/lib/auth/schemas";
 import { validateCityForState } from "@/lib/auth/validate-city";
+import { resolveSignUpError } from "@/lib/auth/sign-up";
 import { ensureOnboardingApplication } from "@/lib/onboarding/finalize-application";
 import { createClient } from "@/lib/supabase/server";
 import type { MortgageApplicationDraft } from "@/types/mortgage-onboarding";
@@ -106,22 +107,24 @@ export async function registerAction(
     },
   });
 
-  if (error) {
-    return { error: error.message };
+  const signUpError = resolveSignUpError(data.user, error);
+  if (signUpError) {
+    return { error: signUpError };
   }
 
-  if (data.user) {
-    await supabase
-      .from("profiles")
-      .update({
-        first_name: parsed.data.firstName,
-        middle_name: parsed.data.middleNameInitial ?? null,
-        last_name: parsed.data.lastName,
-      })
-      .eq("id", data.user.id);
+  if (!data.user) {
+    return { error: "Account could not be created. Please try again." };
   }
+  await supabase
+    .from("profiles")
+    .update({
+      first_name: parsed.data.firstName,
+      middle_name: parsed.data.middleNameInitial ?? null,
+      last_name: parsed.data.lastName,
+    })
+    .eq("id", data.user.id);
 
-  if (data.user && !data.session) {
+  if (!data.session) {
     return {
       success:
         "Account created. Check your email to confirm your address, then sign in.",

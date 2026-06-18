@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { z } from "zod";
 
 import { AUTH_ROUTES } from "@/lib/auth/routes";
+import { resolveSignUpError } from "@/lib/auth/sign-up";
 import { createClient } from "@/lib/supabase/server";
 import { ensureOnboardingApplication } from "@/lib/onboarding/finalize-application";
 import { updateOnboardingApplication } from "@/lib/onboarding/update-application";
@@ -150,8 +151,9 @@ export async function createAccountFromOnboardingAction(
     },
   });
 
-  if (error) {
-    return { error: error.message };
+  const signUpError = resolveSignUpError(data.user, error);
+  if (signUpError) {
+    return { error: signUpError };
   }
 
   if (!data.user) {

@@ -10,6 +10,7 @@ import {
   OnboardingTestimonials,
 } from "@/components/onboarding/onboarding-chrome";
 import { createAccountFromOnboardingAction } from "@/lib/onboarding/actions";
+import { EMAIL_ALREADY_REGISTERED_MESSAGE } from "@/lib/auth/sign-up";
 import {
   readMortgageApplicationDraft,
 } from "@/lib/onboarding/draft-storage";
@@ -90,7 +91,15 @@ export default function CreateAccountPage() {
 
           {error ? (
             <div className="mt-6 rounded-xl border border-brand-danger/20 bg-brand-danger/5 px-4 py-3 text-sm text-brand-danger">
-              {error}
+              <p>{error}</p>
+              {error === EMAIL_ALREADY_REGISTERED_MESSAGE ? (
+                <Link
+                  href="/login"
+                  className="mt-2 inline-block font-semibold text-brand-blue hover:text-brand-blue/80"
+                >
+                  Sign in instead
+                </Link>
+              ) : null}
             </div>
           ) : null}
 
