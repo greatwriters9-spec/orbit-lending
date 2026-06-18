@@ -23,11 +23,19 @@ export async function GET(request: Request) {
       if (!next && user) {
         const { data: profile } = await supabase
           .from("profiles")
-          .select("role")
+          .select("role, first_name")
           .eq("id", user.id)
           .maybeSingle();
 
         destination = getDefaultRouteForRole(profile?.role);
+
+        if (user.email_confirmed_at) {
+          const { sendVerificationSuccessEmail } = await import("@/lib/email/hooks");
+          void sendVerificationSuccessEmail(
+            user.id,
+            profile?.first_name ?? undefined,
+          );
+        }
       }
 
       return NextResponse.redirect(`${origin}${destination}`);

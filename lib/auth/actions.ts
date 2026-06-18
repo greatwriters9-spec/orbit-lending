@@ -124,6 +124,9 @@ export async function registerAction(
     })
     .eq("id", data.user.id);
 
+  const { sendWelcomeEmail } = await import("@/lib/email/hooks");
+  void sendWelcomeEmail(data.user.id, parsed.data.firstName);
+
   if (!data.session) {
     return {
       success:
@@ -155,6 +158,20 @@ export async function forgotPasswordAction(
 
   if (error) {
     return { error: error.message };
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("email", parsed.data.email)
+    .maybeSingle();
+
+  if (profile?.id) {
+    const { sendPasswordResetNoticeEmail } = await import("@/lib/email/hooks");
+    void sendPasswordResetNoticeEmail(
+      profile.id as string,
+      `${origin}${AUTH_ROUTES.resetPassword}`,
+    );
   }
 
   return {

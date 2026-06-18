@@ -298,6 +298,9 @@ export async function updateLinkedPathwardAccountAction(
     type: "application_update",
   });
 
+  const { sendFundingAccountCreatedEmail } = await import("@/lib/email/hooks");
+  void sendFundingAccountCreatedEmail(parsed.data.userId, "/dashboard");
+
   revalidateUserPaths(parsed.data.userId);
   return { success: "Linked Pathward account updated." };
 }
@@ -331,6 +334,13 @@ export async function updatePathwardAccountBalanceAction(
   if (error) {
     return { error: error.message };
   }
+
+  const { sendFundingBalanceUpdatedEmail } = await import("@/lib/email/hooks");
+  void sendFundingBalanceUpdatedEmail(
+    parsed.data.userId,
+    parsed.data.accountBalance,
+    "/wallet",
+  );
 
   revalidateUserPaths(parsed.data.userId);
   return { success: "Pathward account balance updated." };

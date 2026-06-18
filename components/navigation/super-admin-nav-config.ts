@@ -4,6 +4,7 @@ import {
   FileText,
   Home,
   LayoutDashboard,
+  Mail,
   MessageSquare,
   Settings,
   Shield,
@@ -43,6 +44,11 @@ export const superAdminNavSections: NavSection[] = [
         title: "Guest Concerns",
         href: "/super-admin/guest-concerns",
         icon: MessageSquare,
+      },
+      {
+        title: "Communications",
+        href: "/super-admin/communications",
+        icon: Mail,
       },
       {
         title: "Compliance",

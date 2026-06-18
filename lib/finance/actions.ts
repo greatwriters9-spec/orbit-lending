@@ -125,6 +125,12 @@ export async function setMortgageEligibilityAction(
     return { error: result.error };
   }
 
+  const { sendPreQualifiedNoticeEmail } = await import("@/lib/email/hooks");
+  void sendPreQualifiedNoticeEmail(existing.user_id, {
+    approvedAmount: parsed.data.eligibleAmount,
+    actionUrl: `/dashboard/loans/${parsed.data.applicationId}`,
+  });
+
   revalidateApplicationPaths(parsed.data.applicationId);
   revalidatePath("/dashboard");
   return { success: "Mortgage eligibility amount set." };

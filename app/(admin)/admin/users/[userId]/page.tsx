@@ -15,6 +15,7 @@ import {
   fetchAdminUserTransactions,
   fetchAdminUserWallet,
 } from "@/lib/admin/users/queries";
+import { fetchUserEmailCommunicationLogs } from "@/lib/email/queries";
 import { requireAdmin } from "@/lib/auth/guards";
 import { redirect } from "next/navigation";
 
@@ -41,7 +42,7 @@ export default async function AdminUserDetailPage({
     notFound();
   }
 
-  const [applications, loans, wallet, transactions, messages, fundingApplication] =
+  const [applications, loans, wallet, transactions, messages, fundingApplication, emailLogs] =
     await Promise.all([
       fetchAdminUserApplications(userId),
       fetchAdminUserLoans(userId),
@@ -49,6 +50,7 @@ export default async function AdminUserDetailPage({
       fetchAdminUserTransactions(userId),
       fetchAdminUserMessages(userId),
       fetchAdminUserFundingApplication(userId),
+      fetchUserEmailCommunicationLogs(userId),
     ]);
 
   return (
@@ -59,6 +61,7 @@ export default async function AdminUserDetailPage({
       wallet={wallet}
       transactions={transactions}
       messages={messages}
+      emailLogs={emailLogs}
       canManageStatus={canManageAccountStatus(ctx.role)}
       canChangeRole={canChangeUserRole(ctx.role)}
       usersBasePath="/admin/users"

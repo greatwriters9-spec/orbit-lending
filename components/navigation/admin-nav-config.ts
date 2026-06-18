@@ -4,6 +4,7 @@ import {
   FileText,
   Home,
   LayoutDashboard,
+  Mail,
   MessageSquare,
   Settings,
   User,
@@ -30,6 +31,11 @@ export const adminNavSections: NavSection[] = [
       },
       { title: "Reports", href: "/admin/reports", icon: FileText },
       { title: "Messages", href: "/admin/messages", icon: MessageSquare },
+      {
+        title: "Communications",
+        href: "/admin/communications",
+        icon: Mail,
+      },
       { title: "System Settings", href: "/admin/settings", icon: Settings },
     ],
   },
@@ -64,4 +70,3 @@ export const ADMIN_PORTAL = {
   title: "Orbit Mortgage",
   subtitle: "Credit Manager Portal",
 } as const;
-

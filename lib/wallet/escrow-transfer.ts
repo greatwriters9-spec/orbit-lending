@@ -291,6 +291,14 @@ export async function initiateEscrowTransferAction(
     metadata: { withdrawalRequestId: withdrawal.id, amount: transferAmount },
   });
 
+  const emailHooks = await import("@/lib/email/hooks");
+  void emailHooks.sendEscrowTransferRequestedEmail(user.id, transferAmount, "/dashboard");
+  void emailHooks.sendEscrowTransferPendingApprovalEmail(
+    user.id,
+    transferAmount,
+    "/dashboard",
+  );
+
   revalidateEscrowPaths(user.id);
   return {
     success:
@@ -341,6 +349,18 @@ export async function finalizeEscrowTransferApproval(
     approvedAt: new Date().toISOString(),
     approvedBy: reviewerId,
   });
+
+  const emailHooks = await import("@/lib/email/hooks");
+  void emailHooks.sendEscrowTransferApprovedEmail(
+    request.user_id,
+    Number(request.amount),
+    "/dashboard",
+  );
+  void emailHooks.sendFundsReleasedEmail(
+    request.user_id,
+    Number(request.amount),
+    "/dashboard",
+  );
 
   revalidateEscrowPaths(request.user_id);
   return {};

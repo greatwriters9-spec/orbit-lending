@@ -6,6 +6,11 @@ import type {
 import type { NotificationType } from "@/types/wallet";
 
 import { cleanEnv } from "@/lib/env";
+import {
+  APPLICATION_STATUS_EMAIL_TEMPLATES,
+  sendTimelineEmail,
+} from "@/lib/email/hooks";
+import type { EmailTemplateData, EmailTemplateKey } from "@/lib/email/types";
 
 import { buildEmailHtml, sendTransactionalEmail } from "./email";
 import { resolveUserEmail } from "./resolve-user-email";
@@ -22,6 +27,8 @@ export type NotifyUserInput = {
   showModal?: boolean;
   sendEmail?: boolean;
   email?: string;
+  emailTemplate?: EmailTemplateKey;
+  emailData?: EmailTemplateData;
 };
 
 export async function notifyUser(input: NotifyUserInput) {
@@ -50,21 +57,38 @@ export async function notifyUser(input: NotifyUserInput) {
     input.email ?? (shouldEmail ? await resolveUserEmail(input.userId) : null);
 
   if (shouldEmail && recipientEmail) {
-    const origin =
-      cleanEnv(process.env.NEXT_PUBLIC_APP_URL) || "http://localhost:3000";
-    const actionUrl = input.actionUrl
-      ? `${origin}${input.actionUrl}`
-      : undefined;
+    if (input.emailTemplate) {
+      const result = await sendTimelineEmail({
+        userId: input.userId,
+        template: input.emailTemplate,
+        data: input.emailData,
+        email: recipientEmail,
+        metadata: {
+          ...(input.metadata ?? {}),
+          notificationTitle: input.title,
+        },
+      });
 
-    const result = await sendTransactionalEmail({
-      to: recipientEmail,
-      subject: input.title,
-      html: buildEmailHtml(input.title, input.message, actionUrl),
-      text: `${input.title}\n\n${input.message}${actionUrl ? `\n\n${actionUrl}` : ""}`,
-    });
+      if (!result.ok && process.env.NODE_ENV === "development") {
+        console.warn("[notifyUser] Institutional email not sent:", result.error);
+      }
+    } else {
+      const origin =
+        cleanEnv(process.env.NEXT_PUBLIC_APP_URL) || "http://localhost:3000";
+      const actionUrl = input.actionUrl
+        ? `${origin}${input.actionUrl}`
+        : undefined;
 
-    if (!result.ok && process.env.NODE_ENV === "development") {
-      console.warn("[notifyUser] Email not sent:", result.error);
+      const result = await sendTransactionalEmail({
+        to: recipientEmail,
+        subject: input.title,
+        html: buildEmailHtml(input.title, input.message, actionUrl),
+        text: `${input.title}\n\n${input.message}${actionUrl ? `\n\n${actionUrl}` : ""}`,
+      });
+
+      if (!result.ok && process.env.NODE_ENV === "development") {
+        console.warn("[notifyUser] Email not sent:", result.error);
+      }
     }
   } else if (shouldEmail && !recipientEmail) {
     console.warn(
@@ -185,6 +209,7 @@ export async function notifyApplicationStatusChange(
   userId: string,
   applicationId: string,
   status: string,
+  emailData?: EmailTemplateData,
 ) {
   const config = STATUS_NOTIFICATIONS[status];
   if (!config) {
@@ -192,6 +217,7 @@ export async function notifyApplicationStatusChange(
   }
 
   const email = await resolveUserEmail(userId);
+  const emailTemplate = APPLICATION_STATUS_EMAIL_TEMPLATES[status];
 
   await notifyUser({
     userId,
@@ -205,6 +231,12 @@ export async function notifyApplicationStatusChange(
     showModal: config.showModal,
     sendEmail: config.sendEmail,
     email: email ?? undefined,
+    emailTemplate,
+    emailData: {
+      actionUrl: `/dashboard/loans/${applicationId}`,
+      message: config.message,
+      ...emailData,
+    },
   });
 
   await recordApplicationActivity(applicationId, {
@@ -283,6 +315,8 @@ export async function notifySecurityEvent(
     showModal: false,
     sendEmail: true,
     email: email ?? undefined,
+    emailTemplate: "security_alert",
+    emailData: { message },
   });
 }
 

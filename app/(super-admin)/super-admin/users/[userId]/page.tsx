@@ -14,6 +14,7 @@ import {
   fetchAdminUserTransactions,
   fetchAdminUserWallet,
 } from "@/lib/admin/users/queries";
+import { fetchUserEmailCommunicationLogs } from "@/lib/email/queries";
 import { requireSuperAdmin } from "@/lib/auth/guards";
 
 type PageProps = {
@@ -34,7 +35,7 @@ export default async function SuperAdminUserDetailPage({
     notFound();
   }
 
-  const [applications, loans, wallet, transactions, messages, fundingApplication] =
+  const [applications, loans, wallet, transactions, messages, fundingApplication, emailLogs] =
     await Promise.all([
       fetchAdminUserApplications(userId),
       fetchAdminUserLoans(userId),
@@ -42,6 +43,7 @@ export default async function SuperAdminUserDetailPage({
       fetchAdminUserTransactions(userId),
       fetchAdminUserMessages(userId),
       fetchAdminUserFundingApplication(userId),
+      fetchUserEmailCommunicationLogs(userId),
     ]);
 
   return (
@@ -52,6 +54,7 @@ export default async function SuperAdminUserDetailPage({
       wallet={wallet}
       transactions={transactions}
       messages={messages}
+      emailLogs={emailLogs}
       canManageStatus={canManageAccountStatus(ctx.role)}
       canChangeRole={canChangeUserRole(ctx.role)}
       usersBasePath="/super-admin/users"

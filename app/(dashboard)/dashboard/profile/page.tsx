@@ -1,5 +1,7 @@
-import { requireClient } from "@/lib/auth/guards";
+import { UserCommunicationHistory } from "@/components/admin/user-communication-history";
 import { ClientProfilePage } from "@/components/profile/client-profile-page";
+import { requireClient } from "@/lib/auth/guards";
+import { fetchUserEmailCommunicationLogs } from "@/lib/email/queries";
 
 export const metadata = {
   title: "Profile | Orbit Mortgage",
@@ -12,8 +14,13 @@ export default async function ProfilePage() {
     return null;
   }
 
+  const emailLogs = await fetchUserEmailCommunicationLogs(ctx.user.id);
+
   return (
-    <ClientProfilePage profile={ctx.profile} email={ctx.user.email ?? ""} />
+    <div className="space-y-8">
+      <ClientProfilePage profile={ctx.profile} email={ctx.user.email ?? ""} />
+      <UserCommunicationHistory logs={emailLogs} />
+    </div>
   );
 }
 

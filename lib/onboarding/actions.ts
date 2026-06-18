@@ -83,6 +83,13 @@ async function finalizeOnboardingForUser(
     return { error: applicationResult.error };
   }
 
+  const { sendPreQualifiedNoticeEmail } = await import("@/lib/email/hooks");
+  void sendPreQualifiedNoticeEmail(userId, {
+    mortgageAmount: preQual.estimatedMortgageAmount,
+    maxHomePrice: preQual.maximumHomePrice,
+    actionUrl: "/dashboard/qualification-result",
+  });
+
   return {};
 }
 
@@ -159,6 +166,9 @@ export async function createAccountFromOnboardingAction(
   if (!data.user) {
     return { error: "Account could not be created. Please try again." };
   }
+
+  const { sendWelcomeEmail } = await import("@/lib/email/hooks");
+  void sendWelcomeEmail(data.user.id, draft.firstName);
 
   if (!data.session) {
     return {

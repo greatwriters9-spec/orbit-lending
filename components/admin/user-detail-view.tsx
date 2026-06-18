@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { UserCommunicationHistory } from "@/components/admin/user-communication-history";
 import { AccountStatusPanel } from "@/components/admin/user-management";
 import { DownPaymentReviewPanel } from "@/components/finance/down-payment-review-panel";
 import { extractPreQualification } from "@/lib/onboarding/parse-application";
@@ -9,6 +10,7 @@ import { ACCOUNT_STATUS_LABELS } from "@/lib/auth/account-status";
 import { getRoleLabel } from "@/lib/auth/roles";
 import { formatApplicationDate } from "@/lib/applications/status-utils";
 import { formatCurrency } from "@/lib/loans/queries";
+import type { EmailCommunicationLog } from "@/lib/email/types";
 import type {
   AdminUserApplication,
   AdminUserDetail,
@@ -26,6 +28,7 @@ type UserDetailViewProps = {
   wallet: AdminUserWallet | null;
   transactions: AdminUserTransaction[];
   messages: AdminUserMessage[];
+  emailLogs?: EmailCommunicationLog[];
   canManageStatus: boolean;
   canChangeRole: boolean;
   usersBasePath: string;
@@ -40,6 +43,7 @@ const TABS = [
   { id: "wallet", label: "Funding Account" },
   { id: "transactions", label: "Transactions" },
   { id: "messages", label: "Messages" },
+  { id: "communications", label: "Communications" },
 ] as const;
 
 export function UserDetailView({
@@ -49,6 +53,7 @@ export function UserDetailView({
   wallet,
   transactions,
   messages,
+  emailLogs = [],
   canManageStatus,
   canChangeRole,
   usersBasePath,
@@ -129,6 +134,9 @@ export function UserDetailView({
       {activeTab === "wallet" && <WalletTab wallet={wallet} />}
       {activeTab === "transactions" && <TransactionsTab items={transactions} />}
       {activeTab === "messages" && <MessagesTab items={messages} />}
+      {activeTab === "communications" && (
+        <UserCommunicationHistory logs={emailLogs} />
+      )}
     </div>
   );
 }

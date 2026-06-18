@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 
 import { createClient } from "@/lib/supabase/server";
+import type { EmailTemplateData } from "@/lib/email/types";
 import type { ApplicationStatus } from "@/types/application-details";
 
 import { calculateApplicationScores } from "./scoring";
@@ -28,6 +29,7 @@ type TransitionOptions = {
   systemMessage?: string;
   skipValidation?: boolean;
   extraUpdates?: Record<string, unknown>;
+  emailData?: EmailTemplateData;
 };
 
 export async function getApplicationSnapshot(
@@ -125,7 +127,36 @@ export async function transitionApplicationStatus(
       existing.user_id,
       applicationId,
       toStatus,
+      {
+        applicationNumber: existing.application_number ?? undefined,
+        approvedAmount:
+          options.extraUpdates?.approved_amount != null
+            ? Number(options.extraUpdates.approved_amount)
+            : Number(existing.approved_amount ?? 0) || undefined,
+        requestedAmount: Number(existing.requested_amount ?? 0) || undefined,
+        ...options.emailData,
+      },
     );
+  }
+
+  const nextApprovedAmount = options.extraUpdates?.approved_amount;
+  if (nextApprovedAmount != null) {
+    const previousAmount = Number(existing.approved_amount ?? 0);
+    const updatedAmount = Number(nextApprovedAmount);
+    const amountChanged = Math.abs(previousAmount - updatedAmount) > 0.009;
+    const isFreshApproval = toStatus === "approved" && fromStatus !== "approved";
+    const isFreshPreQual =
+      toStatus === "pre_qualified" && fromStatus !== "pre_qualified";
+
+    if (amountChanged && !isFreshApproval && !isFreshPreQual) {
+      const { sendEligibleAmountUpdatedEmail } = await import("@/lib/email/hooks");
+      void sendEligibleAmountUpdatedEmail(
+        existing.user_id,
+        updatedAmount,
+        previousAmount > 0 ? previousAmount : undefined,
+        `/dashboard/loans/${applicationId}`,
+      );
+    }
   }
 
   return {};

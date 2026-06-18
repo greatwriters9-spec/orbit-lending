@@ -131,6 +131,13 @@ export async function submitDownPaymentVerificationAction(
     metadata: { applicationId },
   });
 
+  const { sendDepositSubmittedEmail } = await import("@/lib/email/hooks");
+  void sendDepositSubmittedEmail(
+    user.id,
+    requiredAmount,
+    `/dashboard/loans/${applicationId}`,
+  );
+
   revalidatePath("/dashboard");
   revalidatePath(`/dashboard/loans/${applicationId}`);
   revalidatePath("/admin/applications");
@@ -450,6 +457,21 @@ export async function reviewDownPaymentVerificationAction(input: {
     metadata: { applicationId: input.applicationId, decision: input.decision },
   });
 
+  const emailHooks = await import("@/lib/email/hooks");
+  if (input.decision === "approve") {
+    void emailHooks.sendDepositVerifiedEmail(
+      application.user_id,
+      requiredAmount,
+      `/dashboard/loans/${input.applicationId}`,
+    );
+  } else if (input.decision === "reject") {
+    void emailHooks.sendDepositRejectedEmail(
+      application.user_id,
+      input.reason,
+      `/dashboard/loans/${input.applicationId}`,
+    );
+  }
+
   revalidatePath("/dashboard");
   revalidatePath(`/dashboard/loans/${input.applicationId}`);
   revalidatePath(`/finance/applications/${input.applicationId}`);
@@ -578,6 +600,14 @@ export async function addFundingRequirementFeeAction(input: {
       feeAmount: input.amount,
     },
   });
+
+  const { sendAdditionalFundingRequiredEmail } = await import("@/lib/email/hooks");
+  void sendAdditionalFundingRequiredEmail(
+    application.user_id,
+    input.amount,
+    input.label.trim(),
+    `/dashboard/loans/${input.applicationId}`,
+  );
 
   revalidatePath("/dashboard");
   revalidatePath(`/dashboard/loans/${input.applicationId}`);
