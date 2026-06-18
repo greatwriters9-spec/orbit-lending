@@ -25,7 +25,7 @@ import {
   resolveMortgageDashboardState,
   resolvePreQualificationFromApplication,
 } from "@/lib/dashboard/mortgage-journey";
-import { isClosingDownPaymentComplete } from "@/lib/dashboard/funding-requirements";
+import { isClosingDownPaymentComplete, normalizeDownPaymentMeta } from "@/lib/dashboard/funding-requirements";
 import { parseClosingFundsMeta, parseEscrowTransferMeta } from "@/lib/dashboard/closing-funds-meta";
 import type { ApplicationStatus } from "@/types/application-details";
 import type {
@@ -171,7 +171,8 @@ export async function fetchClientDashboardData(
     | Record<string, unknown>
     | undefined;
   const onboardingMeta = parseOnboardingMeta(personalInfo);
-  const downPaymentMeta = parseDownPaymentMeta(personalInfo);
+  const escrowTransferEarly = parseEscrowTransferMeta(personalInfo);
+  const rawDownPaymentMeta = parseDownPaymentMeta(personalInfo);
   const preQualification = latestApplication
     ? resolvePreQualificationFromApplication({
         personalInfo,
@@ -179,6 +180,11 @@ export async function fetchClientDashboardData(
         approvedAmount: latestApplication.approved_amount,
       })
     : null;
+  const downPaymentMeta = normalizeDownPaymentMeta(
+    rawDownPaymentMeta,
+    preQualification?.estimatedDownPayment ?? 0,
+    escrowTransferEarly,
+  );
 
   const applicationStatus = latestApplication?.status as ApplicationStatus | undefined;
   const hasProperty = Boolean(onboardingMeta?.propertyAddress?.street);
@@ -398,15 +404,16 @@ async function buildMortgageDashboardView(input: {
     propertyUse: input.onboardingMeta?.propertyUse,
   });
 
+  const closingMeta = parseClosingFundsMeta(personalInfo);
+  const mortgageCredited = Number(closingMeta?.mortgageCreditedToPathward ?? 0);
+
   const downPayment = buildDownPaymentView({
     requiredAmount: summary.requiredDownPayment,
     pathwardBalance: input.linkedAccount?.accountBalance ?? 0,
+    mortgageCredited,
     meta: input.downPaymentMeta,
     escrowTransfer,
   });
-
-  const closingMeta = parseClosingFundsMeta(personalInfo);
-  const mortgageCredited = Number(closingMeta?.mortgageCreditedToPathward ?? 0);
 
   const pathwardFunding = buildPathwardFundingView({
     linkedAccount: input.linkedAccount,

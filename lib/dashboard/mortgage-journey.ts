@@ -8,14 +8,13 @@ import {
   resolveFundingStatusDisplay,
   shouldShowDepositUI,
   shouldShowFundingSection,
+  resolveVerifiedDownPaymentForClosing,
 } from "@/lib/dashboard/funding-requirements";
 import {
   resolveMortgageCardStatusLabel,
   resolveMortgageFundingWorkflow,
 } from "@/lib/dashboard/mortgage-funding-workflow";
-import {
-  parseEscrowTransferMeta,
-} from "@/lib/dashboard/closing-funds-meta";
+import { parseEscrowTransferMeta } from "@/lib/dashboard/closing-funds-meta";
 import type { ApplicationStatus } from "@/types/application-details";
 import type {
   ClosingFundsView,
@@ -307,6 +306,7 @@ export function buildPathwardFundingView(input: {
 export function buildDownPaymentView(input: {
   requiredAmount: number;
   pathwardBalance: number;
+  mortgageCredited?: number;
   meta: DownPaymentMeta | null;
   escrowTransfer?: ReturnType<typeof parseEscrowTransferMeta>;
 }): DownPaymentView {
@@ -322,12 +322,20 @@ export function buildDownPaymentView(input: {
   const isVerified = input.meta?.status === "verified" && phase === "down_payment";
   const isAdminVerified =
     input.meta?.status === "verified" && phase !== "admin_requested";
+  const verifiedDownPayment = resolveVerifiedDownPaymentForClosing(
+    input.meta,
+    input.requiredAmount,
+  );
+  const depositBalance = Math.max(
+    0,
+    input.pathwardBalance - (input.mortgageCredited ?? 0),
+  );
   const amountReceived =
     phase === "escrow_pending"
       ? 0
-      : isVerified
-        ? currentRequired
-        : input.pathwardBalance;
+      : input.meta?.status === "verified"
+        ? verifiedDownPayment
+        : Math.min(depositBalance, currentRequired);
   const remainingAmount = showDepositUI
     ? Math.max(0, currentRequired - amountReceived)
     : 0;
@@ -352,7 +360,7 @@ export function buildDownPaymentView(input: {
       status !== "pending_verification" &&
       !isVerified &&
       !isAdminVerified &&
-      input.pathwardBalance > 0,
+      depositBalance > 0,
     breakdown: buildCurrentFundingBreakdown(
       input.meta,
       input.requiredAmount,

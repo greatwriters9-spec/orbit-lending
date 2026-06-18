@@ -12,6 +12,7 @@ import { parseEscrowTransferMeta } from "@/lib/dashboard/closing-funds-meta";
 import {
   buildCurrentFundingBreakdown,
   isClosingDownPaymentComplete,
+  normalizeDownPaymentMeta,
   resolveCurrentRequiredAmount,
 } from "@/lib/dashboard/funding-requirements";
 import { parseDownPaymentMeta } from "@/lib/dashboard/mortgage-journey";
@@ -50,8 +51,12 @@ export function DownPaymentReviewPanel({
   const [customFeeLabel, setCustomFeeLabel] = useState("");
   const [feeAmount, setFeeAmount] = useState("");
 
-  const downPayment = parseDownPaymentMeta(personalInfo) as DownPaymentMeta | null;
   const escrowTransfer = parseEscrowTransferMeta(personalInfo);
+  const downPayment = normalizeDownPaymentMeta(
+    parseDownPaymentMeta(personalInfo) as DownPaymentMeta | null,
+    fallbackDownPayment,
+    escrowTransfer,
+  );
   const status = downPayment?.status ?? "awaiting_deposit";
   const phase = downPayment?.fundingPhase ?? "down_payment";
   const breakdown = buildCurrentFundingBreakdown(

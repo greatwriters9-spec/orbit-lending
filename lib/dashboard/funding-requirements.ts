@@ -186,6 +186,38 @@ export function isClosingDownPaymentComplete(meta: DownPaymentMeta | null): bool
   return false;
 }
 
+/** Backfill legacy down-payment meta so old accounts follow the current workflow. */
+export function normalizeDownPaymentMeta(
+  meta: DownPaymentMeta | null,
+  fallbackDownPayment: number,
+  escrowTransfer?: EscrowTransferMeta | null,
+): DownPaymentMeta | null {
+  if (!meta) return null;
+
+  const baseDownPaymentAmount = resolveBaseDownPaymentAmount(meta, fallbackDownPayment);
+  const verifiedDownPaymentAmount =
+    meta.verifiedDownPaymentAmount && meta.verifiedDownPaymentAmount > 0
+      ? meta.verifiedDownPaymentAmount
+      : meta.status === "verified"
+        ? baseDownPaymentAmount
+        : undefined;
+  const fundingPhase = resolveFundingPhase(meta, escrowTransfer);
+  const pathwardCreditApplied =
+    meta.pathwardCreditApplied && meta.pathwardCreditApplied > 0
+      ? meta.pathwardCreditApplied
+      : meta.status === "verified" && verifiedDownPaymentAmount
+        ? verifiedDownPaymentAmount
+        : meta.pathwardCreditApplied;
+
+  return {
+    ...meta,
+    baseDownPaymentAmount,
+    verifiedDownPaymentAmount,
+    fundingPhase,
+    pathwardCreditApplied,
+  };
+}
+
 export function buildAdminRequestedDepositMeta(input: {
   existing: DownPaymentMeta | null;
   fallbackDownPayment: number;

@@ -15,6 +15,9 @@ import { notifyAccountStatusChange } from "@/lib/notifications/service";
 import { createClient } from "@/lib/supabase/server";
 import { getOrCreateWallet } from "@/lib/wallet/ledger";
 import { canLinkPathwardAccount, parseDownPaymentMeta } from "@/lib/dashboard/mortgage-journey";
+import { isClosingDownPaymentComplete, normalizeDownPaymentMeta } from "@/lib/dashboard/funding-requirements";
+import { parseEscrowTransferMeta } from "@/lib/dashboard/closing-funds-meta";
+import { extractPreQualification } from "@/lib/onboarding/parse-application";
 import { isMortgageApprovedForWithdrawal } from "@/lib/wallet/pathward-account";
 import { syncMortgageToPathwardClosing } from "@/lib/wallet/pathward-closing";
 import { createNotification } from "@/lib/wallet/notifications";
@@ -82,11 +85,17 @@ async function getClientApplicationFundingState(userId: string) {
     .maybeSingle();
 
   const personalInfo = (application?.personal_info ?? {}) as Record<string, unknown>;
-  const downPaymentMeta = parseDownPaymentMeta(personalInfo);
+  const escrowTransfer = parseEscrowTransferMeta(personalInfo);
+  const preQual = extractPreQualification(personalInfo);
+  const downPaymentMeta = normalizeDownPaymentMeta(
+    parseDownPaymentMeta(personalInfo),
+    preQual?.estimatedDownPayment ?? 0,
+    escrowTransfer,
+  );
 
   return {
     applicationStatus: application?.status as string | undefined,
-    downPaymentVerified: downPaymentMeta?.status === "verified",
+    downPaymentVerified: isClosingDownPaymentComplete(downPaymentMeta),
   };
 }
 
