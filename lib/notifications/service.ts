@@ -39,7 +39,7 @@ export async function notifyUser(input: NotifyUserInput) {
     priority,
     action_url: input.actionUrl ?? null,
     metadata: input.metadata ?? {},
-    modal_dismissed: !(input.showModal ?? priority === "critical"),
+    modal_dismissed: input.showModal !== true,
   });
 
   const shouldEmail =
@@ -127,14 +127,14 @@ const STATUS_NOTIFICATIONS: Record<
     title: "Information Required",
     message: "We need additional documents or information to continue your review.",
     priority: "critical",
-    showModal: true,
+    showModal: false,
     sendEmail: true,
   },
   offer_sent: {
     title: "Mortgage Offer Sent",
     message: "A mortgage offer is ready for your review. Please accept or decline.",
     priority: "critical",
-    showModal: true,
+    showModal: false,
     sendEmail: true,
   },
   offer_accepted: {
@@ -148,21 +148,21 @@ const STATUS_NOTIFICATIONS: Record<
     title: "Mortgage Approved",
     message: "Congratulations! Your mortgage application has been approved for funding.",
     priority: "critical",
-    showModal: true,
+    showModal: false,
     sendEmail: true,
   },
   rejected: {
     title: "Application Not Approved",
     message: "Your mortgage application was not approved at this time.",
     priority: "critical",
-    showModal: true,
+    showModal: false,
     sendEmail: true,
   },
   funded: {
     title: "Funding Complete",
     message: "Your mortgage funds have been credited to your Orbit wallet.",
     priority: "critical",
-    showModal: true,
+    showModal: false,
     sendEmail: true,
   },
   active: {
@@ -280,7 +280,7 @@ export async function notifySecurityEvent(
     category: "security",
     priority: "critical",
     actionUrl: "/dashboard/profile",
-    showModal: true,
+    showModal: false,
     sendEmail: true,
     email: email ?? undefined,
   });
@@ -365,7 +365,7 @@ export async function notifyAccountStatusChange(
     category: "security",
     priority: newStatus === "suspended" ? "critical" : "high",
     actionUrl: "/account-status",
-    showModal: newStatus === "suspended" || newStatus === "restricted",
+    showModal: false,
     sendEmail: true,
     email: email ?? undefined,
   });

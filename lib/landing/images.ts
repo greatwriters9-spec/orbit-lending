@@ -2,13 +2,22 @@ export type LandingImage = {
   src: string;
   alt: string;
   objectPosition?: string;
+  /** Optional retina asset — use 2× the display width (e.g. 2560px for 1280px layouts). */
+  src2x?: string;
+  width?: number;
+  height?: number;
 };
+
+/** Hero backgrounds should be at least 2400px wide for sharp full-bleed display. */
+export const LANDING_HERO_MIN_WIDTH = 2400;
 
 export const LANDING_HERO_IMAGES: LandingImage[] = [
   {
-    src: "/landing/hero-couple-home.png",
-    alt: "Happy couple celebrating in front of their new home",
-    objectPosition: "62% center",
+    src: "/landing/hero-couple-golden-hour.png",
+    alt: "Happy couple in front of their new home on a golden sunny afternoon",
+    objectPosition: "center center",
+    width: 1024,
+    height: 576,
   },
 ];
 

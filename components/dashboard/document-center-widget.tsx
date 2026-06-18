@@ -25,6 +25,10 @@ export function DocumentCenterWidget({
   documents,
   className,
 }: DocumentCenterWidgetProps) {
+  if (documents.length === 0) {
+    return null;
+  }
+
   return (
     <section className={cn("dashboard-card flex h-full flex-col p-6 md:p-8", className)}>
       <div className="mb-6 flex items-start justify-between gap-4">

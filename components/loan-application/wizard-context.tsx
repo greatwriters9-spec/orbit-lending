@@ -18,7 +18,6 @@ import {
   financialInformationSchema,
   personalInformationSchema,
   validateLoanConfiguration,
-  validateRequirementsDocuments,
 } from "@/lib/loans/application-schemas";
 import { getDraftStorageKey, TOTAL_WIZARD_STEPS } from "@/lib/loans/wizard-config";
 import type { LoanApplicationDraft } from "@/types/loan-application";
@@ -69,7 +68,7 @@ function createInitialDraft(
     currentStep: 1,
     loanProductSlug: product.slug,
     configuration: {
-      requestedAmount: product.minAmount,
+      requestedAmount: 0,
       selectedTermId: firstTerm?.id ?? "",
       repaymentFrequency: firstTerm?.repaymentFrequency ?? "Monthly",
       purpose: "",
@@ -272,16 +271,6 @@ export function WizardProvider({
         const result = financialInformationSchema.safeParse(draft.financialInfo);
         if (!result.success) {
           error = result.error.issues[0]?.message ?? "Invalid financial information.";
-        }
-      }
-
-      if (step === 5) {
-        const requiredIds = product.requirements
-          .filter((req) => req.required)
-          .map((req) => req.id);
-        const result = validateRequirementsDocuments(draft.documents, requiredIds);
-        if (!result.success) {
-          error = result.error;
         }
       }
 

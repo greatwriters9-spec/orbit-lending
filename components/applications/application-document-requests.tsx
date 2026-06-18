@@ -25,14 +25,7 @@ export function ApplicationDocumentRequests({
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   if (requests.length === 0) {
-    return (
-      <section className={cn("card-surface p-6 md:p-8", className)}>
-        <h2 className="heading-secondary text-lg">Document Requests</h2>
-        <p className="mt-4 text-sm text-muted-foreground">
-          No additional documents have been requested at this time.
-        </p>
-      </section>
-    );
+    return null;
   }
 
   function handleUpload(requestId: string) {

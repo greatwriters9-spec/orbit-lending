@@ -133,7 +133,7 @@ async function completeLoanIfPaidOff(loanId: string, actorId?: string, actorRole
     "Congratulations! Mortgage Fully Repaid",
     `Your Orbit Mortgage mortgage ${loan.loan_number ?? ""} has been fully repaid. Thank you for banking with us.`,
     "critical",
-    { showModal: true, sendEmail: true },
+    { showModal: false, sendEmail: true },
   );
 
   await recordPlatformTransaction({

@@ -8,7 +8,6 @@ import { StepFinancialInformation } from "@/components/loan-application/steps/st
 import { StepLoanConfiguration } from "@/components/loan-application/steps/step-loan-configuration";
 import { StepPersonalInformation } from "@/components/loan-application/steps/step-personal-information";
 import { StepProductSummary } from "@/components/loan-application/steps/step-product-summary";
-import { StepRequirementsDocuments } from "@/components/loan-application/steps/step-requirements-documents";
 import { StepReviewApplication } from "@/components/loan-application/steps/step-review-application";
 import { StepSubmissionConfirmation } from "@/components/loan-application/steps/step-submission-confirmation";
 import { WizardNavigation } from "@/components/loan-application/wizard-navigation";
@@ -45,7 +44,7 @@ function WizardContent({ productName }: { productName: string }) {
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   async function handleSubmit() {
-    for (const step of [2, 3, 4, 5]) {
+    for (const step of [2, 3, 4]) {
       if (!validateStep(step)) {
         goToStep(step);
         return;
@@ -69,7 +68,7 @@ function WizardContent({ productName }: { productName: string }) {
     });
 
     localStorage.removeItem(getDraftStorageKey(draft.loanProductSlug));
-    goToStep(7);
+    goToStep(6);
   }
 
   function renderStep() {
@@ -83,10 +82,8 @@ function WizardContent({ productName }: { productName: string }) {
       case 4:
         return <StepFinancialInformation />;
       case 5:
-        return <StepRequirementsDocuments />;
-      case 6:
         return <StepReviewApplication />;
-      case 7:
+      case 6:
         return (
           <StepSubmissionConfirmation
             applicationNumber={draft.applicationNumber ?? "Pending"}
@@ -101,20 +98,20 @@ function WizardContent({ productName }: { productName: string }) {
 
   return (
     <div className="space-y-6">
-      {currentStep < 7 ? <WizardProgress currentStep={currentStep} /> : null}
+      {currentStep < 6 ? <WizardProgress currentStep={currentStep} /> : null}
 
       {renderStep()}
 
-      {currentStep < 7 ? (
+      {currentStep < 6 ? (
         <WizardNavigation
           currentStep={currentStep}
           isSaving={isSaving}
           saveMessage={submitError ?? saveMessage}
           onBack={prevStep}
-          onNext={currentStep === 6 ? handleSubmit : nextStep}
+          onNext={currentStep === 5 ? handleSubmit : nextStep}
           onSaveDraft={() => void saveDraft()}
           nextLabel={
-            currentStep === 6
+            currentStep === 5
               ? isSubmitting
                 ? "Submitting..."
                 : "Submit Application"

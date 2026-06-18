@@ -87,6 +87,7 @@ export function StepFinancialInformation() {
                 monthlyIncome: Number(event.target.value),
               })
             }
+            placeholder="$6,500"
             className={inputClassName}
           />
         </FormField>
@@ -103,6 +104,7 @@ export function StepFinancialInformation() {
                 monthlyExpenses: Number(event.target.value),
               })
             }
+            placeholder="$2,800"
             className={inputClassName}
           />
         </FormField>
@@ -119,6 +121,7 @@ export function StepFinancialInformation() {
                 existingDebt: Number(event.target.value),
               })
             }
+            placeholder="$450"
             className={inputClassName}
           />
         </FormField>

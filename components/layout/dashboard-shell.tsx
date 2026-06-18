@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { MobileSidebar } from "@/components/layout/mobile-sidebar";
+import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
 import { Sidebar } from "@/components/layout/sidebar";
 import { TopNavigation } from "@/components/layout/top-navigation";
 import { cn } from "@/lib/utils";
@@ -28,7 +28,6 @@ export function DashboardShell({
       <div className="flex min-w-0 flex-1 flex-col">
         <TopNavigation
           homeHref="/dashboard"
-          mobileMenu={<MobileSidebar portal="client" />}
           user={user}
           unreadNotifications={unreadNotifications}
           unreadMessages={unreadMessages}
@@ -37,12 +36,15 @@ export function DashboardShell({
 
         <main
           className={cn(
-            "mx-auto w-full max-w-[1440px] flex-1 px-5 py-8 md:px-8 md:py-10",
+            "mx-auto w-full max-w-[1440px] flex-1 px-4 py-6 md:px-8 md:py-10",
+            "pb-[calc(5.5rem+env(safe-area-inset-bottom))] lg:pb-10",
             className,
           )}
         >
           {children}
         </main>
+
+        <MobileBottomNav />
       </div>
     </div>
   );

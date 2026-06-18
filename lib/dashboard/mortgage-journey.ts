@@ -10,13 +10,14 @@ import {
   shouldShowFundingSection,
 } from "@/lib/dashboard/funding-requirements";
 import {
-  isEscrowTransferActive,
-  isEscrowTransferPending,
+  resolveMortgageCardStatusLabel,
+  resolveMortgageFundingWorkflow,
+} from "@/lib/dashboard/mortgage-funding-workflow";
+import {
   parseEscrowTransferMeta,
 } from "@/lib/dashboard/closing-funds-meta";
 import type { ApplicationStatus } from "@/types/application-details";
 import type {
-  ClosingFundsStatus,
   ClosingFundsView,
   DownPaymentMeta,
   DownPaymentStatus,
@@ -199,7 +200,7 @@ export function buildMortgageSummary(input: {
     requiredDownPayment: input.preQual.estimatedDownPayment,
     estimatedMonthlyPayment: input.preQual.estimatedMonthlyPayment,
     maximumHomePrice: input.preQual.maximumHomePrice,
-    statusLabel: formatDashboardStatusLabel(input.applicationStatus),
+    statusLabel: resolveMortgageCardStatusLabel(input.applicationStatus),
     isEligibleAmount,
   };
 }
@@ -237,11 +238,13 @@ export function buildPathwardFundingView(input: {
   applicationApprovedForFunding: boolean;
   downPaymentMeta: DownPaymentMeta | null;
   escrowTransfer?: ReturnType<typeof parseEscrowTransferMeta>;
+  purchasePrice: number;
+  mortgageApproved: boolean;
+  mortgageCredited: number;
+  applicationStatus?: ApplicationStatus;
 }): PathwardFundingView {
   const rawBalance = input.linkedAccount?.accountBalance ?? 0;
   const phase = resolveFundingPhase(input.downPaymentMeta, input.escrowTransfer);
-  const escrowPending = phase === "escrow_pending";
-  const currentBalance = escrowPending ? 0 : rawBalance;
   const showDepositUI = shouldShowDepositUI(input.downPaymentMeta, input.escrowTransfer);
   const requestLabel = resolveCurrentRequestLabel(
     input.downPaymentMeta,
@@ -249,27 +252,29 @@ export function buildPathwardFundingView(input: {
   );
   const depositLabel =
     phase === "admin_requested" ? `${requestLabel} Required` : requestLabel;
-  const fundingStatusDisplay = resolveFundingStatusDisplay(
-    input.downPaymentMeta,
-    input.escrowTransfer,
-  );
-  const effectiveRequired = showDepositUI ? input.requiredDeposit : 0;
-  const remainingRequired = Math.max(0, effectiveRequired - currentBalance);
-  const fundingPercent =
-    effectiveRequired > 0
-      ? Math.min(100, Math.round((currentBalance / effectiveRequired) * 100))
-      : escrowPending
-        ? 100
-        : 0;
   const linked = Boolean(input.linkedAccount);
   const setupPending = input.applicationApprovedForFunding && !linked;
+
+  const workflow = resolveMortgageFundingWorkflow({
+    applicationStatus: input.applicationStatus,
+    purchasePrice: input.purchasePrice,
+    pathwardBalance: rawBalance,
+    pathwardLinked: linked,
+    mortgageApproved: input.mortgageApproved,
+    mortgageCredited: input.mortgageCredited,
+    escrowTransfer: input.escrowTransfer,
+  });
+
+  const currentBalance = workflow.fundingAccountBalance;
+  const effectiveRequired = showDepositUI ? input.requiredDeposit : 0;
+  const remainingRequired = Math.max(0, effectiveRequired - currentBalance);
 
   const fundingStatus = mapFundingStatusLabel(
     input.downPaymentStatus,
     currentBalance,
     effectiveRequired,
     phase,
-    fundingStatusDisplay,
+    workflow.fundingAccountStatus,
   );
 
   return {
@@ -280,9 +285,10 @@ export function buildPathwardFundingView(input: {
     requiredDeposit: effectiveRequired,
     currentBalance,
     remainingRequired,
-    fundingPercent,
+    fundingPercent: workflow.fundingProgressPercent,
     fundingStatus,
-    fundingStatusDisplay,
+    fundingStatusDisplay: workflow.fundingAccountStatus,
+    fundingActionLabel: workflow.fundingActionLabel,
     depositLabel,
     showDepositUI,
     linked,
@@ -385,80 +391,35 @@ function mapFundingStatusLabel(
 }
 
 export function buildClosingFundsView(input: {
-  mortgageAmount: number;
-  verifiedDownPayment: number;
-  mortgageApproved: boolean;
-  downPaymentVerified: boolean;
+  purchasePrice: number;
   pathwardBalance: number;
-  withdrawableBalance: number;
-  withdrawableReleased: boolean;
+  pathwardLinked: boolean;
+  mortgageApproved: boolean;
+  mortgageCredited: number;
+  downPaymentVerified: boolean;
+  applicationStatus?: ApplicationStatus;
   escrowTransfer?: ReturnType<typeof parseEscrowTransferMeta>;
 }): ClosingFundsView {
-  const projectedTransferAmount = input.mortgageAmount + input.verifiedDownPayment;
-  const closingDownPaymentComplete =
-    input.downPaymentVerified && input.mortgageApproved;
-  const escrowPending = isEscrowTransferPending(input.escrowTransfer);
-  const escrowSettled = input.escrowTransfer?.status === "approved";
-  const bothConditionsMet = closingDownPaymentComplete || escrowPending || escrowSettled;
-  const escrowActive = isEscrowTransferActive(input.escrowTransfer);
-
-  let transferableBalance = 0;
-  let pendingPathwardBalance = 0;
-  let status: ClosingFundsStatus = "locked";
-  let statusLabel = "Locked";
-  let canTransferToEscrow = false;
-
-  if (escrowPending) {
-    return {
-      projectedTransferAmount,
-      transferableBalance: 0,
-      pendingPathwardBalance: 0,
-      status: "transfer_pending",
-      statusLabel: "Transfer Pending Approval",
-      mortgageApproved: input.mortgageApproved,
-      downPaymentVerified: input.downPaymentVerified,
-      canTransferToEscrow: false,
-      escrowTransfer: input.escrowTransfer,
-    };
-  }
-
-  if (input.escrowTransfer?.status === "approved") {
-    return {
-      projectedTransferAmount,
-      transferableBalance: 0,
-      pendingPathwardBalance: 0,
-      status: "transferred",
-      statusLabel: "Transfer Complete",
-      mortgageApproved: input.mortgageApproved,
-      downPaymentVerified: input.downPaymentVerified,
-      canTransferToEscrow: false,
-      escrowTransfer: input.escrowTransfer,
-    };
-  }
-
-  if (bothConditionsMet) {
-    pendingPathwardBalance = escrowActive ? 0 : input.pathwardBalance;
-
-    if (input.withdrawableReleased && input.withdrawableBalance > 0) {
-      transferableBalance = input.withdrawableBalance;
-      status = "available";
-      statusLabel = "Ready to Transfer";
-      canTransferToEscrow = true;
-    } else {
-      status = "ready_for_closing";
-      statusLabel = "Pending Release";
-    }
-  }
+  const workflow = resolveMortgageFundingWorkflow({
+    applicationStatus: input.applicationStatus,
+    purchasePrice: input.purchasePrice,
+    pathwardBalance: input.pathwardBalance,
+    pathwardLinked: input.pathwardLinked,
+    mortgageApproved: input.mortgageApproved,
+    mortgageCredited: input.mortgageCredited,
+    escrowTransfer: input.escrowTransfer,
+  });
 
   return {
-    projectedTransferAmount,
-    transferableBalance,
-    pendingPathwardBalance,
-    status,
-    statusLabel,
+    totalClosingAmount: workflow.totalClosingAmount,
+    availableBalance: workflow.availableBalance,
+    pendingBalance: workflow.pendingBalance,
+    status: workflow.closingFundsStatus,
+    statusLabel: workflow.closingFundsStatusLabel,
+    actionLabel: workflow.closingFundsActionLabel,
     mortgageApproved: input.mortgageApproved,
     downPaymentVerified: input.downPaymentVerified,
-    canTransferToEscrow,
+    canTransferToEscrow: workflow.canTransferToEscrow,
     escrowTransfer: input.escrowTransfer,
   };
 }

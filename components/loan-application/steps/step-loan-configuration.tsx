@@ -51,6 +51,7 @@ export function StepLoanConfiguration() {
                   requestedAmount: Number(event.target.value),
                 })
               }
+              placeholder="$250,000"
               className={inputClassName}
             />
             <p className="text-xs text-muted-foreground">

@@ -66,6 +66,7 @@ export type PathwardFundingView = {
   fundingPercent: number;
   fundingStatus: FundingStatusLabel;
   fundingStatusDisplay: string;
+  fundingActionLabel: string;
   depositLabel: string;
   showDepositUI: boolean;
   linked: boolean;
@@ -134,11 +135,15 @@ export type ClosingFundsMeta = {
 };
 
 export type ClosingFundsView = {
-  projectedTransferAmount: number;
-  transferableBalance: number;
-  pendingPathwardBalance: number;
+  /** Full property purchase price — total amount required at closing. */
+  totalClosingAmount: number;
+  /** Mirrors Funding Account current balance toward closing. */
+  availableBalance: number;
+  /** Remaining amount needed before closing can complete. */
+  pendingBalance: number;
   status: ClosingFundsStatus;
   statusLabel: string;
+  actionLabel: string;
   mortgageApproved: boolean;
   downPaymentVerified: boolean;
   canTransferToEscrow: boolean;

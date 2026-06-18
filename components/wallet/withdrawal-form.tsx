@@ -112,7 +112,7 @@ export function WithdrawalForm({ wallet }: WithdrawalFormProps) {
             max={wallet.availableBalance}
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            placeholder="0.00"
+            placeholder="$500"
             className="h-11 w-full rounded-lg border border-brand-border px-3 text-sm"
           />
         </Field>

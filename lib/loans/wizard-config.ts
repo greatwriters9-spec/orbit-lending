@@ -27,18 +27,12 @@ export const WIZARD_STEPS: WizardStepDefinition[] = [
   },
   {
     id: 5,
-    key: "requirements-documents",
-    label: "Requirements & Documents",
-    shortLabel: "Documents",
-  },
-  {
-    id: 6,
     key: "review",
     label: "Review Application",
     shortLabel: "Review",
   },
   {
-    id: 7,
+    id: 6,
     key: "confirmation",
     label: "Submission Confirmation",
     shortLabel: "Confirm",

@@ -40,6 +40,11 @@ export const superAdminNavSections: NavSection[] = [
         icon: ClipboardList,
       },
       {
+        title: "Guest Concerns",
+        href: "/super-admin/guest-concerns",
+        icon: MessageSquare,
+      },
+      {
         title: "Compliance",
         href: "/super-admin/compliance",
         icon: ShieldCheck,

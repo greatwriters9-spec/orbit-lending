@@ -146,6 +146,10 @@ function parseCurrency(value: string): number {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
+function formatAmountFieldValue(value?: number): string {
+  return value && value > 0 ? String(value) : "";
+}
+
 export function OnboardingWizard({
   isLoggedIn = false,
   mode = "create",
@@ -423,6 +427,9 @@ export function OnboardingWizard({
       totalSteps={totalSteps}
       onBack={goBack}
       showBack={stepIndex > 0 || currentStep !== "home-found"}
+      stepKey={currentStep}
+      showChrome={!isEditMode}
+      isLoggedIn={isLoggedIn}
     >
       {error ? (
         <div className="mx-auto mb-6 max-w-xl rounded-xl border border-brand-danger/20 bg-brand-danger/5 px-4 py-3 text-sm text-brand-danger">
@@ -432,7 +439,7 @@ export function OnboardingWizard({
 
       {currentStep === "home-found" ? (
         <OnboardingQuestion title="Have you found a home to buy?">
-          <div className="space-y-3">
+          <div className="space-y-4">
             <OptionCard
               label="Yes"
               selected={draft.homeFound === true}
@@ -449,7 +456,7 @@ export function OnboardingWizard({
 
       {currentStep === "purchase-timeline" ? (
         <OnboardingQuestion title="When do you hope to purchase a home?">
-          <div className="space-y-3">
+          <div className="space-y-4">
             {TIMELINE_OPTIONS.map((option) => (
               <OptionCard
                 key={option.value}
@@ -464,7 +471,7 @@ export function OnboardingWizard({
 
       {currentStep === "buying-stage" ? (
         <OnboardingQuestion title="Where are you in the home buying process?">
-          <div className="space-y-3">
+          <div className="space-y-4">
             {STAGE_OPTIONS.map((option) => (
               <OptionCard
                 key={option.value}
@@ -538,7 +545,7 @@ export function OnboardingWizard({
               type="number"
               min="0"
               className={onboardingInputClassName()}
-              value={draft.targetHomePrice ?? ""}
+              value={formatAmountFieldValue(draft.targetHomePrice)}
               onChange={(e) =>
                 updateDraft({ targetHomePrice: parseCurrency(e.target.value) })
               }
@@ -556,7 +563,7 @@ export function OnboardingWizard({
               : "How do you plan to use your future home?"
           }
         >
-          <div className="space-y-3">
+          <div className="space-y-4">
             {PROPERTY_USE_OPTIONS.map((option) => (
               <OptionCard
                 key={option.value}
@@ -648,7 +655,7 @@ export function OnboardingWizard({
               type="number"
               min="0"
               className={onboardingInputClassName()}
-              value={draft.purchasePrice ?? ""}
+              value={formatAmountFieldValue(draft.purchasePrice)}
               onChange={(e) =>
                 updateDraft({ purchasePrice: parseCurrency(e.target.value) })
               }
@@ -660,7 +667,7 @@ export function OnboardingWizard({
 
       {currentStep === "property-type" ? (
         <OnboardingQuestion title="What type of property is it?">
-          <div className="space-y-3">
+          <div className="space-y-4">
             {PROPERTY_TYPE_OPTIONS.map((option) => (
               <OptionCard
                 key={option.value}
@@ -833,7 +840,7 @@ export function OnboardingWizard({
 
       {currentStep === "employment" && employmentPhase === "type" ? (
         <OnboardingQuestion title="What is your employment type?">
-          <div className="space-y-3">
+          <div className="space-y-4">
             {EMPLOYMENT_OPTIONS.map((option) => (
               <OptionCard
                 key={option.value}
@@ -938,7 +945,7 @@ export function OnboardingWizard({
                 type="number"
                 min="0"
                 className={onboardingInputClassName()}
-                value={draft.employment?.annualIncome || ""}
+                value={formatAmountFieldValue(draft.employment?.annualIncome)}
                 onChange={(e) =>
                   updateDraft({
                     employment: {
@@ -965,16 +972,16 @@ export function OnboardingWizard({
                 type="number"
                 min="0"
                 className={onboardingInputClassName()}
-                value={draft.assets?.checkingBalance ?? ""}
+                value={formatAmountFieldValue(draft.assets?.checkingBalance)}
                 onChange={(e) =>
                   updateDraft({
                     assets: {
+                      ...(draft.assets ?? {}),
                       checkingBalance: parseCurrency(e.target.value),
-                      savingsBalance: draft.assets?.savingsBalance ?? 0,
-                      investmentBalance: draft.assets?.investmentBalance ?? 0,
                     },
                   })
                 }
+                placeholder="$5,000"
               />
             </OnboardingField>
             <OnboardingField label="Savings Balance">
@@ -982,16 +989,16 @@ export function OnboardingWizard({
                 type="number"
                 min="0"
                 className={onboardingInputClassName()}
-                value={draft.assets?.savingsBalance ?? ""}
+                value={formatAmountFieldValue(draft.assets?.savingsBalance)}
                 onChange={(e) =>
                   updateDraft({
                     assets: {
-                      checkingBalance: draft.assets?.checkingBalance ?? 0,
+                      ...(draft.assets ?? {}),
                       savingsBalance: parseCurrency(e.target.value),
-                      investmentBalance: draft.assets?.investmentBalance ?? 0,
                     },
                   })
                 }
+                placeholder="$12,000"
               />
             </OnboardingField>
             <OnboardingField label="Investment Balance">
@@ -999,16 +1006,16 @@ export function OnboardingWizard({
                 type="number"
                 min="0"
                 className={onboardingInputClassName()}
-                value={draft.assets?.investmentBalance ?? ""}
+                value={formatAmountFieldValue(draft.assets?.investmentBalance)}
                 onChange={(e) =>
                   updateDraft({
                     assets: {
-                      checkingBalance: draft.assets?.checkingBalance ?? 0,
-                      savingsBalance: draft.assets?.savingsBalance ?? 0,
+                      ...(draft.assets ?? {}),
                       investmentBalance: parseCurrency(e.target.value),
                     },
                   })
                 }
+                placeholder="$25,000"
               />
             </OnboardingField>
           </div>
@@ -1039,7 +1046,7 @@ export function OnboardingWizard({
             </OnboardingField>
 
             <OnboardingField label="Citizenship Status">
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {CITIZENSHIP_OPTIONS.map((option) => (
                   <OptionCard
                     key={option.value}
@@ -1060,7 +1067,7 @@ export function OnboardingWizard({
             </OnboardingField>
 
             <OnboardingField label="Marital Status">
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {MARITAL_STATUS_OPTIONS.map((option) => (
                   <OptionCard
                     key={option.value}
@@ -1083,12 +1090,12 @@ export function OnboardingWizard({
         </OnboardingQuestion>
       ) : null}
 
-      <div className="mx-auto mt-10 flex max-w-xl justify-end">
+      <div className="mx-auto mt-12 flex max-w-2xl justify-end">
         <Button
           type="button"
           onClick={handleContinue}
           disabled={isFinishing}
-          className="h-12 gap-2 bg-brand-blue px-6 text-white hover:bg-brand-blue/90"
+          className="h-14 gap-2 rounded-xl bg-brand-blue px-8 text-base font-semibold text-white hover:bg-brand-blue/90 md:text-lg"
         >
           {isFinishing
             ? "Saving..."
@@ -1101,7 +1108,7 @@ export function OnboardingWizard({
               : currentStep === "employment" && employmentPhase === "type"
                 ? "Continue"
                 : "Continue"}
-          <ArrowRight className="size-4" />
+          <ArrowRight className="size-5" />
         </Button>
       </div>
     </OnboardingShell>

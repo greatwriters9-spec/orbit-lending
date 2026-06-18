@@ -25,11 +25,8 @@ import {
   resolveMortgageDashboardState,
   resolvePreQualificationFromApplication,
 } from "@/lib/dashboard/mortgage-journey";
-import {
-  isClosingDownPaymentComplete,
-  resolveVerifiedDownPaymentForClosing,
-} from "@/lib/dashboard/funding-requirements";
-import { parseEscrowTransferMeta, isEscrowTransferActive } from "@/lib/dashboard/closing-funds-meta";
+import { isClosingDownPaymentComplete } from "@/lib/dashboard/funding-requirements";
+import { parseClosingFundsMeta, parseEscrowTransferMeta } from "@/lib/dashboard/closing-funds-meta";
 import type { ApplicationStatus } from "@/types/application-details";
 import type {
   DashboardNotification,
@@ -371,7 +368,6 @@ async function buildMortgageDashboardView(input: {
     | Record<string, unknown>
     | undefined;
   const escrowTransfer = parseEscrowTransferMeta(personalInfo);
-  const escrowTransferActive = isEscrowTransferActive(escrowTransfer);
 
   const dashboardState = resolveMortgageDashboardState({
     hasActiveLoan: Boolean(input.portfolio),
@@ -409,6 +405,9 @@ async function buildMortgageDashboardView(input: {
     escrowTransfer,
   });
 
+  const closingMeta = parseClosingFundsMeta(personalInfo);
+  const mortgageCredited = Number(closingMeta?.mortgageCreditedToPathward ?? 0);
+
   const pathwardFunding = buildPathwardFundingView({
     linkedAccount: input.linkedAccount,
     requiredDeposit: downPayment.requiredAmount,
@@ -416,21 +415,20 @@ async function buildMortgageDashboardView(input: {
     applicationApprovedForFunding: applicationApprovedForFunding,
     downPaymentMeta: input.downPaymentMeta,
     escrowTransfer,
+    purchasePrice,
+    mortgageApproved: input.mortgageApproved,
+    mortgageCredited,
+    applicationStatus: input.applicationStatus,
   });
 
-  const verifiedDownPaymentAmount = resolveVerifiedDownPaymentForClosing(
-    input.downPaymentMeta,
-    summary.requiredDownPayment,
-  );
-
   const closingFunds = buildClosingFundsView({
-    mortgageAmount: summary.approvedMortgageAmount,
-    verifiedDownPayment: verifiedDownPaymentAmount,
-    mortgageApproved: input.mortgageApproved,
-    downPaymentVerified: input.downPaymentVerified,
+    purchasePrice,
     pathwardBalance: input.linkedAccount?.accountBalance ?? 0,
-    withdrawableBalance: escrowTransferActive ? 0 : input.withdrawableBalance,
-    withdrawableReleased: input.withdrawableReleased,
+    pathwardLinked: Boolean(input.linkedAccount),
+    mortgageApproved: input.mortgageApproved,
+    mortgageCredited,
+    downPaymentVerified: input.downPaymentVerified,
+    applicationStatus: input.applicationStatus,
     escrowTransfer,
   });
 
@@ -569,13 +567,7 @@ async function fetchDocumentCenter(
     .order("requested_at", { ascending: true });
 
   if (!data?.length) {
-    return [
-      { id: "income", name: "Income Verification", status: "required" },
-      { id: "bank", name: "Bank Statements", status: "required" },
-      { id: "property", name: "Property Documents", status: "required" },
-      { id: "insurance", name: "Insurance Documents", status: "pending" },
-      { id: "appraisal", name: "Appraisal Documents", status: "pending" },
-    ];
+    return [];
   }
 
   return data.map((doc) => ({

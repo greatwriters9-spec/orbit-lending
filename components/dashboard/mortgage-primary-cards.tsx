@@ -19,8 +19,7 @@ import { initiateEscrowTransferAction } from "@/lib/wallet/escrow-transfer";
 import { formatCurrency } from "@/lib/loans/queries";
 import {
   resolveStatusColorVariant,
-  STATUS_BADGE_BASE,
-  statusBadgeClasses,
+  type StatusColorVariant,
 } from "@/lib/status-colors";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui-kit/button";
@@ -30,29 +29,178 @@ import type { MortgageDashboardView, SellerDestinationDetails } from "@/types/mo
 
 type FeatureCardVariant = "navy" | "mint" | "surface";
 
-function FeatureStatusPill({
+const PREMIUM_BADGE_CLASSES: Record<StatusColorVariant, string> = {
+  success: "dashboard-premium-badge dashboard-premium-badge--success",
+  pending: "dashboard-premium-badge dashboard-premium-badge--pending",
+  danger: "dashboard-premium-badge dashboard-premium-badge--danger",
+  prequalified: "dashboard-premium-badge dashboard-premium-badge--prequalified",
+  closing: "dashboard-premium-badge dashboard-premium-badge--closing",
+  neutral: "dashboard-premium-badge dashboard-premium-badge--neutral",
+};
+
+function PremiumStatusBadge({
+  label,
+  variant,
+}: {
+  label: string;
+  variant?: StatusColorVariant;
+}) {
+  const resolved = variant ?? resolveStatusColorVariant(label);
+
+  return <span className={PREMIUM_BADGE_CLASSES[resolved]}>{label}</span>;
+}
+
+type PremiumCardVariant = "mortgage" | "funding" | "closing";
+
+const PREMIUM_CARD_VARIANT_CLASS: Record<PremiumCardVariant, string> = {
+  mortgage: "dashboard-premium-card--mortgage",
+  funding: "dashboard-premium-card--funding",
+  closing: "dashboard-premium-card--closing",
+};
+
+function PremiumCardHeader({
+  title,
+  icon,
+  badgeLabel,
+  badgeVariant,
+}: {
+  title: string;
+  icon: React.ReactNode;
+  badgeLabel?: string;
+  badgeVariant?: StatusColorVariant;
+}) {
+  return (
+    <div className="dashboard-premium-header shrink-0">
+      <div className="flex min-w-0 items-center gap-3">
+        <div className="dashboard-premium-icon-wrap shrink-0">{icon}</div>
+        <h3 className="dashboard-premium-card-title">{title}</h3>
+      </div>
+      {badgeLabel ? (
+        <PremiumStatusBadge label={badgeLabel} variant={badgeVariant} />
+      ) : null}
+    </div>
+  );
+}
+
+function PremiumHeroBalance({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="dashboard-premium-hero-zone shrink-0">
+      <p className="dashboard-premium-hero-label">{label}</p>
+      <p className="dashboard-premium-hero-balance">{value}</p>
+    </div>
+  );
+}
+
+function PremiumCardBody({ children }: { children: React.ReactNode }) {
+  return <div className="dashboard-premium-card-body">{children}</div>;
+}
+
+function PremiumCardFooter({ children }: { children: React.ReactNode }) {
+  return <div className="dashboard-premium-card-footer">{children}</div>;
+}
+
+function PremiumInsetPanel({
+  children,
+  fixed = false,
+  compact = false,
+  funding = false,
+  closing = false,
+  className,
+}: {
+  children: React.ReactNode;
+  fixed?: boolean;
+  compact?: boolean;
+  funding?: boolean;
+  closing?: boolean;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "dashboard-premium-inset-panel",
+        fixed && "dashboard-premium-inset-panel--fixed",
+        compact && "dashboard-premium-inset-panel--compact",
+        funding && "dashboard-premium-inset-panel--funding",
+        closing && "dashboard-premium-inset-panel--closing",
+        className,
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
+function PremiumInfoRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="dashboard-premium-row">
+      <span className="dashboard-premium-row-label">{label}</span>
+      <span className="dashboard-premium-row-value">{value}</span>
+    </div>
+  );
+}
+
+function PremiumActionRow({
+  label,
+  value,
+  onClick,
+}: {
+  label: string;
+  value: string;
+  onClick?: () => void;
+}) {
+  return (
+    <div className="dashboard-premium-row">
+      <span className="dashboard-premium-row-label">{label}</span>
+      {onClick ? (
+        <button type="button" onClick={onClick} className="dashboard-premium-row-action">
+          {value}
+        </button>
+      ) : (
+        <span className="dashboard-premium-row-value">{value}</span>
+      )}
+    </div>
+  );
+}
+
+function PremiumMortgageCard({
+  id,
+  variant = "mortgage",
   children,
   className,
+}: {
+  id?: string;
+  variant?: PremiumCardVariant;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <section
+      id={id}
+      className={cn("dashboard-premium-card", PREMIUM_CARD_VARIANT_CLASS[variant], className)}
+    >
+      {children}
+    </section>
+  );
+}
+
+function resolveClosingBadgeVariant(
+  status: MortgageDashboardView["closingFunds"]["status"],
+): StatusColorVariant | undefined {
+  if (status === "transferred") return "closing";
+  if (status === "available") return "success";
+  if (status === "transfer_pending") return "pending";
+  if (status === "ready_for_closing") return "pending";
+  return undefined;
+}
+
+function FeatureStatusPill({
+  children,
 }: {
   children: React.ReactNode;
   variant?: FeatureCardVariant;
   className?: string;
 }) {
-  const label = String(children);
-  const colorVariant = resolveStatusColorVariant(label);
-
-  return (
-    <span
-      className={cn(
-        STATUS_BADGE_BASE,
-        "shrink-0 rounded-full",
-        statusBadgeClasses(colorVariant),
-        className,
-      )}
-    >
-      {children}
-    </span>
-  );
+  return <PremiumStatusBadge label={String(children)} />;
 }
 
 function CompactFeatureHeader({
@@ -274,37 +422,7 @@ function maskAccountNumberDisplay(accountNumber: string) {
   return `•••• ${last4}`;
 }
 
-function PathwardBankCardSummary({
-  bankName,
-  accountNumber,
-  onViewDetails,
-}: {
-  bankName: string;
-  accountNumber: string;
-  onViewDetails?: () => void;
-}) {
-  return (
-    <div className="py-3">
-      <p className="dashboard-label-light">{bankName}</p>
-      {onViewDetails ? (
-        <button type="button" onClick={onViewDetails} className="mt-2 w-full text-left">
-          <p className="font-mono text-sm font-semibold tracking-wide text-white tabular-nums">
-            {maskAccountNumberDisplay(accountNumber)}
-          </p>
-          <p className="mt-2 text-xs font-semibold text-white/80">View wire details</p>
-        </button>
-      ) : (
-        <div className="mt-2">
-          <p className="font-mono text-sm font-semibold tracking-wide text-white tabular-nums">
-            {maskAccountNumberDisplay(accountNumber)}
-          </p>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function PathwardDepositInstructionsModal({
+export function PathwardDepositInstructionsModal({
   open,
   onClose,
   amount,
@@ -429,54 +547,7 @@ function PathwardDepositInstructionsModal({
   );
 }
 
-function PathwardDownPaymentStrip({
-  depositLabel,
-  requiredAmount,
-  isPendingApproval,
-  isVerified,
-  onMakePayment,
-}: {
-  depositLabel: string;
-  requiredAmount: string;
-  isPendingApproval: boolean;
-  isVerified: boolean;
-  onMakePayment: () => void;
-}) {
-  const needsPayment = !isVerified && !isPendingApproval;
-
-  return (
-    <div className="border-b border-white/10 py-3">
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-sm font-medium text-white/65">{depositLabel}</span>
-        <div className="flex items-center gap-2">
-          {isVerified ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-brand-success/20 px-2.5 py-0.5 text-xs font-semibold text-emerald-100">
-              <Check className="size-3.5" />
-              Verified
-            </span>
-          ) : isPendingApproval ? (
-            <FeatureStatusPill>Pending</FeatureStatusPill>
-          ) : null}
-          <span className="text-[15px] font-semibold tracking-tight tabular-nums text-white">
-            {requiredAmount}
-          </span>
-        </div>
-      </div>
-
-      {needsPayment ? (
-        <button
-          type="button"
-          onClick={onMakePayment}
-          className="mt-3 inline-flex h-9 w-full items-center justify-center rounded-xl bg-white text-xs font-semibold text-brand-blue transition-colors hover:bg-white/90"
-        >
-          Make Payment
-        </button>
-      ) : null}
-    </div>
-  );
-}
-
-function PathwardEscrowTransferModal({
+export function PathwardEscrowTransferModal({
   open,
   onClose,
   amount,
@@ -668,17 +739,72 @@ function FundingProgressFooter({ percent }: { percent: number }) {
   const clamped = Math.min(100, Math.max(0, percent));
 
   return (
-    <div>
-      <div className="mb-2 flex items-center justify-between text-xs font-medium text-white/70">
+    <div className="dashboard-premium-progress">
+      <div className="dashboard-premium-progress-label">
         <span>Funding Progress</span>
         <span>{clamped}%</span>
       </div>
-      <div className="h-1.5 overflow-hidden rounded-full bg-white/15">
+      <div className="dashboard-premium-progress-track">
         <div
-          className="h-full rounded-full bg-white transition-all duration-500"
+          className="dashboard-premium-progress-fill"
           style={{ width: `${clamped}%` }}
         />
       </div>
+    </div>
+  );
+}
+
+function FundingAccountPanel({
+  bankName,
+  accountNumber,
+  statusLabel,
+  actionLabel,
+  onAction,
+}: {
+  bankName: string;
+  accountNumber: string;
+  statusLabel: string;
+  actionLabel: string;
+  onAction?: () => void;
+}) {
+  return (
+    <PremiumInsetPanel funding>
+      <PremiumInfoRow label="Status" value={statusLabel} />
+      <PremiumActionRow label="Action" value={actionLabel} onClick={onAction} />
+      <PremiumInfoRow label="Bank" value={bankName} />
+      <PremiumInfoRow label="Account" value={maskAccountNumberDisplay(accountNumber)} />
+    </PremiumInsetPanel>
+  );
+}
+
+function ClosingFundsPanel({
+  availableBalance,
+  pendingBalance,
+  statusLabel,
+  actionLabel,
+}: {
+  availableBalance: string;
+  pendingBalance: string;
+  statusLabel: string;
+  actionLabel: string;
+}) {
+  return (
+    <div className="dashboard-premium-closing-stack">
+      <div className="dashboard-premium-closing-balances">
+        <div className="dashboard-premium-closing-balance-cell">
+          <p className="dashboard-premium-closing-balance-label">Available Balance</p>
+          <p className="dashboard-premium-closing-balance-value">{availableBalance}</p>
+        </div>
+        <div className="dashboard-premium-closing-balance-cell">
+          <p className="dashboard-premium-closing-balance-label">Pending Balance</p>
+          <p className="dashboard-premium-closing-balance-value">{pendingBalance}</p>
+        </div>
+      </div>
+
+      <PremiumInsetPanel>
+        <PremiumInfoRow label="Status" value={statusLabel} />
+        <PremiumInfoRow label="Action" value={actionLabel} />
+      </PremiumInsetPanel>
     </div>
   );
 }
@@ -700,33 +826,28 @@ export function MortgageSummaryCard({ view }: { view: MortgageDashboardView }) {
   ];
 
   return (
-    <FeatureCardShell
-      title="Mortgage"
-      icon={<Landmark className="size-5 text-white" strokeWidth={1.75} />}
-      variant="navy"
-      statusLabel={view.summary.statusLabel}
-    >
-      <div className="flex flex-1 flex-col justify-between gap-6">
-        <CardPrimaryAmount
-          label={view.summary.amountLabel}
+    <PremiumMortgageCard variant="mortgage">
+      <PremiumCardHeader
+        title="Mortgage Amount"
+        icon={<Landmark className="size-4 text-white" strokeWidth={1.75} />}
+        badgeLabel={view.summary.statusLabel}
+      />
+
+      <PremiumCardBody>
+        <PremiumHeroBalance
+          label="Approved Mortgage Amount"
           value={formatCurrency(view.summary.approvedMortgageAmount)}
-          variant="navy"
         />
 
-        {view.summary.isEligibleAmount ? (
-          <p className="text-sm leading-relaxed text-white/70">
-            This amount reflects your eligibility. Continue your application to proceed
-            toward approval and funding.
-          </p>
-        ) : null}
-
-        <NavyInsetPanel>
-          {summaryRows.map((row) => (
-            <SummaryListRow key={row.label} label={row.label} value={row.value} />
-          ))}
-        </NavyInsetPanel>
-      </div>
-    </FeatureCardShell>
+        <PremiumCardFooter>
+          <PremiumInsetPanel fixed>
+            {summaryRows.map((row) => (
+              <PremiumInfoRow key={row.label} label={row.label} value={row.value} />
+            ))}
+          </PremiumInsetPanel>
+        </PremiumCardFooter>
+      </PremiumCardBody>
+    </PremiumMortgageCard>
   );
 }
 
@@ -767,75 +888,69 @@ export function PathwardFundingAccountCard({ view }: { view: MortgageDashboardVi
   };
 
   if (!funding.linked) {
-    const statusLabel = funding.setupPending ? "Setup Pending" : "Not Linked";
-    const message = funding.setupPending
-      ? "Your Funding Account is being set up. You will receive an email with wire instructions once it is ready."
-      : view.state === "approved"
-        ? "Your Funding Account will be linked after application approval."
-        : "Your Funding Account will appear here once your application is approved.";
-
     return (
-      <FeatureCardShell
-        id="pathward-funding"
-        title="Funding Account"
-        icon={<Building2 className="size-5 text-white" strokeWidth={1.75} />}
-        variant="navy"
-        statusLabel={statusLabel}
-        footer={<FundingProgressFooter percent={0} />}
-      >
-        <CardPrimaryAmount label="Current Balance" value="$0.00" variant="navy" />
-        <p className="mt-4 text-sm leading-relaxed text-white/70">{message}</p>
-      </FeatureCardShell>
+      <PremiumMortgageCard id="pathward-funding" variant="funding">
+        <PremiumCardHeader
+          title="Funding Account"
+          icon={<Building2 className="size-4 text-white" strokeWidth={1.75} />}
+          badgeLabel={statusLabel}
+        />
+
+        <PremiumCardBody>
+          <PremiumHeroBalance
+            label="Current Balance"
+            value={formatCurrency(funding.currentBalance)}
+          />
+
+          <PremiumCardFooter>
+            <FundingAccountPanel
+              bankName="Pathward National Bank"
+              accountNumber="••••0000"
+              statusLabel={statusLabel}
+              actionLabel={funding.fundingActionLabel}
+            />
+            <FundingProgressFooter percent={funding.fundingPercent} />
+          </PremiumCardFooter>
+        </PremiumCardBody>
+      </PremiumMortgageCard>
     );
   }
 
+  const actionLabel = funding.fundingActionLabel;
+
+  const showMakePayment =
+    funding.showFundingActions &&
+    funding.showDepositUI &&
+    !isPendingApproval &&
+    !isVerified;
+
   return (
     <>
-      <FeatureCardShell
-        id="pathward-funding"
-        title="Funding Account"
-        icon={<Building2 className="size-5 text-white" strokeWidth={1.75} />}
-        variant="navy"
-        statusLabel={statusLabel}
-        footer={<FundingProgressFooter percent={funding.fundingPercent} />}
-      >
-        <CardPrimaryAmount
-          label="Current Balance"
-          value={formatCurrency(funding.currentBalance)}
-          variant="navy"
+      <PremiumMortgageCard id="pathward-funding" variant="funding">
+        <PremiumCardHeader
+          title="Funding Account"
+          icon={<Building2 className="size-4 text-white" strokeWidth={1.75} />}
+          badgeLabel={statusLabel}
         />
 
-        <NavyInsetPanel>
-          {funding.showFundingActions ? (
-            <>
-              {funding.showDepositUI ? (
-                <PathwardDownPaymentStrip
-                  depositLabel={funding.depositLabel}
-                  requiredAmount={depositAmount}
-                  isPendingApproval={isPendingApproval}
-                  isVerified={isVerified}
-                  onMakePayment={openDepositModal}
-                />
-              ) : (
-                <p className="border-b border-white/10 py-3 text-sm leading-relaxed text-white/70">
-                  Your escrow transfer is pending Orbit Mortgage approval. No deposit is
-                  required at this time.
-                </p>
-              )}
+        <PremiumCardBody>
+          <PremiumHeroBalance
+            label="Current Balance"
+            value={formatCurrency(funding.currentBalance)}
+          />
 
-              <PathwardBankCardSummary
-                bankName={funding.bankName}
-                accountNumber={accountNumber}
-                onViewDetails={funding.showDepositUI ? openDepositModal : undefined}
-              />
-            </>
-          ) : (
-            <p className="py-3 text-sm leading-relaxed text-white/70">
-              Deposit instructions will be available once your application is approved.
-            </p>
-          )}
-        </NavyInsetPanel>
-      </FeatureCardShell>
+          <PremiumCardFooter>
+            <FundingAccountPanel
+              bankName={funding.bankName}
+              accountNumber={accountNumber}
+              statusLabel={statusLabel}
+              actionLabel={actionLabel}
+              onAction={showMakePayment ? openDepositModal : undefined}
+            />
+            <FundingProgressFooter percent={funding.fundingPercent} />
+          </PremiumCardFooter>
+        </PremiumCardBody>
+      </PremiumMortgageCard>
 
       <PathwardDepositInstructionsModal
         open={depositModalOpen}
@@ -871,11 +986,10 @@ export function ClosingFundsCard({
   const [escrowModalOpen, setEscrowModalOpen] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const funds = view.closingFunds;
-  const locked = funds.status === "locked";
-  const pendingRelease = funds.status === "ready_for_closing";
   const transferPending = funds.status === "transfer_pending";
   const transferComplete = funds.status === "transferred";
-  const canTransfer = funds.canTransferToEscrow && funds.transferableBalance > 0;
+  const canTransfer = funds.canTransferToEscrow;
+  const actionLabel = funds.actionLabel;
 
   const openEscrowModal = () => {
     setSubmitError(null);
@@ -901,94 +1015,66 @@ export function ClosingFundsCard({
 
   return (
     <>
-      <FeatureCardShell
-      id="closing-funds"
-      title="Closing Funds"
-      eyebrow="Closing Disbursement"
-      icon={
-        locked ? (
-          <Lock className="size-5 text-[#4338CA]" strokeWidth={1.75} />
-        ) : (
-          <CircleDollarSign className="size-5 text-[#4338CA]" strokeWidth={1.75} />
-        )
-      }
-      variant="mint"
-      statusLabel={funds.statusLabel}
-      className={cn("ring-1 ring-[#4338CA]/10", className)}
-    >
-      <div className="flex flex-1 flex-col justify-between gap-5">
-        <CardPrimaryAmount
-          label="Total Closing Amount"
-          value={formatCurrency(funds.projectedTransferAmount)}
-          variant="mint"
-        />
-
-        <MetricTile
-          label={
-            transferPending || transferComplete
-              ? "Transferable Balance"
-              : pendingRelease
-                ? "Pathward Closing Balance"
-                : "Transferable Balance"
+      <PremiumMortgageCard id="closing-funds" variant="closing" className={className}>
+        <PremiumCardHeader
+          title="Closing Funds"
+          icon={
+            canTransfer ? (
+              <CircleDollarSign className="size-4 text-white" strokeWidth={1.75} />
+            ) : (
+              <Lock className="size-4 text-white" strokeWidth={1.75} />
+            )
           }
-          value={formatCurrency(
-            transferPending || transferComplete
-              ? 0
-              : pendingRelease
-                ? funds.pendingPathwardBalance
-                : funds.transferableBalance,
-          )}
-          prominent
-          className="border-[#4338CA]/25 bg-white/90 shadow-md"
+          badgeLabel={funds.statusLabel}
+          badgeVariant={resolveClosingBadgeVariant(funds.status)}
         />
 
-        {submitError ? (
-          <p className="text-sm font-medium text-red-700">{submitError}</p>
-        ) : null}
+        <PremiumCardBody>
+          <PremiumHeroBalance
+            label="Total Closing Amount"
+            value={formatCurrency(funds.totalClosingAmount)}
+          />
 
-        {locked ? (
-          <p className="text-sm font-medium leading-relaxed text-brand-navy/75">
-            Includes your approved mortgage and verified down payment. Available after
-            both are in Pathward and Orbit Mortgage releases closing funds.
-          </p>
-        ) : pendingRelease ? (
-          <p className="text-sm font-medium leading-relaxed text-brand-navy/75">
-            Your mortgage and down payment are in Pathward (
-            {formatCurrency(funds.pendingPathwardBalance)}). Orbit Mortgage will release
-            the full amount for escrow transfer shortly.
-          </p>
-        ) : transferPending ? (
-          <p className="text-sm font-medium leading-relaxed text-brand-navy/75">
-            Your escrow transfer of {formatCurrency(funds.projectedTransferAmount)}{" "}
-            is pending Orbit Mortgage approval. Funding and closing balances are $0.00
-            until the transfer is processed.
-          </p>
-        ) : transferComplete ? (
-          <p className="text-sm font-medium leading-relaxed text-brand-navy/75">
-            Your escrow transfer of {formatCurrency(funds.projectedTransferAmount)}{" "}
-            has been approved and sent to the seller.
-          </p>
-        ) : canTransfer ? (
-          <Button
-            disabled={isSubmitting}
-            onClick={openEscrowModal}
-            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand-blue px-3 text-sm font-semibold text-white transition-colors hover:bg-brand-blue/90"
-          >
-            Transfer to seller via escrow
-            <ArrowRight className="size-4" />
-          </Button>
-        ) : (
-          <p className="text-sm font-medium leading-relaxed text-brand-navy/75">
-            Closing funds are being prepared for transfer.
-          </p>
-        )}
-      </div>
-    </FeatureCardShell>
+          <PremiumCardFooter>
+            <ClosingFundsPanel
+              availableBalance={formatCurrency(funds.availableBalance)}
+              pendingBalance={formatCurrency(funds.pendingBalance)}
+              statusLabel={funds.statusLabel}
+              actionLabel={actionLabel}
+            />
+
+            <div className="dashboard-premium-footer-slot">
+              {submitError ? (
+                <p className="dashboard-premium-error">{submitError}</p>
+              ) : null}
+
+              {!transferPending && !transferComplete ? (
+                <button
+                  type="button"
+                  disabled={!canTransfer || isSubmitting}
+                  onClick={canTransfer ? openEscrowModal : undefined}
+                  className={cn(
+                    "dashboard-premium-action-btn",
+                    canTransfer
+                      ? "dashboard-premium-action-btn--enabled"
+                      : "dashboard-premium-action-btn--disabled",
+                  )}
+                >
+                  {canTransfer ? "Transfer to Seller via Escrow" : "Awaiting Funding Completion"}
+                  {canTransfer ? <ArrowRight className="size-4" /> : null}
+                </button>
+              ) : (
+                <div className="dashboard-premium-action-spacer" aria-hidden />
+              )}
+            </div>
+          </PremiumCardFooter>
+        </PremiumCardBody>
+      </PremiumMortgageCard>
 
       <PathwardEscrowTransferModal
         open={escrowModalOpen}
         onClose={closeEscrowModal}
-        amount={formatCurrency(funds.transferableBalance)}
+        amount={formatCurrency(funds.totalClosingAmount)}
         isSubmitting={isSubmitting}
         onConfirm={handleEscrowTransfer}
         error={submitError}
