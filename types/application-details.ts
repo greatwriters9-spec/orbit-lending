@@ -35,6 +35,12 @@ export type ApplicationStatusEntry = {
   changedBy?: string;
 };
 
+export type DocumentReviewStatus =
+  | "requested"
+  | "pending_review"
+  | "approved"
+  | "rejected";
+
 export type DocumentRequest = {
   id: string;
   applicationId: string;
@@ -42,6 +48,7 @@ export type DocumentRequest = {
   description?: string;
   required: boolean;
   fulfilled: boolean;
+  reviewStatus: DocumentReviewStatus;
   fileName?: string;
   requestedAt: string;
   dueDate?: string;

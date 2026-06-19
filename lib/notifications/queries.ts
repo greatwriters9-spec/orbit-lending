@@ -1,4 +1,5 @@
 import { formatApplicationDate } from "@/lib/applications/status-utils";
+import { hasOutstandingDocumentRequests } from "@/lib/applications/document-request-status";
 import {
   countUnreadStaffMessages,
   getLatestUnreadStaffMessage,
@@ -150,12 +151,13 @@ export async function fetchPriorityActions(userId: string): Promise<PriorityActi
 
     const { data: docRequests } = await supabase
       .from("application_document_requests")
-      .select("id")
-      .eq("application_id", app.id)
-      .eq("fulfilled", false)
-      .limit(1);
+      .select("review_status, fulfilled, file_url")
+      .eq("application_id", app.id);
 
-    if (docRequests?.length && app.status !== "information_required") {
+    if (
+      hasOutstandingDocumentRequests(docRequests ?? []) &&
+      app.status !== "information_required"
+    ) {
       actions.push({
         id: `doc-req-${app.id}`,
         label: "Upload Required Documents",

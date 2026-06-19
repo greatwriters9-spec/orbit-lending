@@ -9,7 +9,13 @@ import { ApplicationStatusBadge } from "@/components/applications/application-st
 import { ApplicantDetailsPanel } from "@/components/finance/applicant-details-panel";
 import { ApplicationScoringPanel } from "@/components/finance/application-scoring-panel";
 import { DownPaymentReviewPanel } from "@/components/finance/down-payment-review-panel";
+import { DocumentReviewPanel } from "@/components/finance/document-review-panel";
 import { EscrowTransferReviewPanel } from "@/components/finance/escrow-transfer-review-panel";
+import {
+  getValidRequestDocuments,
+  RequestDocumentsForm,
+  useRequestDocumentsFormState,
+} from "@/components/finance/request-documents-form";
 import { parseEscrowTransferMeta } from "@/lib/dashboard/closing-funds-meta";
 import { extractPreQualification } from "@/lib/onboarding/parse-application";
 import {
@@ -82,8 +88,8 @@ export function FinanceApplicationReview({
   const [statusNote, setStatusNote] = useState("");
   const [internalNote, setInternalNote] = useState("");
   const [message, setMessage] = useState("");
-  const [docName, setDocName] = useState("");
-  const [docDescription, setDocDescription] = useState("");
+  const { documents: requestDocuments, setDocuments: setRequestDocuments } =
+    useRequestDocumentsFormState();
   const [docMessage, setDocMessage] = useState("");
   const [offer, setOffer] = useState({
     requestedAmount: application.requestedAmount,
@@ -139,7 +145,10 @@ export function FinanceApplicationReview({
   const escrowTransfer = parseEscrowTransferMeta(application.personalInfo);
 
   const pendingDocRequests = application.documentRequests.filter(
-    (doc) => !doc.fulfilled,
+    (doc) => doc.reviewStatus === "requested" || doc.reviewStatus === "rejected",
+  );
+  const documentsAwaitingReview = application.documentRequests.filter(
+    (doc) => doc.reviewStatus === "pending_review",
   );
 
   return (
@@ -238,45 +247,10 @@ export function FinanceApplicationReview({
             />
           ) : null}
 
-          {application.documentRequests.length > 0 ? (
-            <section className="card-surface p-6 md:p-8">
-              <SectionHeader
-                title="Document Requests"
-                description="Outstanding and fulfilled requests sent to the applicant."
-              />
-              <ul className="mt-4 space-y-3">
-                {application.documentRequests.map((doc) => (
-                  <li
-                    key={doc.id}
-                    className="rounded-xl border border-brand-border px-4 py-3"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-sm font-medium text-brand-navy">
-                          {doc.documentName}
-                        </p>
-                        {doc.description ? (
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            {doc.description}
-                          </p>
-                        ) : null}
-                        <p className="mt-2 text-xs text-muted-foreground">
-                          Requested {formatApplicationDate(doc.requestedAt)}
-                          {doc.dueDate
-                            ? ` · Due ${formatApplicationDate(doc.dueDate)}`
-                            : ""}
-                        </p>
-                      </div>
-                      <StatusLabelBadge
-                        label={doc.fulfilled ? "Received" : "Pending"}
-                        uppercase={false}
-                      />
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ) : null}
+          <DocumentReviewPanel
+            applicationId={application.id}
+            documentRequests={application.documentRequests}
+          />
 
           <section className="card-surface p-6 md:p-8">
             <SectionHeader title="Internal Notes" description="Staff-only notes not visible to applicants." />
@@ -381,8 +355,16 @@ export function FinanceApplicationReview({
             ) : null}
             {pendingDocRequests.length > 0 ? (
               <p className="mt-2 text-xs text-brand-warning">
-                {pendingDocRequests.length} pending document request
-                {pendingDocRequests.length === 1 ? "" : "s"}
+                {pendingDocRequests.length} outstanding document request
+                {pendingDocRequests.length === 1 ? "" : "s"} waiting for client
+                upload.
+              </p>
+            ) : null}
+            {documentsAwaitingReview.length > 0 ? (
+              <p className="mt-2 text-xs text-brand-warning">
+                {documentsAwaitingReview.length} uploaded document
+                {documentsAwaitingReview.length === 1 ? "" : "s"} waiting for
+                staff review before approval.
               </p>
             ) : null}
           </section>
@@ -393,8 +375,8 @@ export function FinanceApplicationReview({
                 Approve Application
               </h3>
               <p className="mt-1 text-xs text-muted-foreground">
-                Approve directly without requiring documents first. You can
-                request documents later before funding.
+                All requested documents must be reviewed and approved before
+                the mortgage application can be approved.
               </p>
               <div className="mt-4 space-y-2">
                 <LabeledInput
@@ -412,7 +394,13 @@ export function FinanceApplicationReview({
                 />
               </div>
               <Button
-                disabled={isPending || approveAmount <= 0 || !approveNote.trim()}
+                disabled={
+                  isPending ||
+                  approveAmount <= 0 ||
+                  !approveNote.trim() ||
+                  pendingDocRequests.length > 0 ||
+                  documentsAwaitingReview.length > 0
+                }
                 onClick={() =>
                   runAction(() =>
                     approveApplicationAction({
@@ -491,28 +479,19 @@ export function FinanceApplicationReview({
                 Request Information
               </h3>
               <p className="mt-1 text-xs text-muted-foreground">
-                Ask for documents or send a message at any stage — including
-                after approval.
+                Ask for one or more documents, or send a message at any stage —
+                including after approval.
               </p>
-              <input
-                value={docName}
-                onChange={(e) => setDocName(e.target.value)}
-                placeholder="Document name (optional)"
-                className="mt-3 h-10 w-full rounded-lg border border-brand-border px-3 text-sm"
-              />
-              <textarea
-                rows={2}
-                value={docDescription}
-                onChange={(e) => setDocDescription(e.target.value)}
-                placeholder="Document description (optional)"
-                className="mt-2 w-full rounded-lg border border-brand-border px-3 py-2 text-sm"
+              <RequestDocumentsForm
+                documents={requestDocuments}
+                onChange={setRequestDocuments}
               />
               <textarea
                 rows={3}
                 value={docMessage}
                 onChange={(e) => setDocMessage(e.target.value)}
                 placeholder="Message to applicant (required)"
-                className="mt-2 w-full rounded-lg border border-brand-border px-3 py-2 text-sm"
+                className="mt-3 w-full rounded-lg border border-brand-border px-3 py-2 text-sm"
               />
               <Button
                 disabled={isPending || docMessage.trim().length < 5}
@@ -520,8 +499,7 @@ export function FinanceApplicationReview({
                   runAction(() =>
                     requestInformationAction({
                       applicationId: application.id,
-                      documentName: docName || undefined,
-                      description: docDescription || undefined,
+                      documents: getValidRequestDocuments(requestDocuments),
                       message: docMessage,
                     }),
                   )
@@ -530,6 +508,13 @@ export function FinanceApplicationReview({
               >
                 Send Request
               </Button>
+              {documentsAwaitingReview.length > 0 ? (
+                <p className="mt-3 text-xs text-muted-foreground">
+                  {documentsAwaitingReview.length} uploaded document
+                  {documentsAwaitingReview.length === 1 ? "" : "s"} waiting for
+                  review.
+                </p>
+              ) : null}
             </section>
           ) : null}
 

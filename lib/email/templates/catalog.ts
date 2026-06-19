@@ -271,8 +271,29 @@ export function resolveEmailTemplate(
         ),
         tone: "pending",
         badge: "Action Required",
+        detailRows: str(data, "documentNames")
+          ? [{ label: "Requested Documents", value: str(data, "documentNames") || "—" }]
+          : undefined,
         staff: staffForDepartment(department, data),
         ctaLabel: "Upload Documents",
+        ctaUrl: str(data, "actionUrl", dashboardUrl),
+        showProgress: false,
+      },
+    }),
+    documents_received_for_review: () => ({
+      subject: "Documents Received — Orbit Mortgage",
+      content: {
+        ...meta,
+        communicationClass,
+        headline: "Your documents were received",
+        body: "Thank you for uploading your documents. Our team is reviewing them and will update you when the review is complete.",
+        tone: "pending",
+        badge: "Under Review",
+        detailRows: str(data, "documentName")
+          ? [{ label: "Document", value: str(data, "documentName") || "—" }]
+          : undefined,
+        staff: staffForDepartment(department, data),
+        ctaLabel: "View Application",
         ctaUrl: str(data, "actionUrl", dashboardUrl),
         showProgress: false,
       },
@@ -671,6 +692,7 @@ export const EMAIL_TEMPLATE_LABELS: Record<EmailTemplateKey, string> = {
   application_submitted: "Application Submitted",
   application_under_review: "Application Under Review",
   additional_documents_required: "Additional Documents Required",
+  documents_received_for_review: "Documents Received For Review",
   application_approved: "Application Approved",
   application_rejected: "Application Rejected",
   application_on_hold: "Application On Hold",
@@ -711,6 +733,7 @@ export const CLIENT_EMAIL_TEMPLATE_LABELS: Partial<Record<EmailTemplateKey, stri
   application_submitted: "Application received",
   application_under_review: "Application update",
   additional_documents_required: "Documents needed",
+  documents_received_for_review: "Documents under review",
   application_approved: "Application approved",
   application_rejected: "Application update",
   application_on_hold: "Application update",

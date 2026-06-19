@@ -1,6 +1,11 @@
 import { APPLICATION_STATUS_LABELS, formatApplicationDate } from "@/lib/applications/status-utils";
 import {
-  fetchCriticalAlerts,
+  hasOutstandingDocumentRequests,
+  hasPendingDocumentReview,
+  mapDocumentCenterStatus,
+  resolveDocumentReviewStatus,
+} from "@/lib/applications/document-request-status";
+import { fetchCriticalAlerts,
   fetchPriorityActions,
   fetchUserNotifications,
   mapNotificationToDashboard,
@@ -293,7 +298,10 @@ export async function fetchClientDashboardData(
   }
 
   const progressSteps = latestApplication
-    ? buildProgressFromStatus(latestApplication.status)
+    ? buildProgressFromStatus(
+        latestApplication.status as string,
+        await fetchDocumentProgressState(supabase, latestApplication.id as string),
+      )
     : EMPTY_PROGRESS;
 
   const mortgageView = preQualification
@@ -600,7 +608,7 @@ async function fetchDocumentCenter(
   const supabase = await createClient();
   const { data } = await supabase
     .from("application_document_requests")
-    .select("id, document_name, fulfilled, due_date")
+    .select("id, document_name, fulfilled, file_url, review_status, due_date")
     .eq("application_id", applicationId)
     .order("requested_at", { ascending: true });
 
@@ -611,8 +619,108 @@ async function fetchDocumentCenter(
   return data.map((doc) => ({
     id: doc.id,
     name: doc.document_name,
-    status: doc.fulfilled ? "approved" : "required",
+    status: mapDocumentCenterStatus(resolveDocumentReviewStatus(doc)),
   }));
+}
+
+async function fetchDocumentProgressState(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  applicationId: string,
+): Promise<{ documentsRequired: boolean; documentsUnderReview: boolean }> {
+  const { data } = await supabase
+    .from("application_document_requests")
+    .select("review_status, fulfilled, file_url")
+    .eq("application_id", applicationId);
+
+  const rows = data ?? [];
+
+  return {
+    documentsRequired: hasOutstandingDocumentRequests(rows),
+    documentsUnderReview: hasPendingDocumentReview(rows),
+  };
+}
+
+function buildProgressFromStatus(
+  status: string,
+  documentState?: { documentsRequired: boolean; documentsUnderReview: boolean },
+): ProgressStep[] {
+  const steps = [
+    { id: "submitted", label: "Submitted", key: "submitted" },
+    { id: "under-review", label: "Under Review", key: "under_review" },
+    {
+      id: "documentation",
+      label: documentState?.documentsUnderReview
+        ? "Documents Under Review"
+        : "Documents Required",
+      key: "information_required",
+    },
+    { id: "pre-approved", label: "Pre-Approved", key: "pre_qualified" },
+    { id: "approved", label: "Approved", key: "approved" },
+    { id: "funded", label: "Funded", key: "funded" },
+    { id: "active", label: "Active", key: "active" },
+  ];
+
+  const statusOrder = [
+    "submitted",
+    "under_review",
+    "information_required",
+    "pre_qualified",
+    "pre_approved",
+    "approved",
+    "funded",
+    "active",
+  ];
+
+  let effectiveStatus = status;
+  if (
+    documentState?.documentsRequired &&
+    ["submitted", "under_review", "information_required"].includes(status)
+  ) {
+    effectiveStatus = "information_required";
+  } else if (
+    documentState?.documentsUnderReview &&
+    ["submitted", "under_review", "information_required"].includes(status)
+  ) {
+    effectiveStatus = "information_required";
+  }
+
+  const currentIndex = statusOrder.indexOf(effectiveStatus);
+
+  return steps.map((step, index) => {
+    const stepIndex = statusOrder.indexOf(step.key);
+    const isDocumentationStep = step.key === "information_required";
+    const documentationActive =
+      isDocumentationStep &&
+      Boolean(documentState?.documentsRequired || documentState?.documentsUnderReview);
+
+    if (documentationActive) {
+      return {
+        id: step.id,
+        label: step.label,
+        status:
+          documentState?.documentsUnderReview && status !== "information_required"
+            ? ("current" as const)
+            : effectiveStatus === "information_required"
+              ? ("current" as const)
+              : stepIndex >= 0 && currentIndex > stepIndex
+                ? ("completed" as const)
+                : ("upcoming" as const),
+      };
+    }
+
+    return {
+      id: step.id,
+      label: step.label,
+      status:
+        currentIndex === -1
+          ? ("upcoming" as const)
+          : stepIndex < currentIndex
+            ? ("completed" as const)
+            : stepIndex === currentIndex
+              ? ("current" as const)
+              : ("upcoming" as const),
+    };
+  });
 }
 
 async function fetchMortgageActivities(
@@ -683,29 +791,3 @@ function mapMessageCategory(
   return "support";
 }
 
-function buildProgressFromStatus(status: string): ProgressStep[] {
-  const steps = [
-    { id: "submitted", label: "Submitted", key: "submitted" },
-    { id: "under-review", label: "Under Review", key: "under_review" },
-    { id: "pre-approved", label: "Pre-Approved", key: "pre_approved" },
-    { id: "approved", label: "Approved", key: "approved" },
-    { id: "funded", label: "Funded", key: "funded" },
-    { id: "active", label: "Active", key: "active" },
-  ];
-
-  const order = steps.map((s) => s.key);
-  const currentIndex = order.indexOf(status);
-
-  return steps.map((step, index) => ({
-    id: step.id,
-    label: step.label,
-    status:
-      currentIndex === -1
-        ? "upcoming"
-        : index < currentIndex
-          ? "completed"
-          : index === currentIndex
-            ? "current"
-            : "upcoming",
-  }));
-}

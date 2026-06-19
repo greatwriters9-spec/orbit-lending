@@ -28,6 +28,7 @@ export type EmailTemplateKey =
   | "application_submitted"
   | "application_under_review"
   | "additional_documents_required"
+  | "documents_received_for_review"
   | "application_approved"
   | "application_rejected"
   | "application_on_hold"

@@ -2,6 +2,7 @@ import type {
   ApplicationStatus,
   ApplicationStatusEntry,
   ApplicationScores,
+  DocumentReviewStatus,
   LoanOffer,
 } from "@/types/application-details";
 
@@ -56,9 +57,11 @@ export type FinanceApplicationDetail = FinanceApplicationSummary & {
     description?: string;
     required: boolean;
     fulfilled: boolean;
+    reviewStatus: DocumentReviewStatus;
     fileName?: string;
     requestedAt: string;
     dueDate?: string;
+    uploadedAt?: string;
   }>;
   messages: Array<{
     id: string;

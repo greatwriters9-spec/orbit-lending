@@ -147,7 +147,8 @@ export async function uploadDocumentRequestAction(
   const { error: updateError } = await supabase
     .from("application_document_requests")
     .update({
-      fulfilled: true,
+      fulfilled: false,
+      review_status: "pending_review",
       file_name: fileName,
       file_url: upload.storagePath,
       uploaded_at: new Date().toISOString(),
@@ -166,21 +167,6 @@ export async function uploadDocumentRequestAction(
     file_url: upload.storagePath,
   });
 
-  const { data: pendingRequests } = await supabase
-    .from("application_document_requests")
-    .select("id")
-    .eq("application_id", applicationId)
-    .eq("fulfilled", false);
-
-  if ((pendingRequests ?? []).length === 0) {
-    await transitionApplicationStatus(applicationId, "under_review", {
-      note: "All requested documents uploaded. Application returned to review.",
-      systemMessage:
-        "Thank you for uploading the requested documents. Your application is back under review.",
-      skipValidation: true,
-    });
-  }
-
   await logApplicationAudit(supabase, user.id, {
     action: "application.document_uploaded",
     entityType: "loan_application",
@@ -188,18 +174,44 @@ export async function uploadDocumentRequestAction(
     newValues: { documentName: request.document_name, fileName },
   });
 
-  const { recordApplicationActivity } = await import("@/lib/notifications/service");
+  const { recordApplicationActivity, notifyUser } = await import(
+    "@/lib/notifications/service"
+  );
   await recordApplicationActivity(applicationId, {
     eventType: "document_uploaded",
-    title: "Documents Uploaded",
-    description: `${request.document_name} uploaded successfully.`,
+    title: "Document Submitted",
+    description: `${request.document_name} received and is under review.`,
     actorId: user.id,
     actorName: "You",
   });
 
+  const { data: applicationRow } = await supabase
+    .from("loan_applications")
+    .select("user_id")
+    .eq("id", applicationId)
+    .maybeSingle();
+
+  if (applicationRow?.user_id) {
+    const { sendDocumentsReceivedForReviewEmail } = await import("@/lib/email/hooks");
+    void sendDocumentsReceivedForReviewEmail(applicationRow.user_id, {
+      documentName: request.document_name,
+      actionUrl: `/dashboard/loans/${applicationId}`,
+    });
+
+    await notifyUser({
+      userId: applicationRow.user_id,
+      title: "Documents Received",
+      message: `We received ${request.document_name} and it is now under review.`,
+      type: "application_update",
+      category: "application_update",
+      priority: "informational",
+      actionUrl: `/dashboard/loans/${applicationId}`,
+    });
+  }
+
   revalidatePath(`/dashboard/loans/${applicationId}`);
   revalidatePath("/dashboard/documents");
-  return { success: "Document uploaded successfully." };
+  return { success: "Document uploaded successfully. It is now under review." };
 }
 
 export async function respondToOfferAction(

@@ -92,6 +92,17 @@ export async function sendSecurityAlertEmail(
   });
 }
 
+export async function sendDocumentsReceivedForReviewEmail(
+  userId: string,
+  data: EmailTemplateData,
+) {
+  return sendTimelineEmail({
+    userId,
+    template: "documents_received_for_review",
+    data,
+  });
+}
+
 export async function sendPreQualifiedNoticeEmail(
   userId: string,
   data: EmailTemplateData,

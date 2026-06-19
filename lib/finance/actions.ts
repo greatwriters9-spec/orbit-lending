@@ -10,7 +10,7 @@ import {
   sendStaffMessage,
   transitionApplicationStatus,
 } from "@/lib/applications/engine/processor";
-import { extractPreQualification } from "@/lib/onboarding/parse-application";
+import { allDocumentRequestsApproved } from "@/lib/applications/document-request-status";
 import { createClient } from "@/lib/supabase/server";
 import type { FinanceActionState } from "@/types/finance";
 
@@ -38,8 +38,15 @@ const messageSchema = z.object({
   message: z.string().min(3, "Message must be at least 3 characters."),
 });
 
+const requestDocumentSchema = z.object({
+  name: z.string().min(2, "Document name is required."),
+  description: z.string().optional(),
+  dueDate: z.string().optional(),
+});
+
 const requestInfoSchema = z.object({
   applicationId: z.string().uuid(),
+  documents: z.array(requestDocumentSchema).optional(),
   documentName: z.string().optional(),
   description: z.string().optional(),
   dueDate: z.string().optional(),
@@ -250,19 +257,34 @@ export async function requestInformationAction(
   }
 
   const senderName = await getStaffName(supabase, user.id);
-  const documentName = parsed.data.documentName?.trim();
-  const description = parsed.data.description?.trim();
+  const legacyDocumentName = parsed.data.documentName?.trim();
+  const legacyDescription = parsed.data.description?.trim();
+  const requestedDocuments =
+    parsed.data.documents?.length
+      ? parsed.data.documents
+      : legacyDocumentName
+        ? [
+            {
+              name: legacyDocumentName,
+              description: legacyDescription || undefined,
+              dueDate: parsed.data.dueDate,
+            },
+          ]
+        : [];
 
-  if (documentName) {
+  if (requestedDocuments.length > 0) {
     const { error: docError } = await supabase
       .from("application_document_requests")
-      .insert({
-        application_id: parsed.data.applicationId,
-        document_name: documentName,
-        description: description || null,
-        required: true,
-        due_date: parsed.data.dueDate || null,
-      });
+      .insert(
+        requestedDocuments.map((document) => ({
+          application_id: parsed.data.applicationId,
+          document_name: document.name.trim(),
+          description: document.description?.trim() || null,
+          required: true,
+          due_date: document.dueDate || parsed.data.dueDate || null,
+          review_status: "requested",
+        })),
+      );
 
     if (docError) {
       return { error: docError.message };
@@ -279,6 +301,7 @@ export async function requestInformationAction(
   const keepCurrentStatus = ["approved", "funded", "active"].includes(
     existing.status,
   );
+  const documentNames = requestedDocuments.map((document) => document.name.trim());
 
   if (keepCurrentStatus) {
     await logApplicationAudit(supabase, user.id, {
@@ -287,26 +310,52 @@ export async function requestInformationAction(
       entityId: parsed.data.applicationId,
       oldValues: { status: existing.status },
       newValues: {
-        documentName: documentName ?? null,
+        documentNames,
         message: parsed.data.message,
         statusUnchanged: true,
       },
     });
+
+    if (requestedDocuments.length > 0) {
+      const { sendTimelineEmail } = await import("@/lib/email/hooks");
+      const { data: applicationRow } = await supabase
+        .from("loan_applications")
+        .select("user_id")
+        .eq("id", parsed.data.applicationId)
+        .maybeSingle();
+
+      if (applicationRow?.user_id) {
+        void sendTimelineEmail({
+          userId: applicationRow.user_id,
+          template: "additional_documents_required",
+          data: {
+            actionUrl: `/dashboard/loans/${parsed.data.applicationId}`,
+            message: parsed.data.message,
+            documentNames: documentNames.join(", "),
+          },
+        });
+      }
+    }
   } else {
     const result = await transitionApplicationStatus(
       parsed.data.applicationId,
       "information_required",
       {
-        note: documentName
-          ? `Document requested: ${documentName}`
-          : parsed.data.message,
+        note:
+          documentNames.length > 0
+            ? `Documents requested: ${documentNames.join(", ")}`
+            : parsed.data.message,
         auditAction: "application.information_requested",
         auditOldValues: { status: existing.status },
         auditNewValues: {
-          documentName: documentName ?? null,
+          documentNames,
           message: parsed.data.message,
         },
         skipValidation: existing.status === "information_required",
+        emailData: {
+          documentNames: documentNames.join(", "),
+          message: parsed.data.message,
+        },
       },
     );
 
@@ -336,6 +385,19 @@ export async function approveApplicationAction(
     return { error: "This application can no longer be approved." };
   }
 
+  const supabase = await createClient();
+  const { data: documentRows } = await supabase
+    .from("application_document_requests")
+    .select("review_status, fulfilled, file_url")
+    .eq("application_id", parsed.data.applicationId);
+
+  if (!allDocumentRequestsApproved(documentRows ?? [])) {
+    return {
+      error:
+        "Approve or review all requested documents before approving the mortgage application.",
+    };
+  }
+
   const result = await transitionApplicationStatus(
     parsed.data.applicationId,
     "approved",
@@ -359,27 +421,6 @@ export async function approveApplicationAction(
   if (result.error) {
     return { error: result.error };
   }
-
-  const supabase = await createClient();
-  const { data: applicationRow } = await supabase
-    .from("loan_applications")
-    .select("personal_info")
-    .eq("id", parsed.data.applicationId)
-    .maybeSingle();
-
-  const personalInfo =
-    applicationRow?.personal_info && typeof applicationRow.personal_info === "object"
-      ? (applicationRow.personal_info as Record<string, unknown>)
-      : null;
-  const preQual = extractPreQualification(personalInfo);
-
-  const { sendPreQualifiedNoticeEmail } = await import("@/lib/email/hooks");
-  void sendPreQualifiedNoticeEmail(existing.user_id, {
-    approvedAmount: parsed.data.approvedAmount,
-    mortgageAmount: parsed.data.approvedAmount,
-    maxHomePrice: preQual?.maximumHomePrice,
-    actionUrl: "/dashboard#pathward-funding",
-  });
 
   revalidateApplicationPaths(parsed.data.applicationId);
   revalidatePath("/finance/funding");

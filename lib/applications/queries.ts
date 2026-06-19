@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { mapDocumentRequestRow } from "@/lib/applications/document-request-status";
 import { enrichApplicationDetail } from "@/lib/applications/mock-enrichment";
 import { getLoanProductBySlug } from "@/lib/loans/mock-data";
 import type {
@@ -135,19 +136,8 @@ export async function fetchApplicationDetail(
     createdAt: msg.created_at,
   }));
 
-  const documentRequests: DocumentRequest[] = (docsRes.data ?? []).map(
-    (doc) => ({
-      id: doc.id,
-      applicationId: doc.application_id,
-      documentName: doc.document_name,
-      description: doc.description ?? undefined,
-      required: doc.required,
-      fulfilled: doc.fulfilled,
-      fileName: doc.file_name ?? undefined,
-      requestedAt: doc.requested_at,
-      dueDate: doc.due_date ?? undefined,
-      uploadedAt: doc.uploaded_at ?? undefined,
-    }),
+  const documentRequests: DocumentRequest[] = (docsRes.data ?? []).map((doc) =>
+    mapDocumentRequestRow(doc),
   );
 
   const offers: LoanOffer[] = (offersRes.data ?? []).map((offer) => ({
@@ -186,6 +176,7 @@ export async function fetchApplicationDetail(
     return {
       ...request,
       fulfilled: true,
+      reviewStatus: "approved" as const,
       fileName: uploaded.fileName ?? request.fileName,
       uploadedAt: uploaded.uploadedAt ?? request.uploadedAt,
     };
