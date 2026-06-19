@@ -18,6 +18,7 @@ export type OnboardingStepKey =
   | "about-you"
   | "contact"
   | "current-address"
+  | "confirm-profile"
   | "employment"
   | "assets"
   | "credit"
@@ -120,6 +121,13 @@ export const ONBOARDING_STEP_FAQS: Record<OnboardingStepKey, OnboardingFaqItem[]
       question: "Why do you ask for my current address?",
       answer:
         "Your current residence helps verify identity and establish residency history, which lenders review as part of the approval process.",
+    },
+  ],
+  "confirm-profile": [
+    {
+      question: "Why am I confirming instead of re-entering my details?",
+      answer:
+        "You already saved this information when you created your account. We use your profile so you don't have to type it again — just confirm it's still accurate.",
     },
   ],
   employment: [

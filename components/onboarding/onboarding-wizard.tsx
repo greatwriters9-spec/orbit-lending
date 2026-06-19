@@ -12,6 +12,7 @@ import {
   onboardingInputClassName,
 } from "@/components/onboarding/onboarding-shell";
 import { OnboardingStateInput } from "@/components/onboarding/onboarding-state-input";
+import { ConfirmProfileStep } from "@/components/onboarding/confirm-profile-step";
 import { Button } from "@/components/ui-kit/button";
 import { formatSSNInput, formatUSPhoneInput, isCompleteSSN, isCompleteUSPhone } from "@/lib/auth/input-formatters";
 import { finalizeOnboardingAction, updateApplicationFromOnboardingAction } from "@/lib/onboarding/actions";
@@ -19,6 +20,9 @@ import {
   readMortgageApplicationDraft,
   writeMortgageApplicationDraft,
 } from "@/lib/onboarding/draft-storage";
+import {
+  mergeOnboardingDraftWithProfile,
+} from "@/lib/onboarding/map-profile-to-draft";
 import { OnboardingMortgagePreferencesStep } from "@/components/onboarding/mortgage-preferences-step";
 import {
   createDefaultMortgagePreferences,
@@ -52,6 +56,7 @@ type StepKey =
   | "about-you"
   | "contact"
   | "current-address"
+  | "confirm-profile"
   | "employment"
   | "assets"
   | "credit";
@@ -138,14 +143,45 @@ const MARITAL_STATUS_OPTIONS = [
   { value: "prefer_not_to_say", label: "Prefer not to say" },
 ] as const;
 
-function getSteps(draft: MortgageApplicationDraft): StepKey[] {
+const PERSONAL_DETAIL_STEPS = new Set<StepKey>(["about-you", "contact", "current-address"]);
+
+function personalizeSteps(steps: StepKey[]): StepKey[] {
+  const result: StepKey[] = [];
+  let addedConfirm = false;
+
+  for (const step of steps) {
+    if (PERSONAL_DETAIL_STEPS.has(step)) {
+      if (!addedConfirm) {
+        result.push("confirm-profile");
+        addedConfirm = true;
+      }
+      continue;
+    }
+    result.push(step);
+  }
+
+  return result;
+}
+
+function getSteps(
+  draft: MortgageApplicationDraft,
+  options?: { skipPersonalDetails?: boolean },
+): StepKey[] {
+  let steps: StepKey[];
+
   if (draft.homeFound === true) {
-    return FOUND_STEPS;
+    steps = FOUND_STEPS;
+  } else if (draft.homeFound === false) {
+    steps = SEARCH_STEPS;
+  } else {
+    return ["home-found"];
   }
-  if (draft.homeFound === false) {
-    return SEARCH_STEPS;
+
+  if (options?.skipPersonalDetails) {
+    return personalizeSteps(steps);
   }
-  return ["home-found"];
+
+  return steps;
 }
 
 function isEmployedType(type?: EmploymentType): boolean {
@@ -179,12 +215,16 @@ export function OnboardingWizard({
   applicationId,
   initialDraft,
   mortgageConfig = DEFAULT_MORTGAGE_CONFIG,
+  confirmProfileDetails = false,
+  profileDraft,
 }: {
   isLoggedIn?: boolean;
   mode?: "create" | "edit";
   applicationId?: string;
   initialDraft?: MortgageApplicationDraft;
   mortgageConfig?: MortgageConfig;
+  confirmProfileDetails?: boolean;
+  profileDraft?: Partial<MortgageApplicationDraft>;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -196,6 +236,8 @@ export function OnboardingWizard({
   const [employmentPhase, setEmploymentPhase] = useState<"type" | "details">("type");
   const [isFinishing, setIsFinishing] = useState(false);
 
+  const skipPersonalDetails = confirmProfileDetails && !isEditMode;
+
   useEffect(() => {
     if (isEditMode && initialDraft) {
       setDraft(initialDraft);
@@ -206,12 +248,18 @@ export function OnboardingWizard({
 
     const stored = readMortgageApplicationDraft() ?? {};
     const homeFoundParam = searchParams.get("homeFound");
-    const initial =
+    const homeFoundPatch =
       homeFoundParam === "true"
-        ? { ...stored, homeFound: true }
+        ? { homeFound: true as const }
         : homeFoundParam === "false"
-          ? { ...stored, homeFound: false }
-          : stored;
+          ? { homeFound: false as const }
+          : {};
+
+    const merged = profileDraft
+      ? mergeOnboardingDraftWithProfile(stored, profileDraft, skipPersonalDetails)
+      : stored;
+
+    const initial = { ...merged, ...homeFoundPatch };
 
     writeMortgageApplicationDraft(initial);
     setDraft(initial);
@@ -221,9 +269,12 @@ export function OnboardingWizard({
     }
 
     setHydrated(true);
-  }, [initialDraft, isEditMode, searchParams]);
+  }, [initialDraft, isEditMode, profileDraft, searchParams, skipPersonalDetails]);
 
-  const steps = useMemo(() => getSteps(draft), [draft]);
+  const steps = useMemo(
+    () => getSteps(draft, { skipPersonalDetails }),
+    [draft, skipPersonalDetails],
+  );
   const currentStep = steps[stepIndex] ?? "home-found";
   const totalSteps = draft.homeFound === undefined ? 13 : steps.length;
 
@@ -379,6 +430,31 @@ export function OnboardingWizard({
           return false;
         }
         return true;
+      case "confirm-profile":
+        if (!draft.firstName || !draft.lastName || !draft.dateOfBirth) {
+          setError(
+            "Your profile is missing your name or date of birth. Update your profile to continue.",
+          );
+          return false;
+        }
+        if (!draft.email) {
+          setError("Your profile is missing an email address. Update your profile to continue.");
+          return false;
+        }
+        if (!draft.phone || !isCompleteUSPhone(draft.phone)) {
+          setError("Your profile is missing a valid phone number. Update your profile to continue.");
+          return false;
+        }
+        if (
+          !draft.address?.street ||
+          !draft.address.city ||
+          !draft.address.state ||
+          !draft.address.zip
+        ) {
+          setError("Your profile is missing a complete address. Update your profile to continue.");
+          return false;
+        }
+        return true;
       case "contact":
         if (!draft.email) {
           setError("Enter your email address.");
@@ -454,7 +530,7 @@ export function OnboardingWizard({
     }
 
     if (currentStep === "home-found" && stepIndex === 0) {
-      const nextSteps = getSteps(draft);
+      const nextSteps = getSteps(draft, { skipPersonalDetails });
       if (nextSteps.length > 1) {
         setStepIndex(1);
         return;
@@ -735,6 +811,8 @@ export function OnboardingWizard({
           </div>
         </OnboardingQuestion>
       ) : null}
+
+      {currentStep === "confirm-profile" ? <ConfirmProfileStep draft={draft} /> : null}
 
       {currentStep === "about-you" ? (
         <OnboardingQuestion title="About You">
@@ -1160,7 +1238,9 @@ export function OnboardingWizard({
                   : "Continue to Account"
               : currentStep === "employment" && employmentPhase === "type"
                 ? "Continue"
-                : "Continue"}
+                : currentStep === "confirm-profile"
+                  ? "Confirm and Continue"
+                  : "Continue"}
           <ArrowRight className="size-5" />
         </Button>
       </div>
