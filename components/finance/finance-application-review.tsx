@@ -602,8 +602,8 @@ export function FinanceApplicationReview({
             <section className="card-surface p-6">
               <h3 className="text-sm font-semibold text-brand-navy">Funding</h3>
               <p className="mt-1 text-xs text-muted-foreground">
-                Application is approved. Proceed to the Funding Queue to fund
-                the mortgage and link the Pathward account.
+                Application is approved. Fund the mortgage from the Funding Queue,
+                then link the client&apos;s Pathward account from user management.
               </p>
               <Link
                 href="/finance/funding"

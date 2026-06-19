@@ -111,11 +111,10 @@ export function isLoanFundedForWorkflow(input: {
   pathwardBalance: number;
 }): boolean {
   if (input.mortgageCredited > 0) return true;
-  if (input.applicationStatus === "funded") return true;
   if (
-    input.mortgageApproved &&
-    input.pathwardBalance > 0 &&
-    input.applicationStatus === "approved"
+    input.applicationStatus === "funded" ||
+    input.applicationStatus === "active" ||
+    input.applicationStatus === "completed"
   ) {
     return true;
   }

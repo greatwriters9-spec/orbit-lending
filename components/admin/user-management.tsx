@@ -51,9 +51,6 @@ export function AccountStatusPanel({
   const [accountNumber, setAccountNumber] = useState(
     user.pathwardAccountNumber ?? "",
   );
-  const [accountBalance, setAccountBalance] = useState(
-    String(user.pathwardAccountBalance ?? 0),
-  );
   const [balanceOnly, setBalanceOnly] = useState(
     String(user.pathwardAccountBalance ?? 0),
   );
@@ -208,8 +205,9 @@ export function AccountStatusPanel({
             Linked Pathward Account
           </h4>
           <p className="mt-1 text-xs text-muted-foreground">
-            Link after the client&apos;s mortgage application is approved. The client
-            uses this account to deposit their down payment.
+            Link after the client&apos;s mortgage application is approved. Linking
+            only stores account details — use Update Balance after confirming a
+            deposit, or fund the mortgage from the Funding Queue.
           </p>
         </div>
         <Input
@@ -232,15 +230,6 @@ export function AccountStatusPanel({
             className="h-10"
           />
         </div>
-        <Input
-          type="number"
-          min="0"
-          step="0.01"
-          value={accountBalance}
-          onChange={(e) => setAccountBalance(e.target.value)}
-          placeholder="Account balance (USD)"
-          className="h-10"
-        />
         <Button
           type="button"
           disabled={
@@ -256,7 +245,6 @@ export function AccountStatusPanel({
                 accountHolderName,
                 routingNumber,
                 accountNumber,
-                accountBalance: Number(accountBalance),
               }),
             )
           }

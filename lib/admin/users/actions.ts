@@ -19,7 +19,6 @@ import { isClosingDownPaymentComplete, normalizeDownPaymentMeta } from "@/lib/da
 import { parseEscrowTransferMeta } from "@/lib/dashboard/closing-funds-meta";
 import { extractPreQualification } from "@/lib/onboarding/parse-application";
 import { isMortgageApprovedForWithdrawal } from "@/lib/wallet/pathward-account";
-import { syncMortgageToPathwardClosing } from "@/lib/wallet/pathward-closing";
 import { createNotification } from "@/lib/wallet/notifications";
 import { generateReferenceNumber } from "@/lib/wallet/utils";
 import { mirrorWalletTransaction } from "@/lib/transactions/wallet-bridge";
@@ -56,7 +55,6 @@ const linkedPathwardAccountSchema = z.object({
   accountNumber: z
     .string()
     .regex(/^\d{6,17}$/, "Account number must be 6 to 17 digits."),
-  accountBalance: z.coerce.number().min(0, "Balance cannot be negative."),
 });
 
 const pathwardBalanceSchema = z.object({
@@ -251,50 +249,43 @@ export async function updateLinkedPathwardAccountAction(
   }
 
   const supabase = await createClient();
+
+  const { data: existingProfile } = await supabase
+    .from("profiles")
+    .select("pathward_routing_number, pathward_account_number")
+    .eq("id", parsed.data.userId)
+    .maybeSingle();
+
+  const isFirstLink =
+    !existingProfile?.pathward_routing_number ||
+    !existingProfile?.pathward_account_number;
+
+  const profileUpdate: Record<string, string | number> = {
+    pathward_account_holder_name: parsed.data.accountHolderName.trim(),
+    pathward_routing_number: parsed.data.routingNumber.trim(),
+    pathward_account_number: parsed.data.accountNumber.trim(),
+    pathward_linked_at: new Date().toISOString(),
+    pathward_linked_by: ctx.user.id,
+  };
+
+  if (isFirstLink) {
+    profileUpdate.pathward_account_balance = 0;
+  }
+
   const { error } = await supabase
     .from("profiles")
-    .update({
-      pathward_account_holder_name: parsed.data.accountHolderName.trim(),
-      pathward_routing_number: parsed.data.routingNumber.trim(),
-      pathward_account_number: parsed.data.accountNumber.trim(),
-      pathward_account_balance: parsed.data.accountBalance,
-      pathward_linked_at: new Date().toISOString(),
-      pathward_linked_by: ctx.user.id,
-    })
+    .update(profileUpdate)
     .eq("id", parsed.data.userId);
 
   if (error) {
     return { error: error.message };
   }
 
-  const { data: application } = await supabase
-    .from("loan_applications")
-    .select("id, approved_amount, status")
-    .eq("user_id", parsed.data.userId)
-    .neq("status", "draft")
-    .order("updated_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  const mortgageAmount = Number(application?.approved_amount ?? 0);
-  if (
-    application &&
-    mortgageAmount > 0 &&
-    ["approved", "funded", "active"].includes(application.status)
-  ) {
-    await syncMortgageToPathwardClosing(
-      supabase,
-      parsed.data.userId,
-      application.id,
-      mortgageAmount,
-    );
-  }
-
   await createNotification({
     userId: parsed.data.userId,
-    title: "Funding Account Ready",
+    title: "Funding Account Linked",
     message:
-      "Your Funding Account has been linked. Deposit your required down payment using the wire instructions in your dashboard.",
+      "Your Pathward funding account has been linked. Wire instructions are available in your dashboard. Your balance will update once mortgage funding is processed or your down payment is confirmed.",
     type: "application_update",
   });
 
