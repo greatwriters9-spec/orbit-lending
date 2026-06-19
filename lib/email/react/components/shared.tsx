@@ -15,7 +15,7 @@ import {
 } from "@react-email/components";
 import * as React from "react";
 
-import { getSupportEmailAddress, getWebsiteDomain, getWebsiteUrl, ORBIT_MORTGAGE_TAGLINE } from "@/lib/email/config";
+import { BRAND_DISPLAY_NAME, getSupportEmailAddress, getWebsiteDomain, getWebsiteUrl, ORBIT_MORTGAGE_TAGLINE } from "@/lib/email/config";
 import type { EmailStatusTone } from "@/lib/email/types";
 import { emailColors, emailFonts } from "@/lib/email/react/tokens";
 import type {
@@ -120,7 +120,7 @@ export function EmailBrandHeader({
                       lineHeight: "24px",
                     }}
                   >
-                    Orbit Mortgage
+                    {BRAND_DISPLAY_NAME}
                   </Text>
                   {!minimal ? (
                     <Text
@@ -469,7 +469,7 @@ export function EmailFooter() {
             </td>
             <td style={{ verticalAlign: "middle" }}>
               <Text style={{ margin: 0, fontFamily: emailFonts.sans, fontSize: 14, fontWeight: 700, color: emailColors.text }}>
-                Orbit Mortgage
+                {BRAND_DISPLAY_NAME}
               </Text>
               <Text style={{ margin: "2px 0 0", fontFamily: emailFonts.sans, fontSize: 11, color: emailColors.muted }}>
                 Your mortgage team
@@ -505,7 +505,7 @@ export function EmailFooter() {
         </Column>
       </Row>
       <Text style={{ margin: "16px 0 0", fontFamily: emailFonts.sans, fontSize: 11, color: emailColors.muted, textAlign: "center", lineHeight: "16px" }}>
-        This email was sent automatically. For help, visit your Support page in Orbit Mortgage.
+        {`This email was sent automatically. For help, visit your Support page in ${BRAND_DISPLAY_NAME}.`}
       </Text>
     </Section>
   );

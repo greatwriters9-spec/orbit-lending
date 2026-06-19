@@ -12,6 +12,9 @@ export const TEMPLATE_COMMUNICATION_CLASS: Record<
   verify_email: "automated",
   verification_success: "automated",
   password_reset: "automated",
+  magic_link: "automated",
+  auth_verification_code: "automated",
+  account_notification: "automated",
   security_alert: "automated",
   application_submitted: "automated",
   application_under_review: "department",
@@ -44,6 +47,9 @@ export const TEMPLATE_DEPARTMENTS: Record<EmailTemplateKey, EmailDepartment> = {
   verify_email: "system",
   verification_success: "system",
   password_reset: "support",
+  magic_link: "support",
+  auth_verification_code: "support",
+  account_notification: "support",
   security_alert: "system",
   application_submitted: "system",
   application_under_review: "loan_officer",
@@ -82,13 +88,13 @@ export const DEPARTMENT_DISPLAY_NAMES: Record<EmailDepartment, string> = {
 };
 
 export const DEPARTMENT_CONTACT_EMAILS: Record<EmailDepartment, string> = {
-  system: "noreply@orbittmortgage.com",
-  loan_officer: "loanofficer@orbittmortgage.com",
-  underwriting: "underwriting@orbittmortgage.com",
-  funding: "funding@orbittmortgage.com",
-  closings: "closing@orbittmortgage.com",
+  system: "support@orbittmortgage.com",
+  loan_officer: "support@orbittmortgage.com",
+  underwriting: "support@orbittmortgage.com",
+  funding: "support@orbittmortgage.com",
+  closings: "support@orbittmortgage.com",
   support: "support@orbittmortgage.com",
-  executive: "chief.lending.officer@orbittmortgage.com",
+  executive: "support@orbittmortgage.com",
 };
 
 export const DEFAULT_STAFF_BY_DEPARTMENT: Partial<
@@ -136,6 +142,9 @@ export function resolveTemplateForEvent(event: string): EmailTemplateKey | null 
     verify_email: "verify_email",
     verification_success: "verification_success",
     password_reset: "password_reset",
+    magic_link: "magic_link",
+    auth_verification_code: "auth_verification_code",
+    account_notification: "account_notification",
     security_alert: "security_alert",
     application_submitted: "application_submitted",
     application_under_review: "application_under_review",

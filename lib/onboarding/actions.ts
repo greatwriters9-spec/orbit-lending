@@ -5,7 +5,10 @@ import { headers } from "next/headers";
 import { z } from "zod";
 
 import { AUTH_ROUTES } from "@/lib/auth/routes";
-import { resolveSignUpError } from "@/lib/auth/sign-up";
+import {
+  buildAuthCallbackUrl,
+  registerUserWithResendVerification,
+} from "@/lib/auth/resend-auth-delivery";
 import { createClient } from "@/lib/supabase/server";
 import { ensureOnboardingApplication } from "@/lib/onboarding/finalize-application";
 import { updateOnboardingApplication } from "@/lib/onboarding/update-application";
@@ -144,40 +147,43 @@ export async function createAccountFromOnboardingAction(
 
   const origin = await getOrigin();
   const supabase = await createClient();
+  const emailRedirectTo = buildAuthCallbackUrl(origin);
 
-  const { data, error } = await supabase.auth.signUp({
+  const registration = await registerUserWithResendVerification({
     email: parsed.data.email,
     password: parsed.data.password,
-    options: {
-      data: {
-        first_name: draft.firstName,
-        middle_name: draft.middleName,
-        last_name: draft.lastName,
-      },
-      emailRedirectTo: `${origin}${AUTH_ROUTES.callback}`,
+    emailRedirectTo,
+    metadata: {
+      first_name: draft.firstName,
+      middle_name: draft.middleName,
+      last_name: draft.lastName,
     },
+    firstName: draft.firstName,
   });
 
-  const signUpError = resolveSignUpError(data.user, error);
-  if (signUpError) {
-    return { error: signUpError };
+  if (!registration.ok) {
+    return { error: registration.error };
   }
 
-  if (!data.user) {
-    return { error: "Account could not be created. Please try again." };
-  }
+  const { user, needsEmailConfirmation } = registration;
 
-  const { sendWelcomeEmail } = await import("@/lib/email/hooks");
-  void sendWelcomeEmail(data.user.id, draft.firstName);
-
-  if (!data.session) {
+  if (needsEmailConfirmation) {
     return {
       success:
         "Account created. Check your email to confirm your address, then sign in to view your pre-qualification.",
     };
   }
 
-  const userId = data.user.id;
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email: parsed.data.email,
+    password: parsed.data.password,
+  });
+
+  if (signInError) {
+    return { error: signInError.message };
+  }
+
+  const userId = user.id;
   const result = await finalizeOnboardingForUser(
     userId,
     parsed.data.email,

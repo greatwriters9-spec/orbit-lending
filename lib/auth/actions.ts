@@ -14,7 +14,11 @@ import {
   resetPasswordSchema,
 } from "@/lib/auth/schemas";
 import { validateCityForState } from "@/lib/auth/validate-city";
-import { resolveSignUpError } from "@/lib/auth/sign-up";
+import {
+  buildAuthCallbackUrl,
+  registerUserWithResendVerification,
+  sendPasswordResetViaResend,
+} from "@/lib/auth/resend-auth-delivery";
 import { ensureOnboardingApplication } from "@/lib/onboarding/finalize-application";
 import { createClient } from "@/lib/supabase/server";
 import type { MortgageApplicationDraft } from "@/types/mortgage-onboarding";
@@ -95,28 +99,26 @@ export async function registerAction(
 
   const origin = await getOrigin();
   const supabase = await createClient();
+  const emailRedirectTo = buildAuthCallbackUrl(origin);
 
-  const { data, error } = await supabase.auth.signUp({
+  const registration = await registerUserWithResendVerification({
     email: parsed.data.email,
     password: parsed.data.password,
-    options: {
-      data: {
-        first_name: parsed.data.firstName,
-        middle_name: parsed.data.middleNameInitial,
-        last_name: parsed.data.lastName,
-      },
-      emailRedirectTo: `${origin}${AUTH_ROUTES.callback}`,
+    emailRedirectTo,
+    metadata: {
+      first_name: parsed.data.firstName,
+      middle_name: parsed.data.middleNameInitial,
+      last_name: parsed.data.lastName,
     },
+    firstName: parsed.data.firstName,
   });
 
-  const signUpError = resolveSignUpError(data.user, error);
-  if (signUpError) {
-    return { error: signUpError };
+  if (!registration.ok) {
+    return { error: registration.error };
   }
 
-  if (!data.user) {
-    return { error: "Account could not be created. Please try again." };
-  }
+  const { user, needsEmailConfirmation } = registration;
+
   await supabase
     .from("profiles")
     .update({
@@ -124,16 +126,22 @@ export async function registerAction(
       middle_name: parsed.data.middleNameInitial ?? null,
       last_name: parsed.data.lastName,
     })
-    .eq("id", data.user.id);
+    .eq("id", user.id);
 
-  const { sendWelcomeEmail } = await import("@/lib/email/hooks");
-  void sendWelcomeEmail(data.user.id, parsed.data.firstName);
-
-  if (!data.session) {
+  if (needsEmailConfirmation) {
     return {
       success:
         "Account created. Check your email to confirm your address, then sign in.",
     };
+  }
+
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email: parsed.data.email,
+    password: parsed.data.password,
+  });
+
+  if (signInError) {
+    return { error: signInError.message };
   }
 
   redirect(AUTH_ROUTES.profileComplete);
@@ -152,28 +160,15 @@ export async function forgotPasswordAction(
   }
 
   const origin = await getOrigin();
-  const supabase = await createClient();
+  const redirectTo = buildAuthCallbackUrl(origin, AUTH_ROUTES.resetPassword);
 
-  const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
-    redirectTo: `${origin}${AUTH_ROUTES.callback}?next=${AUTH_ROUTES.resetPassword}`,
+  const resetResult = await sendPasswordResetViaResend({
+    email: parsed.data.email,
+    redirectTo,
   });
 
-  if (error) {
-    return { error: error.message };
-  }
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id")
-    .eq("email", parsed.data.email)
-    .maybeSingle();
-
-  if (profile?.id) {
-    const { sendPasswordResetNoticeEmail } = await import("@/lib/email/hooks");
-    void sendPasswordResetNoticeEmail(
-      profile.id as string,
-      `${origin}${AUTH_ROUTES.resetPassword}`,
-    );
+  if (!resetResult.ok) {
+    return { error: resetResult.error };
   }
 
   return {

@@ -31,11 +31,8 @@ export async function GET(request: Request) {
         destination = getDefaultRouteForRole(profile?.role);
 
         if (user.email_confirmed_at) {
-          const { sendVerificationSuccessEmail } = await import("@/lib/email/hooks");
-          void sendVerificationSuccessEmail(
-            user.id,
-            profile?.first_name ?? undefined,
-          );
+          const { sendWelcomeEmail } = await import("@/lib/email/hooks");
+          void sendWelcomeEmail(user.id, profile?.first_name ?? undefined);
         }
       }
 

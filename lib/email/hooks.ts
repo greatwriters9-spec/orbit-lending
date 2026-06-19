@@ -41,6 +41,24 @@ export async function sendWelcomeEmail(userId: string, firstName?: string) {
   });
 }
 
+export async function sendVerifyEmailEmail(input: {
+  userId: string;
+  recipient: string;
+  verifyUrl: string;
+  firstName?: string;
+}) {
+  return sendTimelineEmail({
+    userId: input.userId,
+    email: input.recipient,
+    template: "verify_email",
+    data: {
+      verifyUrl: input.verifyUrl,
+      firstName: input.firstName,
+    },
+    metadata: { source: "auth_signup" },
+  });
+}
+
 export async function sendVerificationSuccessEmail(
   userId: string,
   firstName?: string,

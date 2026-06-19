@@ -13,7 +13,6 @@ import {
 import { selectEmailTemplateForNotification } from "@/lib/email/registry";
 import type { EmailTemplateData, EmailTemplateKey } from "@/lib/email/types";
 
-import { buildEmailHtml, sendTransactionalEmail } from "./email";
 import { resolveUserEmail } from "./resolve-user-email";
 
 export type NotifyUserInput = {
@@ -80,15 +79,23 @@ export async function notifyUser(input: NotifyUserInput) {
         ? `${origin}${input.actionUrl}`
         : undefined;
 
-      const result = await sendTransactionalEmail({
-        to: recipientEmail,
-        subject: input.title,
-        html: buildEmailHtml(input.title, input.message, actionUrl),
-        text: `${input.title}\n\n${input.message}${actionUrl ? `\n\n${actionUrl}` : ""}`,
+      const result = await sendTimelineEmail({
+        userId: input.userId,
+        template: "account_notification",
+        data: {
+          headline: input.title,
+          message: input.message,
+          actionUrl,
+        },
+        email: recipientEmail,
+        metadata: {
+          ...(input.metadata ?? {}),
+          notificationTitle: input.title,
+        },
       });
 
       if (!result.ok && process.env.NODE_ENV === "development") {
-        console.warn("[notifyUser] Email not sent:", result.error);
+        console.warn("[notifyUser] Branded notification email not sent:", result.error);
       }
     }
   } else if (shouldEmail && !recipientEmail) {

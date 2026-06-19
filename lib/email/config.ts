@@ -1,4 +1,14 @@
+import { cleanEnv } from "@/lib/env";
 import type { EmailDepartment } from "@/lib/email/types";
+
+/** Public-facing brand name used in email From headers and templates. */
+export const BRAND_DISPLAY_NAME = "Orbitt Mortgage";
+
+/** Verified Resend sending address for all outbound mail. */
+export const PRIMARY_SENDER_EMAIL = "support@orbittmortgage.com";
+
+/** Reply-To address for all outbound mail. */
+export const PRIMARY_REPLY_TO_EMAIL = "support@orbittmortgage.com";
 
 const DEPARTMENT_ENV_KEYS: Record<
   EmailDepartment,
@@ -34,38 +44,6 @@ const DEPARTMENT_ENV_KEYS: Record<
   },
 };
 
-const DEFAULT_SENDERS: Record<EmailDepartment, { address: string; name: string }> =
-  {
-    system: {
-      address: "noreply@orbittmortgage.com",
-      name: "Orbit Mortgage",
-    },
-    loan_officer: {
-      address: "loanofficer@orbittmortgage.com",
-      name: "Orbit Mortgage Loan Team",
-    },
-    underwriting: {
-      address: "underwriting@orbittmortgage.com",
-      name: "Orbit Mortgage Underwriting",
-    },
-    funding: {
-      address: "funding@orbittmortgage.com",
-      name: "Orbit Mortgage Funding Team",
-    },
-    closings: {
-      address: "closing@orbittmortgage.com",
-      name: "Orbit Mortgage Closing Team",
-    },
-    support: {
-      address: "support@orbittmortgage.com",
-      name: "Orbit Mortgage Support",
-    },
-    executive: {
-      address: "chief.lending.officer@orbittmortgage.com",
-      name: "Orbit Mortgage",
-    },
-  };
-
 export function getAppOrigin(): string {
   return (
     process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ||
@@ -91,23 +69,31 @@ export function getWebsiteUrl(): string {
 export const ORBIT_MORTGAGE_TAGLINE = "Home financing made simple";
 
 export function getSupportEmailAddress(): string {
+  return getReplyToEmail();
+}
+
+export function getReplyToEmail(): string {
   return (
-    process.env.EMAIL_FROM_SUPPORT?.trim() ||
-    DEFAULT_SENDERS.support.address
+    cleanEnv(process.env.EMAIL_REPLY_TO) ||
+    cleanEnv(process.env.EMAIL_FROM_SUPPORT) ||
+    cleanEnv(process.env.EMAIL_FROM) ||
+    PRIMARY_REPLY_TO_EMAIL
   );
 }
 
-export function resolveDepartmentSender(department: EmailDepartment): {
+export function getBrandedSender(): {
   address: string;
   displayName: string;
   from: string;
 } {
-  const keys = DEPARTMENT_ENV_KEYS[department];
-  const defaults = DEFAULT_SENDERS[department];
   const address =
-    process.env[keys.address]?.trim() || defaults.address;
+    cleanEnv(process.env.EMAIL_FROM) ||
+    cleanEnv(process.env.EMAIL_FROM_SUPPORT) ||
+    PRIMARY_SENDER_EMAIL;
   const displayName =
-    process.env[keys.displayName]?.trim() || defaults.name;
+    cleanEnv(process.env.EMAIL_NAME) ||
+    cleanEnv(process.env.EMAIL_NAME_SUPPORT) ||
+    BRAND_DISPLAY_NAME;
 
   return {
     address,
@@ -116,8 +102,17 @@ export function resolveDepartmentSender(department: EmailDepartment): {
   };
 }
 
+/** All outbound email uses the unified Orbitt Mortgage sender. */
+export function resolveDepartmentSender(_department: EmailDepartment): {
+  address: string;
+  displayName: string;
+  from: string;
+} {
+  return getBrandedSender();
+}
+
 export function getResendApiKey(): string | null {
-  const key = process.env.RESEND_API_KEY?.trim();
+  const key = cleanEnv(process.env.RESEND_API_KEY);
   return key || null;
 }
 
@@ -125,14 +120,19 @@ export function getEmailTestOverride(): string | null {
   if (process.env.NODE_ENV === "production") {
     return null;
   }
-  const testTo = process.env.RESEND_TEST_TO?.trim();
+  const testTo = cleanEnv(process.env.RESEND_TEST_TO);
   return testTo || null;
 }
 
 export function getDevFallbackFrom(): string {
-  const devFrom = process.env.RESEND_DEV_FROM?.trim();
+  const devFrom = cleanEnv(process.env.RESEND_DEV_FROM);
   if (devFrom) {
-    return devFrom.includes("<") ? devFrom : `Orbit Mortgage <${devFrom}>`;
+    return devFrom.includes("<") ? devFrom : `${BRAND_DISPLAY_NAME} <${devFrom}>`;
   }
-  return "Orbit Mortgage <onboarding@resend.dev>";
+  return `${BRAND_DISPLAY_NAME} <onboarding@resend.dev>`;
+}
+
+/** @deprecated Department-specific env keys are retained for compatibility only. */
+export function getLegacyDepartmentEnvKeys(department: EmailDepartment) {
+  return DEPARTMENT_ENV_KEYS[department];
 }
