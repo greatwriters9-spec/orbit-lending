@@ -50,7 +50,10 @@ export default async function DashboardPage() {
               {showDownPaymentSection ? <RequiredDownPaymentCard view={view} /> : null}
 
               <div className="grid gap-6 lg:grid-cols-2 lg:items-stretch">
-                <DocumentCenterWidget documents={view.documents} />
+                <DocumentCenterWidget
+                  applicationId={view.applicationId}
+                  documents={view.documents}
+                />
                 <MortgageActivitySection
                   activities={view.activities}
                   transactions={data?.transactions ?? []}
