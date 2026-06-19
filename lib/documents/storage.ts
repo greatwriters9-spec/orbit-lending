@@ -98,6 +98,25 @@ export async function createSignedDocumentUrl(
   return data.signedUrl;
 }
 
+export async function resolveStorageDownloadUrl(
+  bucket: string,
+  fileUrl: string | null | undefined,
+): Promise<string | null> {
+  if (!fileUrl) {
+    return null;
+  }
+
+  if (fileUrl.startsWith("http")) {
+    const path = extractStoragePathFromUrl(fileUrl, bucket);
+    if (path) {
+      return createSignedDocumentUrl(bucket, path);
+    }
+    return fileUrl;
+  }
+
+  return createSignedDocumentUrl(bucket, fileUrl);
+}
+
 export function extractStoragePathFromUrl(
   url: string,
   bucket: string,

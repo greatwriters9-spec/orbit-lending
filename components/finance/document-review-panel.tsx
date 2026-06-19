@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { Download, ExternalLink } from "lucide-react";
 
 import {
   approveDocumentRequestAction,
@@ -50,6 +51,7 @@ export function DocumentReviewPanel({
       <ul className="mt-4 space-y-3">
         {documentRequests.map((doc) => {
           const canReview = doc.reviewStatus === "pending_review";
+          const hasUploadedFile = Boolean(doc.fileName && doc.downloadUrl);
 
           return (
             <li
@@ -77,6 +79,28 @@ export function DocumentReviewPanel({
                   uppercase={false}
                 />
               </div>
+
+              {hasUploadedFile ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <a
+                    href={doc.downloadUrl!}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-brand-border bg-background px-3 text-sm font-medium hover:bg-muted"
+                  >
+                    <ExternalLink className="size-4" />
+                    View Document
+                  </a>
+                  <a
+                    href={doc.downloadUrl!}
+                    download={doc.fileName}
+                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-brand-border bg-background px-3 text-sm font-medium hover:bg-muted"
+                  >
+                    <Download className="size-4" />
+                    Download
+                  </a>
+                </div>
+              ) : null}
 
               {canReview ? (
                 <div className="mt-4 space-y-3 border-t border-brand-border pt-4">

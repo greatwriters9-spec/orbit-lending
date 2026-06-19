@@ -1,9 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import {
   APPLICATION_DOCUMENTS_BUCKET,
-  createSignedDocumentUrl,
-  extractStoragePathFromUrl,
   REPAYMENT_PROOFS_BUCKET,
+  resolveStorageDownloadUrl,
 } from "@/lib/documents/storage";
 import type { ClientDocument } from "@/types/documents";
 
@@ -11,19 +10,7 @@ async function resolveDownloadUrl(
   fileUrl: string | null | undefined,
   bucket: string,
 ): Promise<string | null> {
-  if (!fileUrl) {
-    return null;
-  }
-
-  if (fileUrl.startsWith("http")) {
-    const path = extractStoragePathFromUrl(fileUrl, bucket);
-    if (path) {
-      return createSignedDocumentUrl(bucket, path);
-    }
-    return fileUrl;
-  }
-
-  return createSignedDocumentUrl(bucket, fileUrl);
+  return resolveStorageDownloadUrl(bucket, fileUrl);
 }
 
 export async function fetchClientDocuments(

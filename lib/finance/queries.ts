@@ -2,6 +2,10 @@ import { createClient } from "@/lib/supabase/server";
 import {
   mapDocumentRequestRow,
 } from "@/lib/applications/document-request-status";
+import {
+  APPLICATION_DOCUMENTS_BUCKET,
+  resolveStorageDownloadUrl,
+} from "@/lib/documents/storage";
 import { FINANCE_QUEUE_STATUSES } from "@/lib/applications/engine/statuses";
 import { getLoanProductBySlug } from "@/lib/loans/mock-data";
 import type { ApplicationScores, ApplicationStatus } from "@/types/application-details";
@@ -253,21 +257,27 @@ export async function fetchFinanceApplicationDetail(
       newValues: log.new_values as Record<string, unknown> | undefined,
       createdAt: log.created_at,
     })),
-    documentRequests: (docsRes.data ?? []).map((doc) => {
-      const mapped = mapDocumentRequestRow(doc);
-      return {
-        id: mapped.id,
-        documentName: mapped.documentName,
-        description: mapped.description,
-        required: mapped.required,
-        fulfilled: mapped.fulfilled,
-        reviewStatus: mapped.reviewStatus,
-        fileName: mapped.fileName,
-        requestedAt: mapped.requestedAt,
-        dueDate: mapped.dueDate,
-        uploadedAt: mapped.uploadedAt,
-      };
-    }),
+    documentRequests: await Promise.all(
+      (docsRes.data ?? []).map(async (doc) => {
+        const mapped = mapDocumentRequestRow(doc);
+        return {
+          id: mapped.id,
+          documentName: mapped.documentName,
+          description: mapped.description,
+          required: mapped.required,
+          fulfilled: mapped.fulfilled,
+          reviewStatus: mapped.reviewStatus,
+          fileName: mapped.fileName,
+          requestedAt: mapped.requestedAt,
+          dueDate: mapped.dueDate,
+          uploadedAt: mapped.uploadedAt,
+          downloadUrl: await resolveStorageDownloadUrl(
+            APPLICATION_DOCUMENTS_BUCKET,
+            doc.file_url,
+          ),
+        };
+      }),
+    ),
     messages: (messagesRes.data ?? []).map((msg) => ({
       id: msg.id,
       senderRole: msg.sender_role,

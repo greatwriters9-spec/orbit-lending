@@ -1,8 +1,10 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
-import { CheckCircle2, Clock3, FileUp, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
+import { CheckCircle2, Clock3, Trash2 } from "lucide-react";
 
+import { DocumentUploadPicker } from "@/components/documents/document-upload-picker";
 import { uploadDocumentRequestAction } from "@/lib/applications/actions";
 import { documentReviewStatusLabel } from "@/lib/applications/document-request-status";
 import { formatShortDate } from "@/lib/applications/status-utils";
@@ -34,22 +36,17 @@ export function ApplicationDocumentRequests({
   requests,
   className,
 }: ApplicationDocumentRequestsProps) {
+  const router = useRouter();
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-  const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   if (requests.length === 0) {
     return null;
   }
 
-  function handleUpload(requestId: string) {
-    const input = inputRefs.current[requestId];
-    const file = input?.files?.[0];
-    if (!file) {
-      setFeedback("Select a file to upload.");
-      return;
-    }
-
+  function handleUpload(requestId: string, file: File) {
+    setUploadingId(requestId);
     startTransition(async () => {
       const payload = new FormData();
       payload.set("applicationId", applicationId);
@@ -58,6 +55,10 @@ export function ApplicationDocumentRequests({
 
       const result = await uploadDocumentRequestAction(payload);
       setFeedback(result.error ?? result.success ?? null);
+      setUploadingId(null);
+      if (!result.error) {
+        router.refresh();
+      }
     });
   }
 
@@ -119,35 +120,13 @@ export function ApplicationDocumentRequests({
                 </div>
 
                 {canUpload ? (
-                  <div className="flex shrink-0 flex-wrap gap-2">
-                    <input
-                      ref={(el) => {
-                        inputRefs.current[request.id] = el;
-                      }}
-                      type="file"
-                      accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                      className="hidden"
-                      id={`doc-${request.id}`}
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      disabled={isPending}
-                      onClick={() => inputRefs.current[request.id]?.click()}
-                      className="h-9 border-brand-border px-3"
-                    >
-                      <FileUp className="size-4" />
-                      Choose File
-                    </Button>
-                    <Button
-                      type="button"
-                      disabled={isPending}
-                      onClick={() => handleUpload(request.id)}
-                      className="h-9 bg-brand-blue px-3 text-white hover:bg-brand-blue/90"
-                    >
-                      Upload
-                    </Button>
-                  </div>
+                  <DocumentUploadPicker
+                    requestId={request.id}
+                    disabled={isPending}
+                    isUploading={isPending && uploadingId === request.id}
+                    onUpload={(file) => handleUpload(request.id, file)}
+                    className="w-full lg:w-[320px]"
+                  />
                 ) : isPendingReview ? (
                   <Button
                     type="button"

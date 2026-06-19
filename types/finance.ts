@@ -62,6 +62,7 @@ export type FinanceApplicationDetail = FinanceApplicationSummary & {
     requestedAt: string;
     dueDate?: string;
     uploadedAt?: string;
+    downloadUrl?: string | null;
   }>;
   messages: Array<{
     id: string;
