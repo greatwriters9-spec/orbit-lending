@@ -245,7 +245,11 @@ export function buildPathwardFundingView(input: {
 }): PathwardFundingView {
   const rawBalance = input.linkedAccount?.accountBalance ?? 0;
   const phase = resolveFundingPhase(input.downPaymentMeta, input.escrowTransfer);
-  const showDepositUI = shouldShowDepositUI(input.downPaymentMeta, input.escrowTransfer);
+  const linked = Boolean(input.linkedAccount);
+  const showDepositUI =
+    input.applicationApprovedForFunding &&
+    linked &&
+    shouldShowDepositUI(input.downPaymentMeta, input.escrowTransfer);
   const requestLabel = resolveCurrentRequestLabel(
     input.downPaymentMeta,
     input.escrowTransfer,
@@ -254,13 +258,12 @@ export function buildPathwardFundingView(input: {
     phase === "admin_requested"
       ? requestLabel
       : "Required Down Payment";
-  const linked = Boolean(input.linkedAccount);
   const setupPending = input.applicationApprovedForFunding && !linked;
 
   const workflow = resolveMortgageFundingWorkflow({
     applicationStatus: input.applicationStatus,
     purchasePrice: input.purchasePrice,
-    approvedMortgageAmount: input.approvedMortgageAmount,
+    approvedMortgageAmount: input.mortgageApproved ? input.approvedMortgageAmount : 0,
     pathwardBalance: rawBalance,
     pathwardLinked: linked,
     mortgageApproved: input.mortgageApproved,
@@ -285,6 +288,14 @@ export function buildPathwardFundingView(input: {
     input.escrowTransfer,
   );
 
+  const fundingStatusDisplay = !input.mortgageApproved
+    ? "Pending Setup"
+    : setupPending
+      ? "Pending Setup"
+      : showDepositUI
+        ? depositStatusDisplay
+        : workflow.fundingAccountStatus;
+
   return {
     bankName: "Pathward National Bank",
     accountHolder: input.linkedAccount?.accountHolderName ?? "Pending Setup",
@@ -295,7 +306,7 @@ export function buildPathwardFundingView(input: {
     remainingRequired,
     fundingPercent: workflow.fundingProgressPercent,
     fundingStatus,
-    fundingStatusDisplay: showDepositUI ? depositStatusDisplay : workflow.fundingAccountStatus,
+    fundingStatusDisplay,
     fundingActionLabel: workflow.fundingActionLabel,
     depositLabel,
     showDepositUI,
@@ -311,10 +322,15 @@ export function buildDownPaymentView(input: {
   mortgageCredited?: number;
   meta: DownPaymentMeta | null;
   escrowTransfer?: ReturnType<typeof parseEscrowTransferMeta>;
+  applicationApprovedForFunding?: boolean;
 }): DownPaymentView {
+  const approvedForFunding = input.applicationApprovedForFunding ?? false;
   const phase = resolveFundingPhase(input.meta, input.escrowTransfer);
-  const showFundingSection = shouldShowFundingSection(input.meta, input.escrowTransfer);
-  const showDepositUI = shouldShowDepositUI(input.meta, input.escrowTransfer);
+  const showFundingSection =
+    approvedForFunding &&
+    shouldShowFundingSection(input.meta, input.escrowTransfer);
+  const showDepositUI =
+    approvedForFunding && shouldShowDepositUI(input.meta, input.escrowTransfer);
   const currentRequired = resolveCurrentRequiredAmount(
     input.meta,
     input.requiredAmount,

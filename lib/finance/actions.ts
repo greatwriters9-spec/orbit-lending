@@ -10,6 +10,7 @@ import {
   sendStaffMessage,
   transitionApplicationStatus,
 } from "@/lib/applications/engine/processor";
+import { extractPreQualification } from "@/lib/onboarding/parse-application";
 import { createClient } from "@/lib/supabase/server";
 import type { FinanceActionState } from "@/types/finance";
 
@@ -124,12 +125,6 @@ export async function setMortgageEligibilityAction(
   if (result.error) {
     return { error: result.error };
   }
-
-  const { sendPreQualifiedNoticeEmail } = await import("@/lib/email/hooks");
-  void sendPreQualifiedNoticeEmail(existing.user_id, {
-    approvedAmount: parsed.data.eligibleAmount,
-    actionUrl: `/dashboard/loans/${parsed.data.applicationId}`,
-  });
 
   revalidateApplicationPaths(parsed.data.applicationId);
   revalidatePath("/dashboard");
@@ -365,8 +360,30 @@ export async function approveApplicationAction(
     return { error: result.error };
   }
 
+  const supabase = await createClient();
+  const { data: applicationRow } = await supabase
+    .from("loan_applications")
+    .select("personal_info")
+    .eq("id", parsed.data.applicationId)
+    .maybeSingle();
+
+  const personalInfo =
+    applicationRow?.personal_info && typeof applicationRow.personal_info === "object"
+      ? (applicationRow.personal_info as Record<string, unknown>)
+      : null;
+  const preQual = extractPreQualification(personalInfo);
+
+  const { sendPreQualifiedNoticeEmail } = await import("@/lib/email/hooks");
+  void sendPreQualifiedNoticeEmail(existing.user_id, {
+    approvedAmount: parsed.data.approvedAmount,
+    mortgageAmount: parsed.data.approvedAmount,
+    maxHomePrice: preQual?.maximumHomePrice,
+    actionUrl: "/dashboard#pathward-funding",
+  });
+
   revalidateApplicationPaths(parsed.data.applicationId);
   revalidatePath("/finance/funding");
+  revalidatePath("/dashboard");
   return { success: "Application approved." };
 }
 

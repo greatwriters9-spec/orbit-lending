@@ -200,6 +200,18 @@ export async function fetchClientDashboardData(
     applicationStatus === "pre_qualified" &&
     Boolean(preQualification);
 
+  const isUnderReview =
+    Boolean(applicationStatus) &&
+    (applicationStatus === "submitted" ||
+      applicationStatus === "under_review" ||
+      applicationStatus === "information_required");
+
+  const showPreQualEstimate =
+    Boolean(preQualification) &&
+    !applicationApprovedForFunding &&
+    !isUnderReview &&
+    (applicationStatus === "pre_qualified" || !latestApplication);
+
   const mortgageStatus = (activeLoan
     ? "active"
     : applicationStatus) as ApplicationStatus | undefined;
@@ -211,20 +223,33 @@ export async function fetchClientDashboardData(
   const activeMortgage = {
     value: activeLoan
       ? formatCurrency(Number(activeLoan.principal_amount))
-      : preQualification
-        ? formatCurrency(preQualification.estimatedMortgageAmount)
-        : "$0.00",
+      : applicationApprovedForFunding && latestApplication?.approved_amount
+        ? formatCurrency(Number(latestApplication.approved_amount))
+        : showPreQualEstimate && preQualification
+          ? formatCurrency(preQualification.estimatedMortgageAmount)
+          : "$0.00",
     description: activeLoan
       ? `Active mortgage · ${activeLoan.repayment_frequency}`
-      : preQualification
-        ? "Pre-qualified mortgage estimate"
-        : "No active mortgage on your account",
+      : applicationApprovedForFunding
+        ? "Approved mortgage amount"
+        : isUnderReview
+          ? "Mortgage application under review"
+          : showPreQualEstimate && preQualification
+            ? "Pre-qualified mortgage estimate"
+            : "No active mortgage on your account",
     trend: activeLoan
       ? "Mortgage in repayment"
-      : preQualification
-        ? "Pre-qualified"
-        : "Get pre-qualified to get started",
-    trendTone: activeLoan || preQualification ? ("positive" as const) : ("neutral" as const),
+      : applicationApprovedForFunding
+        ? "Approved"
+        : isUnderReview
+          ? "Under Review"
+          : showPreQualEstimate && preQualification
+            ? "Pre-qualified"
+            : "Get pre-qualified to get started",
+    trendTone:
+      activeLoan || applicationApprovedForFunding || showPreQualEstimate
+        ? ("positive" as const)
+        : ("neutral" as const),
     status: mortgageStatus,
     statusLabel: mortgageStatusLabel,
     applicationNumber: latestApplication?.application_number ?? undefined,
@@ -413,6 +438,7 @@ async function buildMortgageDashboardView(input: {
     mortgageCredited,
     meta: input.downPaymentMeta,
     escrowTransfer,
+    applicationApprovedForFunding,
   });
 
   const pathwardFunding = buildPathwardFundingView({
@@ -431,13 +457,15 @@ async function buildMortgageDashboardView(input: {
 
   const closingFunds = buildClosingFundsView({
     purchasePrice,
-    approvedMortgageAmount: summary.approvedMortgageAmount,
+    approvedMortgageAmount: input.mortgageApproved ? summary.approvedMortgageAmount : 0,
     pathwardBalance: input.linkedAccount?.accountBalance ?? 0,
     pathwardLinked: Boolean(input.linkedAccount),
     mortgageApproved: input.mortgageApproved,
     mortgageCredited,
     downPaymentVerified: input.downPaymentVerified,
-    outstandingDepositAmount: downPayment.remainingAmount,
+    outstandingDepositAmount: applicationApprovedForFunding
+      ? downPayment.remainingAmount
+      : 0,
     applicationStatus: input.applicationStatus,
     escrowTransfer,
   });

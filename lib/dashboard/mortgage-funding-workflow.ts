@@ -33,8 +33,8 @@ export type MortgageFundingStage =
   | "escrow_transfer_complete";
 
 export type FundingAccountStatusLabel =
-  | "Waiting Setup"
-  | "Waiting Funding"
+  | "Pending Setup"
+  | "Awaiting Deposit"
   | "Active"
   | "Transferred";
 
@@ -151,12 +151,19 @@ export function resolveMortgageFundingWorkflow(
     ? Math.max(0, input.purchasePrice)
     : 0;
 
+  const effectiveApprovedMortgage = mortgageApproved
+    ? Math.max(0, input.approvedMortgageAmount)
+    : 0;
+  const effectiveOutstandingDeposit = mortgageApproved
+    ? Math.max(0, input.outstandingDepositAmount ?? 0)
+    : 0;
+
   const fundingAccountBalance = escrowActive ? 0 : Math.max(0, input.pathwardBalance);
-  const availableBalance = fundingAccountBalance;
-  const outstandingDepositAmount = Math.max(0, input.outstandingDepositAmount ?? 0);
+  const availableBalance = mortgageApproved ? fundingAccountBalance : 0;
+  const outstandingDepositAmount = effectiveOutstandingDeposit;
   const pendingBalance = resolveClosingPendingBalance({
     escrowActive,
-    approvedMortgageAmount: input.approvedMortgageAmount,
+    approvedMortgageAmount: effectiveApprovedMortgage,
     mortgageCredited: input.mortgageCredited,
     outstandingDepositAmount,
   });
@@ -289,13 +296,13 @@ function resolveFundingAccountStatus(input: {
   if (input.escrowActive) {
     return "Transferred";
   }
-  if (!input.pathwardLinked || !input.mortgageApproved) {
-    return "Waiting Setup";
+  if (!input.mortgageApproved || !input.pathwardLinked) {
+    return "Pending Setup";
   }
   if (input.fundingAccountBalance > 0 || input.loanFunded) {
     return "Active";
   }
-  return "Waiting Funding";
+  return "Awaiting Deposit";
 }
 
 function resolveClosingFundsPresentation(input: {
@@ -401,8 +408,8 @@ function resolveFundingActionLabel(input: {
   if (!input.pathwardLinked) {
     return "Account Setup";
   }
-  if (input.fundingAccountStatus === "Waiting Funding") {
-    return "Awaiting Funding";
+  if (input.fundingAccountStatus === "Awaiting Deposit") {
+    return "Awaiting Deposit";
   }
   if (
     input.totalClosingAmount > 0 &&

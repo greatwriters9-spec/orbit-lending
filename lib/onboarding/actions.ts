@@ -86,13 +86,6 @@ async function finalizeOnboardingForUser(
     return { error: applicationResult.error };
   }
 
-  const { sendPreQualifiedNoticeEmail } = await import("@/lib/email/hooks");
-  void sendPreQualifiedNoticeEmail(userId, {
-    mortgageAmount: preQual.estimatedMortgageAmount,
-    maxHomePrice: preQual.maximumHomePrice,
-    actionUrl: "/dashboard/qualification-result",
-  });
-
   return {};
 }
 
