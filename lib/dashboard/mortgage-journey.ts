@@ -242,6 +242,7 @@ export function buildPathwardFundingView(input: {
   mortgageApproved: boolean;
   mortgageCredited: number;
   applicationStatus?: ApplicationStatus;
+  outstandingDepositAmount?: number;
 }): PathwardFundingView {
   const rawBalance = input.linkedAccount?.accountBalance ?? 0;
   const phase = resolveFundingPhase(input.downPaymentMeta, input.escrowTransfer);
@@ -269,6 +270,7 @@ export function buildPathwardFundingView(input: {
     mortgageApproved: input.mortgageApproved,
     mortgageCredited: input.mortgageCredited,
     escrowTransfer: input.escrowTransfer,
+    outstandingDepositAmount: input.outstandingDepositAmount,
   });
 
   const currentBalance = workflow.fundingAccountBalance;

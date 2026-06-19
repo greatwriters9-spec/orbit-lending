@@ -461,6 +461,9 @@ async function buildMortgageDashboardView(input: {
     mortgageApproved: input.mortgageApproved,
     mortgageCredited,
     applicationStatus: input.applicationStatus,
+    outstandingDepositAmount: applicationApprovedForFunding
+      ? downPayment.remainingAmount
+      : 0,
   });
 
   const closingFunds = buildClosingFundsView({

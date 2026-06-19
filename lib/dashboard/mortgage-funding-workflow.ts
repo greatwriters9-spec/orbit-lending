@@ -60,23 +60,27 @@ export type MortgageFundingWorkflowInput = {
   outstandingDepositAmount?: number;
 };
 
-/** Amount still needed in the funding account before closing (excludes escrow). */
+/** Amount still needed before closing: total required minus deposited balance. */
 export function resolveClosingPendingBalance(input: {
   escrowActive: boolean;
-  approvedMortgageAmount: number;
-  mortgageCredited: number;
+  totalClosingAmount: number;
+  availableBalance: number;
+  /** Deposit the client still owes; 0 when verified, waived, or not required. */
   outstandingDepositAmount: number;
 }): number {
   if (input.escrowActive) {
     return 0;
   }
 
-  const outstandingMortgage = Math.max(
-    0,
-    input.approvedMortgageAmount - input.mortgageCredited,
-  );
+  if (input.totalClosingAmount <= 0) {
+    return 0;
+  }
 
-  return Math.max(0, input.outstandingDepositAmount + outstandingMortgage);
+  if (input.outstandingDepositAmount <= 0) {
+    return 0;
+  }
+
+  return Math.max(0, input.totalClosingAmount - input.availableBalance);
 }
 
 export type MortgageFundingWorkflow = {
@@ -150,20 +154,16 @@ export function resolveMortgageFundingWorkflow(
     ? Math.max(0, input.purchasePrice)
     : 0;
 
-  const effectiveApprovedMortgage = mortgageApproved
-    ? Math.max(0, input.approvedMortgageAmount)
-    : 0;
-  const effectiveOutstandingDeposit = mortgageApproved
+  const outstandingDepositAmount = mortgageApproved
     ? Math.max(0, input.outstandingDepositAmount ?? 0)
     : 0;
 
   const fundingAccountBalance = escrowActive ? 0 : Math.max(0, input.pathwardBalance);
   const availableBalance = mortgageApproved ? fundingAccountBalance : 0;
-  const outstandingDepositAmount = effectiveOutstandingDeposit;
   const pendingBalance = resolveClosingPendingBalance({
     escrowActive,
-    approvedMortgageAmount: effectiveApprovedMortgage,
-    mortgageCredited: input.mortgageCredited,
+    totalClosingAmount,
+    availableBalance,
     outstandingDepositAmount,
   });
 
