@@ -486,6 +486,36 @@
     background: linear-gradient(165deg, #1c50d6 0%, #1845c0 55%, #153cac 100%);
   }
 
+  .dashboard-premium-card--closing .dashboard-premium-hero-zone {
+    margin-top: 12px;
+  }
+
+  .dashboard-premium-card--closing .dashboard-premium-card-footer {
+    gap: 8px;
+    padding-top: 8px;
+  }
+
+  .dashboard-premium-card--closing .dashboard-premium-closing-stack {
+    gap: 6px;
+  }
+
+  .dashboard-premium-card--closing .dashboard-premium-closing-balance-cell {
+    padding: 10px 12px;
+  }
+
+  .dashboard-premium-card--closing .dashboard-premium-closing-balance-value {
+    margin-top: 6px;
+    font-size: 18px;
+  }
+
+  .dashboard-premium-card--closing .dashboard-premium-row {
+    min-height: 34px;
+  }
+
+  .dashboard-premium-card--closing .dashboard-premium-footer-slot {
+    margin-bottom: 2px;
+  }
+
   .dashboard-premium-header {
     display: flex;
     align-items: center;

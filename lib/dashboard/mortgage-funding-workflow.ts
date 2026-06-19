@@ -195,9 +195,6 @@ export function resolveMortgageFundingWorkflow(
   const fundingAccountStatus = resolveFundingAccountStatus({
     pathwardLinked: input.pathwardLinked,
     mortgageApproved,
-    loanFunded,
-    fundingAccountBalance,
-    escrowActive,
   });
 
   const { closingFundsStatus, closingFundsStatusLabel, closingFundsActionLabel } =
@@ -288,20 +285,11 @@ function resolveFundingStage(input: {
 function resolveFundingAccountStatus(input: {
   pathwardLinked: boolean;
   mortgageApproved: boolean;
-  loanFunded: boolean;
-  fundingAccountBalance: number;
-  escrowActive: boolean;
 }): FundingAccountStatusLabel {
-  if (input.escrowActive) {
-    return "Transferred";
-  }
   if (!input.mortgageApproved || !input.pathwardLinked) {
     return "Pending Setup";
   }
-  if (input.fundingAccountBalance > 0 || input.loanFunded) {
-    return "Active";
-  }
-  return "Awaiting Deposit";
+  return "Active";
 }
 
 function resolveClosingFundsPresentation(input: {
@@ -406,9 +394,6 @@ function resolveFundingActionLabel(input: {
   }
   if (!input.pathwardLinked) {
     return "Account Setup";
-  }
-  if (input.fundingAccountStatus === "Awaiting Deposit") {
-    return "Awaiting Deposit";
   }
   if (
     input.totalClosingAmount > 0 &&

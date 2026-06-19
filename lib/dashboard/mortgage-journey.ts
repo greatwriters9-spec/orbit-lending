@@ -285,18 +285,8 @@ export function buildPathwardFundingView(input: {
     workflow.fundingAccountStatus,
   );
 
-  const depositStatusDisplay = resolveFundingStatusDisplay(
-    input.downPaymentMeta,
-    input.escrowTransfer,
-  );
-
-  const fundingStatusDisplay = !input.mortgageApproved
-    ? "Pending Setup"
-    : setupPending
-      ? "Pending Setup"
-      : showDepositUI
-        ? depositStatusDisplay
-        : workflow.fundingAccountStatus;
+  const fundingStatusDisplay =
+    !input.mortgageApproved || setupPending ? "Pending Setup" : "Active";
 
   return {
     bankName: "Pathward National Bank",

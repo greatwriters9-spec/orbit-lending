@@ -1047,13 +1047,7 @@ export function PathwardFundingAccountCard({ view }: { view: MortgageDashboardVi
           title="Funding Account"
           icon={<Building2 className="size-4 text-white" strokeWidth={1.75} />}
           badgeLabel={statusLabel}
-          badgeVariant={
-            isPendingApproval
-              ? "pending"
-              : isVerified
-                ? "success"
-                : resolveStatusColorVariant(statusLabel)
-          }
+          badgeVariant={statusLabel === "Active" ? "success" : resolveStatusColorVariant(statusLabel)}
         />
 
         <PremiumCardBody>
