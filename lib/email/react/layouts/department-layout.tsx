@@ -36,7 +36,7 @@ export function DepartmentLayout({
       {content.staff ? <EmailSignatureBlock staff={content.staff} /> : null}
       <EmailContactSection
         department={content.contactDepartment ?? content.departmentName ?? "department"}
-        email={content.contactEmail ?? content.staff?.email ?? "support@orbitmortgage.com"}
+        email={content.contactEmail ?? content.staff?.email ?? "support@orbittmortgage.com"}
       />
       <EmailFooter />
     </EmailShell>

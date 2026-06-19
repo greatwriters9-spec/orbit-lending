@@ -82,13 +82,13 @@ export const DEPARTMENT_DISPLAY_NAMES: Record<EmailDepartment, string> = {
 };
 
 export const DEPARTMENT_CONTACT_EMAILS: Record<EmailDepartment, string> = {
-  system: "noreply@orbitmortgage.com",
-  loan_officer: "loanofficer@orbitmortgage.com",
-  underwriting: "underwriting@orbitmortgage.com",
-  funding: "funding@orbitmortgage.com",
-  closings: "closing@orbitmortgage.com",
-  support: "support@orbitmortgage.com",
-  executive: "chief.lending.officer@orbitmortgage.com",
+  system: "noreply@orbittmortgage.com",
+  loan_officer: "loanofficer@orbittmortgage.com",
+  underwriting: "underwriting@orbittmortgage.com",
+  funding: "funding@orbittmortgage.com",
+  closings: "closing@orbittmortgage.com",
+  support: "support@orbittmortgage.com",
+  executive: "chief.lending.officer@orbittmortgage.com",
 };
 
 export const DEFAULT_STAFF_BY_DEPARTMENT: Partial<

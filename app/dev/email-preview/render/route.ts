@@ -15,9 +15,9 @@ const SAMPLE_DATA = {
   applicationNumber: "ORB-2026-128972",
   closingAmount: 629900,
   propertyAddress: "1050 Woodward Ave, Detroit, MI 48226",
-  actionUrl: "https://orbitmortgage.com/dashboard",
+  actionUrl: "https://orbittmortgage.com/dashboard",
   message: "Your mortgage team has an update regarding your application.",
-  resetUrl: "https://orbitmortgage.com/reset-password",
+  resetUrl: "https://orbittmortgage.com/reset-password",
   label: "Closing deposit",
 };
 

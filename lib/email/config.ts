@@ -37,31 +37,31 @@ const DEPARTMENT_ENV_KEYS: Record<
 const DEFAULT_SENDERS: Record<EmailDepartment, { address: string; name: string }> =
   {
     system: {
-      address: "noreply@orbitmortgage.com",
+      address: "noreply@orbittmortgage.com",
       name: "Orbit Mortgage",
     },
     loan_officer: {
-      address: "loanofficer@orbitmortgage.com",
+      address: "loanofficer@orbittmortgage.com",
       name: "Orbit Mortgage Loan Team",
     },
     underwriting: {
-      address: "underwriting@orbitmortgage.com",
+      address: "underwriting@orbittmortgage.com",
       name: "Orbit Mortgage Underwriting",
     },
     funding: {
-      address: "funding@orbitmortgage.com",
+      address: "funding@orbittmortgage.com",
       name: "Orbit Mortgage Funding Team",
     },
     closings: {
-      address: "closing@orbitmortgage.com",
+      address: "closing@orbittmortgage.com",
       name: "Orbit Mortgage Closing Team",
     },
     support: {
-      address: "support@orbitmortgage.com",
+      address: "support@orbittmortgage.com",
       name: "Orbit Mortgage Support",
     },
     executive: {
-      address: "chief.lending.officer@orbitmortgage.com",
+      address: "chief.lending.officer@orbittmortgage.com",
       name: "Orbit Mortgage",
     },
   };

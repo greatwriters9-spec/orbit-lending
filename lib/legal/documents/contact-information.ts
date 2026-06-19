@@ -19,7 +19,7 @@ export const contactInformation: LegalDocument = {
       title: "2. Customer Support",
       list: {
         items: [
-          "Email: support@orbitmortgage.com",
+          "Email: support@orbittmortgage.com",
           "Dashboard: Log in and visit Support to open a ticket or view message history",
           "Ask Assistant: Available on onboarding and application pages for pre-account inquiries",
         ],
@@ -36,12 +36,12 @@ export const contactInformation: LegalDocument = {
       ],
       list: {
         items: [
-          "System notifications: noreply@orbitmortgage.com",
-          "Loan Officer Department: loanofficer@orbitmortgage.com",
-          "Underwriting Department: underwriting@orbitmortgage.com",
-          "Funding Department: funding@orbitmortgage.com",
-          "Closing Department: closing@orbitmortgage.com",
-          "Executive Office: chief.lending.officer@orbitmortgage.com",
+          "System notifications: noreply@orbittmortgage.com",
+          "Loan Officer Department: loanofficer@orbittmortgage.com",
+          "Underwriting Department: underwriting@orbittmortgage.com",
+          "Funding Department: funding@orbittmortgage.com",
+          "Closing Department: closing@orbittmortgage.com",
+          "Executive Office: chief.lending.officer@orbittmortgage.com",
         ],
       },
       closingParagraphs: [
@@ -53,7 +53,7 @@ export const contactInformation: LegalDocument = {
       title: "4. Application and Funding Account Status",
       paragraphs: [
         "The fastest way to check application milestones, document requests, funding account balances, and closing updates is through your Orbit Mortgage dashboard after signing in.",
-        "If you cannot access your account, contact support@orbitmortgage.com from the email address associated with your application.",
+        "If you cannot access your account, contact support@orbittmortgage.com from the email address associated with your application.",
       ],
     },
     {
@@ -61,9 +61,9 @@ export const contactInformation: LegalDocument = {
       title: "5. Privacy and Legal Notices",
       list: {
         items: [
-          "Privacy requests: support@orbitmortgage.com (Subject line: Privacy Request)",
-          "Legal and compliance notices: support@orbitmortgage.com (Subject line: Legal Notice)",
-          "Fair lending concerns: support@orbitmortgage.com (Subject line: Fair Lending Inquiry)",
+          "Privacy requests: support@orbittmortgage.com (Subject line: Privacy Request)",
+          "Legal and compliance notices: support@orbittmortgage.com (Subject line: Legal Notice)",
+          "Fair lending concerns: support@orbittmortgage.com (Subject line: Fair Lending Inquiry)",
         ],
       },
     },
@@ -99,7 +99,7 @@ export const contactInformation: LegalDocument = {
       id: "emergency",
       title: "9. Fraud and Security Reporting",
       paragraphs: [
-        "If you suspect fraud, unauthorized account access, or phishing messages impersonating Orbit Mortgage, contact support@orbitmortgage.com immediately with the subject line \"Security Report\" and include relevant message headers or screenshots if available.",
+        "If you suspect fraud, unauthorized account access, or phishing messages impersonating Orbit Mortgage, contact support@orbittmortgage.com immediately with the subject line \"Security Report\" and include relevant message headers or screenshots if available.",
       ],
     },
     {

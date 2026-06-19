@@ -48,7 +48,7 @@ export function EmailLayout({
       {content.showContact !== false ? (
         <EmailContactSection
           department={content.contactDepartment ?? content.departmentName ?? "Support Team"}
-          email={content.contactEmail ?? "support@orbitmortgage.com"}
+          email={content.contactEmail ?? "support@orbittmortgage.com"}
         />
       ) : null}
       <EmailFooter />
