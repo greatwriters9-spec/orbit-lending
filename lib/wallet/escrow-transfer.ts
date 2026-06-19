@@ -94,7 +94,7 @@ async function persistEscrowTransferMeta(
     status: "active",
     note:
       escrowTransfer.status === "pending"
-        ? `Escrow transfer of $${escrowTransfer.amount.toFixed(2)} initiated — pending admin approval.`
+        ? `Your escrow transfer of $${escrowTransfer.amount.toFixed(2)} is being reviewed by our closing team.`
         : escrowTransfer.status === "approved"
           ? `Escrow transfer of $${escrowTransfer.amount.toFixed(2)} approved and sent to seller.`
           : `Escrow transfer rejected: ${escrowTransfer.rejectedReason ?? "Funds restored."}`,
@@ -232,7 +232,7 @@ export async function initiateEscrowTransferAction(
     newBalance: 0,
     notify: {
       title: "Escrow Transfer Initiated",
-      message: `Your escrow transfer of $${transferAmount.toFixed(2)} has been submitted. Funding and closing balances are now $0.00 pending admin approval.`,
+      message: `Your escrow transfer of $${transferAmount.toFixed(2)} has been submitted and is being reviewed.`,
     },
   });
 
@@ -286,7 +286,7 @@ export async function initiateEscrowTransferAction(
   await createNotification({
     userId: user.id,
     title: "Escrow Transfer Submitted",
-    message: `Your transfer of $${transferAmount.toFixed(2)} to the seller via escrow is pending Orbit Mortgage approval.`,
+    message: `Your transfer of $${transferAmount.toFixed(2)} to the seller via escrow is being reviewed.`,
     type: "withdrawal_requested",
     metadata: { withdrawalRequestId: withdrawal.id, amount: transferAmount },
   });

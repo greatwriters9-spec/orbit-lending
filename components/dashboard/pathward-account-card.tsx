@@ -20,8 +20,7 @@ export function PathwardAccountCard({
           <p className="type-section-label text-white/50">Pathward Account</p>
           <h2 className="mt-2 text-xl font-bold leading-tight text-white">No linked account yet</h2>
           <p className="type-body mt-2 max-w-2xl text-white/60">
-            Your Pathward account will appear here once a super admin links it
-            after mortgage funding is set up.
+            Your funding account will appear here once Orbit Mortgage activates it after approval.
           </p>
         </div>
       </section>

@@ -127,7 +127,7 @@ export function buildEmailHtml(title: string, message: string, actionUrl?: strin
       <h1 style="color:#0F172A;font-size:20px;margin:0 0 12px">${title}</h1>
       <p style="color:#475569;font-size:15px;line-height:1.6;margin:0">${message}</p>
       ${actionBlock}
-      <p style="color:#94A3B8;font-size:12px;margin-top:32px">Orbit Mortgage · Secure Client Portal</p>
+      <p style="color:#94A3B8;font-size:12px;margin-top:32px">Orbit Mortgage</p>
     </div>
   `;
 }

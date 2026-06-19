@@ -6,7 +6,6 @@ import { Bell, ChevronDown, MessageSquare, Search, User } from "lucide-react";
 
 import { SignOutMenuItem } from "@/components/auth/sign-out-menu-item";
 import { OrbitLogo } from "@/components/brand/orbit-logo";
-import { PoweredByPathward } from "@/components/brand/powered-by-pathward";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui-kit/avatar";
 import { Button } from "@/components/ui-kit/button";
 import {
@@ -22,6 +21,7 @@ import { Input } from "@/components/ui-kit/input";
 import { RoleBadge } from "@/components/ui-kit/role-badge";
 import { Separator } from "@/components/ui-kit/separator";
 import { getMessagesRouteForRole } from "@/lib/auth/navigation";
+import { isClient } from "@/lib/auth/roles";
 import { cn } from "@/lib/utils";
 import type { DashboardUser } from "@/types/auth";
 
@@ -64,6 +64,7 @@ export function TopNavigation({
   const today = formatNavDate(now);
   const greeting = formatGreeting(now);
   const messagesHref = getMessagesRouteForRole(user.roleKey);
+  const showRoleLabel = !isClient(user.roleKey);
 
   return (
     <header className={cn("mobile-top-nav sticky top-0 z-20 shrink-0", className)}>
@@ -136,7 +137,9 @@ export function TopNavigation({
                 <p className="text-sm font-semibold leading-none text-brand-navy">
                   {user.name}
                 </p>
-                <p className="mt-1 text-xs text-muted-foreground">{user.role}</p>
+                {showRoleLabel ? (
+                  <p className="mt-1 text-xs text-muted-foreground">{user.role}</p>
+                ) : null}
               </div>
               <ChevronDown
                 className="hidden size-4 text-muted-foreground md:block"
@@ -149,7 +152,9 @@ export function TopNavigation({
                   <p className="truncate text-sm font-medium normal-case">
                     {user.email}
                   </p>
-                  <RoleBadge role={user.roleKey} label={user.role} />
+                  {showRoleLabel ? (
+                    <RoleBadge role={user.roleKey} label={user.role} />
+                  ) : null}
                 </DropdownMenuLabel>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
@@ -169,12 +174,6 @@ export function TopNavigation({
               <SignOutMenuItem />
             </DropdownMenuContent>
           </DropdownMenu>
-        </div>
-      </div>
-
-      <div className="border-t border-brand-border/60 bg-white/95 px-5 py-1.5 lg:px-8">
-        <div className="flex justify-center lg:justify-end">
-          <PoweredByPathward variant="compact" />
         </div>
       </div>
     </header>

@@ -25,6 +25,7 @@ export function mapApplicationToMortgageDraft(input: {
     purchasePrice: onboarding?.purchasePrice,
     propertyType: onboarding?.propertyType as PropertyType | undefined,
     propertyUse: onboarding?.propertyUse as PropertyUse | undefined,
+    mortgagePreferences: onboarding?.mortgagePreferences,
     firstName: String(input.personalInfo.firstName ?? ""),
     middleName: String(input.personalInfo.middleName ?? ""),
     lastName: String(input.personalInfo.lastName ?? ""),

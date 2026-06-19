@@ -203,7 +203,7 @@ export async function seedApplicationDetailsOnSubmit(
   await supabase.from("application_status_history").insert({
     application_id: applicationId,
     status,
-    note: "Application submitted successfully and queued for review.",
+    note: "Application submitted successfully. Our team is reviewing your application.",
   });
 
   await supabase.from("application_messages").insert({

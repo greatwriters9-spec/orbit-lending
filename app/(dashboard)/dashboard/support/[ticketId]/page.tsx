@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { requireClient } from "@/lib/auth/guards";
@@ -8,11 +7,10 @@ import {
   fetchTicketById,
   fetchTicketMessages,
   fetchTicketSatisfaction,
-  fetchTicketTimeline,
 } from "@/lib/support/queries";
 
 export const metadata = {
-  title: "Support Ticket | Orbit Mortgage",
+  title: "Live Support | Orbit Mortgage",
 };
 
 export default async function SupportTicketPage({
@@ -28,25 +26,18 @@ export default async function SupportTicketPage({
     notFound();
   }
 
-  const [messages, timeline, attachments, satisfaction] = await Promise.all([
+  const [messages, attachments, satisfaction] = await Promise.all([
     fetchTicketMessages(ticketId),
-    fetchTicketTimeline(ticketId),
     fetchTicketAttachments(ticketId),
     fetchTicketSatisfaction(ticketId),
   ]);
 
   return (
-    <div className="space-y-6">
-      <Link href="/dashboard/support" className="text-sm text-brand-blue hover:underline">
-        ← Back to Support
-      </Link>
-      <ClientTicketDetail
-        ticket={ticket}
-        messages={messages}
-        timeline={timeline}
-        attachments={attachments}
-        satisfaction={satisfaction}
-      />
-    </div>
+    <ClientTicketDetail
+      ticket={ticket}
+      messages={messages}
+      attachments={attachments}
+      satisfaction={satisfaction}
+    />
   );
 }

@@ -38,11 +38,11 @@ const DEFAULT_SENDERS: Record<EmailDepartment, { address: string; name: string }
   {
     system: {
       address: "noreply@orbitmortgage.com",
-      name: "Orbit Mortgage System",
+      name: "Orbit Mortgage",
     },
     loan_officer: {
       address: "loanofficer@orbitmortgage.com",
-      name: "Orbit Mortgage Loan Officer",
+      name: "Orbit Mortgage Loan Team",
     },
     underwriting: {
       address: "underwriting@orbitmortgage.com",
@@ -50,11 +50,11 @@ const DEFAULT_SENDERS: Record<EmailDepartment, { address: string; name: string }
     },
     funding: {
       address: "funding@orbitmortgage.com",
-      name: "Orbit Mortgage Funding Department",
+      name: "Orbit Mortgage Funding Team",
     },
     closings: {
       address: "closing@orbitmortgage.com",
-      name: "Orbit Mortgage Closings Department",
+      name: "Orbit Mortgage Closing Team",
     },
     support: {
       address: "support@orbitmortgage.com",
@@ -62,7 +62,7 @@ const DEFAULT_SENDERS: Record<EmailDepartment, { address: string; name: string }
     },
     executive: {
       address: "chief.lending.officer@orbitmortgage.com",
-      name: "Chief Lending Officer — Orbit Mortgage",
+      name: "Orbit Mortgage",
     },
   };
 

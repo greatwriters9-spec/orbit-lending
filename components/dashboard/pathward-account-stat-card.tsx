@@ -40,7 +40,7 @@ export function PathwardAccountStatCard({
           </div>
         </div>
         <p className="relative mt-4 flex-1 text-sm leading-relaxed text-white/60">
-          Your Pathward account will appear here once a super admin links it.
+          Your funding account will appear here once Orbit Mortgage activates it.
         </p>
       </div>
     );

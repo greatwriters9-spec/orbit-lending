@@ -136,7 +136,7 @@ const STATUS_NOTIFICATIONS: Record<
 > = {
   submitted: {
     title: "Mortgage Application Submitted",
-    message: "Your mortgage application has been submitted and is queued for review.",
+    message: "Your mortgage application has been submitted. Our team will review it shortly.",
     priority: "normal",
     showModal: false,
     sendEmail: true,
@@ -185,7 +185,7 @@ const STATUS_NOTIFICATIONS: Record<
   },
   funded: {
     title: "Funding Complete",
-    message: "Your mortgage funds have been credited to your Orbit wallet.",
+    message: "Your mortgage funds have been credited to your funding account.",
     priority: "critical",
     showModal: false,
     sendEmail: true,
@@ -371,7 +371,7 @@ const ACCOUNT_STATUS_NOTIFICATIONS: Record<
   active: {
     title: "Account Reactivated",
     message: (reason) =>
-      `Your account access has been restored.${reason ? ` Note: ${reason}` : ""} You may resume normal platform activity.`,
+      `Your account access has been restored.${reason ? ` Note: ${reason}` : ""} You can use your account normally again.`,
     reactivated: true,
   },
 };

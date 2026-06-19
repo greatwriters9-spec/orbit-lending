@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { OnboardingWizard } from "@/components/onboarding/onboarding-wizard";
 import { AUTH_ROUTES } from "@/lib/auth/routes";
 import { getSessionUser } from "@/lib/auth/actions";
+import { fetchMortgageConfig } from "@/lib/admin/mortgage/config";
 import { createClient } from "@/lib/supabase/server";
 export const metadata = {
   title: "Get Pre-Qualified | Orbit Mortgage",
@@ -30,9 +31,11 @@ export default async function GetStartedPage() {
     }
   }
 
+  const mortgageConfig = await fetchMortgageConfig();
+
   return (
     <Suspense fallback={null}>
-      <OnboardingWizard isLoggedIn={Boolean(user)} />
+      <OnboardingWizard isLoggedIn={Boolean(user)} mortgageConfig={mortgageConfig} />
     </Suspense>
   );
 }

@@ -24,7 +24,7 @@ export function EmailLayout({
     <EmailShell preview={preview}>
       <EmailBrandHeader />
       <EmailMetaRow
-        departmentName={content.departmentName ?? "Orbit Mortgage System"}
+        departmentName={content.departmentName ?? "Orbit Mortgage"}
         referenceNumber={content.referenceNumber}
         dateLabel={content.dateLabel}
         badge={content.badge}

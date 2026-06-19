@@ -870,7 +870,7 @@ function FundingAccountPanel({
             />
           ) : (
             <p className="border-b border-white/10 py-3 text-sm leading-relaxed text-white/70">
-              Your escrow transfer is pending Orbit Mortgage approval. No deposit is
+              Your escrow transfer is being reviewed. No deposit is
               required at this time.
             </p>
           )}
@@ -925,7 +925,12 @@ function ClosingFundsPanel({
 }
 
 export function MortgageSummaryCard({ view }: { view: MortgageDashboardView }) {
+  const termLabel = `${view.details.termYears}-Year Fixed`;
   const summaryRows = [
+    {
+      label: "Mortgage Term",
+      value: termLabel,
+    },
     {
       label: "Down Payment",
       value: formatCurrency(view.summary.requiredDownPayment),

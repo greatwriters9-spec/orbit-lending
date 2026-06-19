@@ -27,7 +27,7 @@ export default async function WalletPage() {
         <div>
           <SectionHeader
             title="Recent Transactions"
-            description="Complete ledger of all funding account movements."
+            description="Full history of deposits, transfers, and withdrawals."
             className="mb-4"
           />
           <WalletTransactionTable transactions={data.recentTransactions} />

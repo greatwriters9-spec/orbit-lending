@@ -42,7 +42,7 @@ export function WalletSummary({ wallet, linkedAccount }: WalletSummaryProps) {
                 {formatCurrency(accountBalance)}
               </h1>
               <p className="mt-2 text-sm text-white/60">
-                Linked Pathward account for mortgage servicing and disbursements.
+                Linked funding account for your mortgage closing and disbursements.
               </p>
 
               <div className="mt-5 rounded-xl border border-white/12 bg-white/5 px-5 py-4">
@@ -85,8 +85,7 @@ export function WalletSummary({ wallet, linkedAccount }: WalletSummaryProps) {
                   </div>
                 ) : (
                   <p className="mt-4 text-sm text-white/70">
-                    No Pathward account linked yet. A super admin can add this from
-                    user account controls.
+                    Your funding account isn&apos;t linked yet. Our team will set this up once your mortgage is approved.
                   </p>
                 )}
               </div>
@@ -102,11 +101,11 @@ export function WalletSummary({ wallet, linkedAccount }: WalletSummaryProps) {
               <p className="mt-1 text-xs text-white/60">
                 {withdrawableReleased
                   ? "Available now for withdrawal requests."
-                  : "Pending admin release after mortgage approval."}
+                  : "Available after your mortgage is approved and funds are released."}
               </p>
               <div className="mt-4 rounded-lg border border-white/10 bg-black/15 px-3.5 py-3">
                 <p className="text-[10px] font-semibold tracking-wide text-white/50 uppercase">
-                  Pathward Infrastructure
+                  Banking Partner
                 </p>
                 <p className="mt-1 text-sm font-medium text-white/90">
                   {PATHWARD_BANK.infrastructure}

@@ -59,6 +59,7 @@ export function mapMortgageDraftToLoanApplication(
         purchasePrice: draft.purchasePrice,
         propertyType: draft.propertyType,
         propertyUse: draft.propertyUse,
+        mortgagePreferences: draft.mortgagePreferences,
         preQualification: preQual,
       },
     } as LoanApplicationDraft["personalInfo"] & Record<string, unknown>,

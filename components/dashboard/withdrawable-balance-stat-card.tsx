@@ -22,7 +22,7 @@ export function WithdrawableBalanceStatCard({
   const description = !mortgageApproved
     ? "Available after your mortgage is approved."
     : !withdrawableReleased
-      ? "Pending admin approval to release funds from your account balance."
+      ? "We're reviewing your account before these funds can be withdrawn."
       : "Available for withdrawal requests.";
 
   const trend = !mortgageApproved

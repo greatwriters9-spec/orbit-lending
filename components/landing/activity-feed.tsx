@@ -24,7 +24,7 @@ export function ActivityFeed() {
             align="left"
             eyebrow="Platform Activity"
             title="Recent Platform Activity"
-            subtitle="A live view of mortgage activity across the Orbit platform — demonstrating operational momentum and review velocity."
+            subtitle="See how homebuyers move from pre-qualification to closing with Orbit Mortgage."
           />
 
           <div className="mt-10 grid gap-4">

@@ -171,7 +171,7 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
     !result.ok &&
     result.error.toLowerCase().includes("domain is not verified");
 
-  if (domainNotVerified && sender.from !== getDevFallbackFrom()) {
+  if (domainNotVerified && sender.from !== getDevFallbackFrom() && process.env.NODE_ENV !== "production") {
     result = await postResendEmail({
       from: getDevFallbackFrom(),
       to: recipient,

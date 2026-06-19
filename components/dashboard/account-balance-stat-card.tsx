@@ -39,7 +39,7 @@ export function AccountBalanceStatCard({
           </div>
         </div>
         <p className="relative mt-4 flex-1 text-sm font-normal text-white/60">
-          Your Pathward account will appear here once a super admin links it.
+          Your funding account will appear here once Orbit Mortgage activates it.
         </p>
       </div>
     );
@@ -72,7 +72,7 @@ export function AccountBalanceStatCard({
       </div>
 
       <p className="relative mt-4 text-sm font-normal text-white/60">
-        {PATHWARD_BANK.name} · Deposits post here before admin release.
+        {PATHWARD_BANK.name} · Deposits appear here while we verify your closing funds.
       </p>
 
       <div className="relative mt-4 space-y-2 rounded-xl border border-white/10 bg-white/5 px-3.5 py-3">

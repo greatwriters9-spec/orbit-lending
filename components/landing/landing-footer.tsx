@@ -11,6 +11,16 @@ const FOOTER_LINKS = {
     { label: "Why Orbit", href: "#why-orbit" },
     { label: "Application Process", href: "#process" },
   ],
+  Legal: [
+    { label: "Legal Center", href: "/legal" },
+    { label: "Terms of Use", href: "/legal/terms-of-use" },
+    { label: "Privacy Policy", href: "/legal/privacy-policy" },
+    { label: "Cookie Policy", href: "/legal/cookie-policy" },
+    { label: "E-Sign Consent", href: "/legal/electronic-communications-consent" },
+    { label: "Application Disclosure", href: "/legal/mortgage-application-disclosure" },
+    { label: "Fair Lending", href: "/legal/fair-lending-statement" },
+    { label: "Contact", href: "/legal/contact-information" },
+  ],
   Company: [
     { label: "Log In", href: "/login" },
     { label: "Create Account", href: "/register" },
@@ -21,8 +31,8 @@ export function LandingFooter() {
   return (
     <footer className="border-t border-brand-border bg-white">
       <div className={`${LANDING_CONTAINER} py-12`}>
-        <div className="grid gap-10 md:grid-cols-4">
-          <div className="md:col-span-2">
+        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
+          <div className="lg:col-span-1">
             <OrbitLogo className="shrink-0" />
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted-foreground">
               Premium digital mortgage financing with transparent terms, real-time

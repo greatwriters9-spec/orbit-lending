@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { getDefaultRouteForRole } from "@/lib/auth/roles";
 import { AUTH_ROUTES } from "@/lib/auth/routes";
+import { sanitizeRedirectPath } from "@/lib/auth/safe-redirect";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: Request) {
@@ -18,7 +19,7 @@ export async function GET(request: Request) {
         data: { user },
       } = await supabase.auth.getUser();
 
-      let destination = next ?? AUTH_ROUTES.dashboard;
+      let destination = sanitizeRedirectPath(next, AUTH_ROUTES.dashboard);
 
       if (!next && user) {
         const { data: profile } = await supabase

@@ -6,6 +6,7 @@ import { Suspense } from "react";
 import { OnboardingWizard } from "@/components/onboarding/onboarding-wizard";
 import { canClientEditApplication } from "@/lib/applications/client-edit";
 import { fetchApplicationDetail } from "@/lib/applications/queries";
+import { fetchMortgageConfig } from "@/lib/admin/mortgage/config";
 import { mapApplicationToMortgageDraft } from "@/lib/onboarding/map-application-to-draft";
 import type { ApplicationStatus } from "@/types/application-details";
 
@@ -42,6 +43,7 @@ export default async function EditApplicationPage({
     personalInfo: application.personalInfo,
     financialInfo: application.financialInfo,
   });
+  const mortgageConfig = await fetchMortgageConfig();
 
   return (
     <div className="space-y-6">
@@ -72,6 +74,7 @@ export default async function EditApplicationPage({
           mode="edit"
           applicationId={applicationId}
           initialDraft={initialDraft}
+          mortgageConfig={mortgageConfig}
         />
       </Suspense>
     </div>

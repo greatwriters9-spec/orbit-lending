@@ -328,7 +328,7 @@ export const PATHWARD_BANK = {
   name: "Pathward National Bank",
   tagline: "Banking infrastructure you can trust",
   description:
-    "Orbit Mortgage operates on enterprise-grade banking infrastructure powered by Pathward National Bank, combining modern digital mortgage experiences with institutional standards.",
+    "Orbit Mortgage works with Pathward National Bank to provide secure banking for your closing funds — with the clarity you expect from a modern mortgage experience.",
 } as const;
 
 export type { LucideIcon };

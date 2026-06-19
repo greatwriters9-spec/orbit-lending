@@ -11,6 +11,7 @@ import {
   generateTicketNumber,
   getInitialEscalationLevel,
   shouldAutoEscalate,
+  TICKET_STATUS_LABELS,
 } from "@/lib/support/constants";
 import { uploadSupportAttachment } from "@/lib/support/storage";
 import { createClient } from "@/lib/supabase/server";
@@ -495,7 +496,7 @@ export async function updateTicketStatusAction(input: {
     await notifySupportEvent({
       userId: ticket.borrower_id,
       title: notifyTitles[input.status]!,
-      message: `Ticket ${ticket.ticket_number} status: ${input.status.replace(/_/g, " ")}.`,
+      message: `Your support request is now ${TICKET_STATUS_LABELS[input.status].toLowerCase()}.`,
       ticketId: input.ticketId,
       priority: input.status === "escalated" ? "critical" : "high",
     });

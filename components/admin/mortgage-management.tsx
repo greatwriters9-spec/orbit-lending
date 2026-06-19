@@ -10,6 +10,15 @@ import { Button } from "@/components/ui-kit/button";
 import { Input } from "@/components/ui-kit/input";
 import { SectionHeader } from "@/components/ui-kit/section-header";
 import { formatCurrency } from "@/lib/loans/queries";
+import {
+  DEFAULT_DOWN_PAYMENT_TIERS,
+  downPaymentTierKey,
+  getAvailableDownPaymentTiers,
+  getStandardMortgageTerms,
+  getTierRatesForTerm,
+  minDownPaymentPercentFromConfig,
+  type DownPaymentTierKey,
+} from "@/types/mortgage-config";
 import type { MortgageConfig, MortgageTermConfig } from "@/types/mortgage-config";
 
 type MortgageManagementProps = {
@@ -56,6 +65,26 @@ export function MortgageManagement({ config }: MortgageManagementProps) {
     }));
   }
 
+  function updateTermTierRate(
+    termId: string,
+    tier: DownPaymentTierKey,
+    interestRate: number,
+  ) {
+    setDraft((current) => ({
+      ...current,
+      terms: current.terms.map((term) => {
+        if (term.id !== termId) {
+          return term;
+        }
+        const tierRates = {
+          ...getTierRatesForTerm(term),
+          [tier]: interestRate,
+        };
+        return { ...term, tierRates };
+      }),
+    }));
+  }
+
   function addTerm() {
     setDraft((current) => ({
       ...current,
@@ -67,6 +96,12 @@ export function MortgageManagement({ config }: MortgageManagementProps) {
           termMonths: 240,
           interestRate: 6.5,
           isPrimary: current.terms.length === 0,
+          tierRates: getTierRatesForTerm({
+            id: "new",
+            label: "New Fixed Term",
+            termMonths: 240,
+            interestRate: 6.5,
+          }),
         },
       ],
     }));
@@ -102,7 +137,9 @@ export function MortgageManagement({ config }: MortgageManagementProps) {
     });
   }
 
-  const downPaymentPercent = Math.round((100 - draft.maxLtv) * 100) / 100;
+  const minimumClientDownPayment = minDownPaymentPercentFromConfig(draft);
+  const clientDownPaymentTiers = getAvailableDownPaymentTiers(draft);
+  const clientTermOptions = getStandardMortgageTerms(draft);
 
   return (
     <div className="space-y-8">
@@ -170,8 +207,9 @@ export function MortgageManagement({ config }: MortgageManagementProps) {
         <div>
           <h2 className="heading-secondary text-lg">Loan-to-Value & Limits</h2>
           <p className="text-sm text-muted-foreground">
-            The max LTV sets how much of the home price can be financed. The
-            remainder is the required down payment.
+            Max LTV controls how much of the home price can be financed. The
+            remainder sets the minimum down payment clients may choose during
+            onboarding.
           </p>
         </div>
 
@@ -187,12 +225,23 @@ export function MortgageManagement({ config }: MortgageManagementProps) {
               className="h-10"
             />
           </Field>
-          <Field label="Implied Down Payment">
+          <Field label="Minimum Client Down Payment">
             <div className="flex h-10 items-center rounded-lg border border-dashed border-brand-border bg-brand-background/50 px-3 text-sm font-semibold text-brand-navy">
-              {downPaymentPercent}%
+              {minimumClientDownPayment}%
             </div>
           </Field>
-          <div className="hidden lg:block" />
+          <Field label="Client Down Payment Options">
+            <div className="flex min-h-10 flex-wrap items-center gap-2 rounded-lg border border-dashed border-brand-border bg-brand-background/50 px-3 py-2 text-sm text-brand-navy">
+              {clientDownPaymentTiers.map((tier) => (
+                <span
+                  key={tier}
+                  className="rounded-full bg-white px-2.5 py-0.5 text-xs font-semibold ring-1 ring-brand-border"
+                >
+                  {tier}%
+                </span>
+              ))}
+            </div>
+          </Field>
           <Field label="Min Loan Amount">
             <Input
               type="number"
@@ -223,12 +272,94 @@ export function MortgageManagement({ config }: MortgageManagementProps) {
       </div>
 
       <div className="card-surface space-y-6 p-6 md:p-8">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="heading-secondary text-lg">Client Rate Matrix</h2>
+          <p className="text-sm text-muted-foreground">
+            Set the interest rate for every term and down payment combination
+            clients can choose. When a client selects 15 years at 5% down, the
+            matching cell below drives their pre-qualification estimate.
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-brand-blue/15 bg-brand-blue/[0.04] px-4 py-3 text-sm text-brand-navy">
+          <span className="font-semibold">Synced with Max LTV:</span> clients must
+          put down at least{" "}
+          <span className="font-semibold">{minimumClientDownPayment}%</span>.
+          Down payment columns below that minimum are disabled and hidden from
+          onboarding.
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[720px] text-left text-sm">
+            <thead className="border-b border-brand-border text-xs uppercase tracking-wide text-muted-foreground">
+              <tr>
+                <th className="px-3 py-2 font-semibold">Mortgage Term</th>
+                {DEFAULT_DOWN_PAYMENT_TIERS.map((tier) => {
+                  const available = clientDownPaymentTiers.includes(tier);
+                  return (
+                    <th
+                      key={tier}
+                      className={`px-3 py-2 font-semibold ${available ? "" : "opacity-40"}`}
+                    >
+                      {tier}% Down
+                      {!available ? (
+                        <span className="mt-0.5 block text-[10px] font-normal normal-case">
+                          Below min
+                        </span>
+                      ) : null}
+                    </th>
+                  );
+                })}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-brand-border">
+              {clientTermOptions.map((term) => {
+                const tierRates = getTierRatesForTerm(term);
+                return (
+                  <tr key={`matrix-${term.id}`}>
+                    <td className="px-3 py-3 font-semibold text-brand-navy">
+                      {term.label}
+                      <span className="mt-0.5 block text-xs font-normal text-muted-foreground">
+                        {term.termMonths} months
+                      </span>
+                    </td>
+                    {DEFAULT_DOWN_PAYMENT_TIERS.map((tier) => {
+                      const key = downPaymentTierKey(tier);
+                      const available = clientDownPaymentTiers.includes(tier);
+                      return (
+                        <td key={`${term.id}-${tier}`} className="px-3 py-3">
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min={0}
+                            max={100}
+                            disabled={!available}
+                            value={tierRates[key]}
+                            onChange={(e) =>
+                              updateTermTierRate(
+                                term.id,
+                                key,
+                                Number(e.target.value),
+                              )
+                            }
+                            className="h-9 w-24 disabled:cursor-not-allowed disabled:opacity-50"
+                          />
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="flex flex-col gap-3 border-t border-brand-border pt-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="heading-secondary text-lg">Interest Rates & Terms</h2>
-            <p className="text-sm text-muted-foreground">
-              Set the rate for each term. The primary term anchors the
-              pre-qualification estimate.
+            <h3 className="text-sm font-semibold text-brand-navy">Term Labels</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Edit display names and mark the primary term used as a fallback for
+              legacy applications without client preferences.
             </p>
           </div>
           <Button
@@ -247,7 +378,7 @@ export function MortgageManagement({ config }: MortgageManagementProps) {
               <tr>
                 <th className="px-3 py-2 font-semibold">Term Label</th>
                 <th className="px-3 py-2 font-semibold">Length (months)</th>
-                <th className="px-3 py-2 font-semibold">Interest Rate (%)</th>
+                <th className="px-3 py-2 font-semibold">Base Rate (%)</th>
                 <th className="px-3 py-2 font-semibold">Primary</th>
                 <th className="px-3 py-2 font-semibold" />
               </tr>

@@ -4,35 +4,43 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
   BookOpen,
+  ChevronRight,
   CreditCard,
   FileText,
+  Headphones,
   HelpCircle,
-  MessageSquare,
+  MessageCircle,
   Search,
   Shield,
   Ticket,
   Wallet,
 } from "lucide-react";
 
+import { OpenTicketFlow } from "@/components/support/open-ticket-flow";
 import { SupportStatusBadge } from "@/components/support/support-badges";
+import { Button } from "@/components/ui-kit/button";
 import { Input } from "@/components/ui-kit/input";
-import { StatCard } from "@/components/ui-kit/stat-card";
 import { formatApplicationDate } from "@/lib/applications/status-utils";
 import {
-  KNOWLEDGE_CATEGORY_LABELS,
-  QUICK_ACTION_CATEGORIES,
-  TICKET_CATEGORY_LABELS,
-} from "@/lib/support/constants";
+  buildHelpCenterItems,
+  getHelpCategoryLabel,
+  groupHelpCenterItems,
+} from "@/lib/support/help-center-content";
+import { TICKET_CATEGORY_LABELS } from "@/lib/support/constants";
 import type {
   SupportKnowledgeArticle,
   SupportSummary,
   SupportTicket,
 } from "@/types/support";
+import type { SupportTicketCategory } from "@/types/support";
+import { cn } from "@/lib/utils";
 
 type ClientSupportCenterProps = {
   tickets: SupportTicket[];
   articles: SupportKnowledgeArticle[];
   summary: SupportSummary;
+  initialOpenTicket?: boolean;
+  initialCategory?: SupportTicketCategory;
 };
 
 const articleIcons: Record<string, typeof HelpCircle> = {
@@ -45,201 +53,212 @@ const articleIcons: Record<string, typeof HelpCircle> = {
   document_uploads: FileText,
   account_security: Shield,
   faq: BookOpen,
+  application_faqs: FileText,
 };
+
+function isActiveTicket(ticket: SupportTicket) {
+  return !["resolved", "closed"].includes(ticket.status);
+}
 
 export function ClientSupportCenter({
   tickets,
   articles,
   summary,
+  initialOpenTicket = false,
+  initialCategory,
 }: ClientSupportCenterProps) {
-  const [search, setSearch] = useState("");
   const [articleSearch, setArticleSearch] = useState("");
+  const [showTicketFlow, setShowTicketFlow] = useState(initialOpenTicket);
 
-  const filteredArticles = useMemo(() => {
-    if (!articleSearch.trim()) return articles;
-    const q = articleSearch.toLowerCase();
-    return articles.filter(
-      (article) =>
-        article.title.toLowerCase().includes(q) ||
-        article.summary.toLowerCase().includes(q) ||
-        article.tags.some((tag) => tag.toLowerCase().includes(q)),
-    );
-  }, [articles, articleSearch]);
+  const helpItems = useMemo(() => buildHelpCenterItems(articles), [articles]);
 
-  const groupedArticles = useMemo(() => {
-    const groups = new Map<string, SupportKnowledgeArticle[]>();
-    for (const article of filteredArticles) {
-      const list = groups.get(article.category) ?? [];
-      list.push(article);
-      groups.set(article.category, list);
+  const filteredHelpItems = useMemo(() => {
+    if (!articleSearch.trim()) {
+      return helpItems;
     }
-    return groups;
-  }, [filteredArticles]);
+
+    const query = articleSearch.toLowerCase();
+    return helpItems.filter(
+      (item) =>
+        item.title.toLowerCase().includes(query) ||
+        item.content.toLowerCase().includes(query) ||
+        item.tags.some((tag) => tag.toLowerCase().includes(query)),
+    );
+  }, [articleSearch, helpItems]);
+
+  const groupedArticles = useMemo(
+    () => groupHelpCenterItems(filteredHelpItems),
+    [filteredHelpItems],
+  );
+
+  const activeTickets = tickets.filter(isActiveTicket);
+  const awaitingReply = summary.awaitingClient > 0;
 
   return (
-    <div className="space-y-8">
-      <section className="rounded-2xl border border-brand-border bg-gradient-to-br from-brand-navy to-brand-blue p-8 text-white shadow-[var(--shadow-card)]">
-        <h1 className="text-3xl font-bold tracking-tight">How can we help today?</h1>
-        <p className="mt-2 max-w-2xl text-sm text-white/80">
-          Search help articles, open a support ticket, or contact your mortgage team.
-          Orbit Mortgage support is here for your homeownership journey.
-        </p>
-        <div className="relative mt-6 max-w-xl">
-          <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-white/60" />
-          <Input
-            value={articleSearch}
-            onChange={(event) => setArticleSearch(event.target.value)}
-            placeholder="Search support articles..."
-            className="h-11 border-white/20 bg-white/10 pl-9 text-white placeholder:text-white/60"
-          />
-        </div>
-      </section>
-
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          title="Open Tickets"
-          value={String(summary.openTickets)}
-          description="Active support requests"
-          icon={Ticket}
-        />
-        <StatCard
-          title="Awaiting You"
-          value={String(summary.awaitingClient)}
-          description="Tickets needing your response"
-          icon={MessageSquare}
-        />
-        <StatCard
-          title="Recent Activity"
-          value={String(summary.recentResponses)}
-          description="Updates in the last 7 days"
-          icon={HelpCircle}
-        />
-        <StatCard
-          title="Unread Updates"
-          value={String(summary.unreadSupportNotifications)}
-          description="Support notifications"
-          icon={BookOpen}
-          variant="featured"
-        />
-      </div>
-
-      <section>
-        <div className="mb-4 flex items-center justify-between gap-4">
-          <h2 className="heading-secondary text-lg">Quick Actions</h2>
-          <Link
-            href="/dashboard/support/new"
-            className="inline-flex h-8 items-center justify-center rounded-lg bg-brand-blue px-3 text-sm font-medium text-white hover:bg-brand-blue/90"
-          >
-            Open New Ticket
-          </Link>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {QUICK_ACTION_CATEGORIES.map((action) => (
-            <Link
-              key={action.label}
-              href={`/dashboard/support/new?category=${action.category}`}
-              className="rounded-2xl border border-brand-border bg-white p-5 shadow-[var(--shadow-card)] transition hover:border-brand-blue/40 hover:shadow-md"
-            >
-              <p className="font-semibold text-brand-navy">{action.label}</p>
-              <p className="mt-2 text-sm text-muted-foreground">
-                {action.description}
-              </p>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      <section className="grid gap-8 xl:grid-cols-2">
-        <div className="rounded-2xl border border-brand-border bg-white p-5 shadow-[var(--shadow-card)]">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="heading-secondary text-lg">Your Support Tickets</h2>
-            <div className="relative w-48">
-              <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search tickets"
-                className="h-9 pl-9"
-              />
+    <div className="space-y-6">
+      <section className="rounded-2xl border border-brand-border bg-white p-6 shadow-[var(--shadow-card)] md:p-8">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+          <div className="max-w-2xl">
+            <div className="flex items-center gap-3">
+              <span className="flex size-11 items-center justify-center rounded-2xl bg-brand-blue/10 text-brand-blue">
+                <Headphones className="size-5" />
+              </span>
+              <div>
+                <h1 className="text-2xl font-bold tracking-tight text-brand-navy md:text-3xl">
+                  Support
+                </h1>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Browse answers below or open a ticket to chat with our team.
+                </p>
+              </div>
             </div>
           </div>
-          <div className="space-y-3">
-            {tickets
-              .filter(
-                (ticket) =>
-                  !search ||
-                  ticket.subject.toLowerCase().includes(search.toLowerCase()) ||
-                  ticket.ticketNumber.toLowerCase().includes(search.toLowerCase()),
-              )
-              .map((ticket) => (
-                <Link
-                  key={ticket.id}
-                  href={`/dashboard/support/${ticket.id}`}
-                  className="block rounded-xl border border-brand-border/70 p-4 transition hover:border-brand-blue/30 hover:bg-brand-background/40"
-                >
-                  <div className="flex flex-wrap items-start justify-between gap-2">
-                    <div>
-                      <p className="font-mono text-xs text-muted-foreground">
-                        {ticket.ticketNumber}
-                      </p>
-                      <p className="mt-1 font-semibold text-brand-navy">
-                        {ticket.subject}
-                      </p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {TICKET_CATEGORY_LABELS[ticket.category]} · Updated{" "}
-                        {formatApplicationDate(ticket.updatedAt)}
-                      </p>
-                    </div>
-                    <SupportStatusBadge status={ticket.status} />
-                  </div>
-                </Link>
-              ))}
-            {!tickets.length ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">
-                No support tickets yet. Open a ticket if you need assistance.
-              </p>
-            ) : null}
-          </div>
+
+          <Button
+            type="button"
+            onClick={() => setShowTicketFlow(true)}
+            className="h-12 shrink-0 gap-2 rounded-xl bg-brand-blue px-6 text-base font-semibold text-white hover:bg-brand-blue/90"
+          >
+            <MessageCircle className="size-5" />
+            Open a Ticket
+          </Button>
         </div>
 
-        <div className="rounded-2xl border border-brand-border bg-white p-5 shadow-[var(--shadow-card)]">
-          <h2 className="heading-secondary text-lg">Help Center</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Guides and answers for common questions.
-          </p>
-          <div className="mt-5 space-y-6">
-            {[...groupedArticles.entries()].map(([category, items]) => {
-              const Icon = articleIcons[category] ?? BookOpen;
-              return (
-                <div key={category}>
-                  <div className="mb-3 flex items-center gap-2">
-                    <Icon className="size-4 text-brand-blue" />
-                    <h3 className="text-sm font-semibold text-brand-navy">
-                      {KNOWLEDGE_CATEGORY_LABELS[category] ?? category}
-                    </h3>
-                  </div>
-                  <div className="space-y-2">
-                    {items.map((article) => (
-                      <details
-                        key={article.id}
-                        className="rounded-lg border border-brand-border/70 bg-brand-background/30 p-3"
-                      >
-                        <summary className="cursor-pointer text-sm font-medium text-brand-navy">
-                          {article.title}
-                        </summary>
-                        <p className="mt-2 text-sm text-muted-foreground">
-                          {article.content}
-                        </p>
-                      </details>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
+        {awaitingReply ? (
+          <div className="mt-5 rounded-xl border border-brand-warning/25 bg-brand-warning/8 px-4 py-3 text-sm text-brand-navy">
+            You have {summary.awaitingClient} active conversation
+            {summary.awaitingClient === 1 ? "" : "s"} waiting for your reply.
           </div>
-        </div>
+        ) : null}
       </section>
+
+      {showTicketFlow ? (
+        <section className="rounded-2xl border border-brand-border bg-white p-6 shadow-[var(--shadow-card)] md:p-8">
+          <OpenTicketFlow
+            embedded
+            initialCategory={initialCategory}
+            onClose={() => setShowTicketFlow(false)}
+          />
+        </section>
+      ) : null}
+
+      {activeTickets.length > 0 ? (
+        <section className="rounded-2xl border border-brand-border bg-white p-5 shadow-[var(--shadow-card)] md:p-6">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-bold text-brand-navy">Your Conversations</h2>
+              <p className="text-sm text-muted-foreground">
+                Continue chatting with our support team.
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {activeTickets.map((ticket) => (
+              <Link
+                key={ticket.id}
+                href={`/dashboard/support/${ticket.id}`}
+                className="flex items-center justify-between gap-4 rounded-xl border border-brand-border/80 p-4 transition hover:border-brand-blue/35 hover:bg-brand-blue/[0.03]"
+              >
+                <div className="min-w-0">
+                  <p className="truncate font-semibold text-brand-navy">{ticket.subject}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {TICKET_CATEGORY_LABELS[ticket.category]} · Updated{" "}
+                    {formatApplicationDate(ticket.updatedAt)}
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <SupportStatusBadge status={ticket.status} />
+                  <ChevronRight className="size-4 text-muted-foreground" />
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {!showTicketFlow ? (
+        <section className="rounded-2xl border border-brand-border bg-white p-5 shadow-[var(--shadow-card)] md:p-6">
+          <div className="mb-5">
+            <h2 className="text-lg font-bold text-brand-navy">Help Center</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Search our FAQs and guides — your answer may already be here.
+            </p>
+          </div>
+
+          <div className="relative max-w-xl">
+            <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={articleSearch}
+              onChange={(event) => setArticleSearch(event.target.value)}
+              placeholder="Search help articles and FAQs..."
+              className="h-11 pl-9"
+            />
+          </div>
+
+          <div className="mt-6 space-y-8">
+            {groupedArticles.length ? (
+              groupedArticles.map(([category, items]) => {
+                const Icon = articleIcons[category] ?? BookOpen;
+                return (
+                  <div key={category}>
+                    <div className="mb-3 flex items-center gap-2">
+                      <Icon className="size-4 text-brand-blue" />
+                      <h3 className="text-sm font-semibold text-brand-navy">
+                        {getHelpCategoryLabel(category)}
+                      </h3>
+                      <span className="text-xs text-muted-foreground">({items.length})</span>
+                    </div>
+                    <div className="space-y-2">
+                      {items.map((item) => (
+                        <details
+                          key={item.id}
+                          className="group rounded-xl border border-brand-border/70 bg-brand-background/20 open:bg-brand-background/40"
+                        >
+                          <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium text-brand-navy marker:content-none">
+                            <span className="flex items-center justify-between gap-3">
+                              {item.title}
+                              <span className="text-xs font-normal text-brand-blue group-open:hidden">
+                                View answer
+                              </span>
+                            </span>
+                          </summary>
+                          <p className="border-t border-brand-border/60 px-4 py-3 text-sm leading-relaxed text-muted-foreground">
+                            {item.content}
+                          </p>
+                        </details>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                No articles match your search.
+              </p>
+            )}
+          </div>
+
+          <div className="mt-8 rounded-2xl border border-brand-blue/15 bg-brand-blue/[0.04] p-5 text-center">
+            <p className="text-sm font-medium text-brand-navy">
+              Didn&apos;t find what you need?
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Open a ticket and a support agent will help you directly.
+            </p>
+            <Button
+              type="button"
+              onClick={() => setShowTicketFlow(true)}
+              className={cn(
+                "mt-4 h-11 gap-2 bg-brand-blue px-5 text-white hover:bg-brand-blue/90",
+              )}
+            >
+              <MessageCircle className="size-4" />
+              Open a Ticket
+            </Button>
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }
-

@@ -14,6 +14,7 @@ export type OnboardingStepKey =
   | "purchase-price"
   | "property-type"
   | "property-use-found"
+  | "mortgage-preferences"
   | "about-you"
   | "contact"
   | "current-address"
@@ -91,6 +92,13 @@ export const ONBOARDING_STEP_FAQS: Record<OnboardingStepKey, OnboardingFaqItem[]
       question: "Why does occupancy type matter?",
       answer:
         "How you plan to use the property affects your interest rate, required down payment, and the documentation we may request during underwriting.",
+    },
+  ],
+  "mortgage-preferences": [
+    {
+      question: "How do down payment and term affect my estimate?",
+      answer:
+        "Your down payment percentage and mortgage term help us calculate a personalized pre-qualification amount, estimated monthly payment, and interest rate. Larger down payments may qualify for lower rates.",
     },
   ],
   "about-you": [

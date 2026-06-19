@@ -484,6 +484,20 @@ export const loanProducts: LoanProduct[] = [
         active: true,
       },
       {
+        id: "term-020",
+        repaymentFrequency: "Monthly",
+        repaymentPeriod: 240,
+        interestRate: 6.79,
+        active: true,
+      },
+      {
+        id: "term-021",
+        repaymentFrequency: "Monthly",
+        repaymentPeriod: 300,
+        interestRate: 6.89,
+        active: true,
+      },
+      {
         id: "term-019",
         repaymentFrequency: "Monthly",
         repaymentPeriod: 360,

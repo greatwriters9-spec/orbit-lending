@@ -1,10 +1,19 @@
 import { calculateLoanPayment } from "@/lib/loans/calculator";
 import { getLoanProductBySlug } from "@/lib/loans/mock-data";
 import {
+  hasMortgagePreferences,
+  resolveDownPaymentPercentFromPreferences,
+  resolveHomePriceFromDraft,
+  resolveInterestRateForSelection,
+  resolveTermConfigFromPreferences,
+} from "@/lib/mortgage/preferences";
+import {
   DEFAULT_MORTGAGE_CONFIG,
   downPaymentRateFromConfig,
   getPrimaryMortgageTerm,
+  normalizeMortgageConfig,
   type MortgageConfig,
+  type MortgageTermConfig,
 } from "@/types/mortgage-config";
 import type {
   MortgageApplicationDraft,
@@ -29,10 +38,7 @@ function mapEmploymentToStatus(type?: string): string {
 }
 
 function resolveHomePrice(draft: MortgageApplicationDraft): number {
-  if (draft.homeFound) {
-    return draft.purchasePrice ?? 0;
-  }
-  return draft.targetHomePrice ?? 0;
+  return resolveHomePriceFromDraft(draft);
 }
 
 function estimateMaxHomeFromIncome(
@@ -74,27 +80,28 @@ function estimateMaxHomeFromIncome(
   return Math.min(productMax, Math.max(incomeCap, ruleOfThumbCap * 0.85));
 }
 
-export function computePreQualification(
-  draft: MortgageApplicationDraft,
-  config: MortgageConfig = DEFAULT_MORTGAGE_CONFIG,
-): PreQualificationResult | null {
-  const primaryTerm = getPrimaryMortgageTerm(config);
-  if (!primaryTerm) {
-    return null;
-  }
+function resolveLoanTermId(termMonths: number, fallbackTermId: string): string {
+  const product = getLoanProductBySlug(DEFAULT_PRODUCT_SLUG);
+  return (
+    product?.terms.find((item) => item.repaymentPeriod === termMonths)?.id ??
+    fallbackTermId
+  );
+}
 
-  const downPaymentRate = downPaymentRateFromConfig(config);
+function buildPreQualificationResult(input: {
+  draft: MortgageApplicationDraft;
+  config: MortgageConfig;
+  termConfig: MortgageTermConfig;
+  downPaymentRate: number;
+  interestRate: number;
+  termMonths: number;
+}): PreQualificationResult | null {
+  const { draft, config, termConfig, downPaymentRate, interestRate, termMonths } =
+    input;
+
   const minLoanAmount = config.minLoanAmount;
   const maxLoanAmount = config.maxLoanAmount;
-  const interestRate = primaryTerm.interestRate;
-  const termMonths = primaryTerm.termMonths;
-
-  // Resolve a stable term id from the catalog product when available so the
-  // generated application links to a known term; otherwise use the config id.
-  const product = getLoanProductBySlug(DEFAULT_PRODUCT_SLUG);
-  const loanTermId =
-    product?.terms.find((item) => item.repaymentPeriod === termMonths)?.id ??
-    primaryTerm.id;
+  const loanTermId = resolveLoanTermId(termMonths, termConfig.id);
 
   const annualIncome = draft.employment?.annualIncome ?? 0;
   const statedHomePrice = resolveHomePrice(draft);
@@ -152,6 +159,78 @@ export function computePreQualification(
     loanTermId,
     loanProductSlug: DEFAULT_PRODUCT_SLUG,
   };
+}
+
+/** Original pre-qualification path — used when mortgage preferences are not set. */
+function computePreQualificationLegacy(
+  draft: MortgageApplicationDraft,
+  config: MortgageConfig,
+): PreQualificationResult | null {
+  const primaryTerm = getPrimaryMortgageTerm(config);
+  if (!primaryTerm) {
+    return null;
+  }
+
+  const downPaymentRate = downPaymentRateFromConfig(config);
+
+  return buildPreQualificationResult({
+    draft,
+    config,
+    termConfig: primaryTerm,
+    downPaymentRate,
+    interestRate: primaryTerm.interestRate,
+    termMonths: primaryTerm.termMonths,
+  });
+}
+
+function computePreQualificationWithPreferences(
+  draft: MortgageApplicationDraft,
+  config: MortgageConfig,
+): PreQualificationResult | null {
+  const preferences = draft.mortgagePreferences;
+  if (!preferences || !hasMortgagePreferences(preferences)) {
+    return computePreQualificationLegacy(draft, config);
+  }
+
+  const termConfig = resolveTermConfigFromPreferences(preferences, config);
+  if (!termConfig) {
+    return computePreQualificationLegacy(draft, config);
+  }
+
+  const homePrice = resolveHomePrice(draft);
+  const downPaymentPercent = resolveDownPaymentPercentFromPreferences(
+    preferences,
+    homePrice,
+    config,
+  );
+  const downPaymentRate = downPaymentPercent / 100;
+  const interestRate = resolveInterestRateForSelection(
+    termConfig,
+    downPaymentPercent,
+    config,
+  );
+
+  return buildPreQualificationResult({
+    draft,
+    config,
+    termConfig,
+    downPaymentRate,
+    interestRate,
+    termMonths: termConfig.termMonths,
+  });
+}
+
+export function computePreQualification(
+  draft: MortgageApplicationDraft,
+  config: MortgageConfig = DEFAULT_MORTGAGE_CONFIG,
+): PreQualificationResult | null {
+  const normalized = normalizeMortgageConfig(config);
+
+  if (hasMortgagePreferences(draft.mortgagePreferences)) {
+    return computePreQualificationWithPreferences(draft, normalized);
+  }
+
+  return computePreQualificationLegacy(draft, normalized);
 }
 
 export function getEmploymentStatusForScoring(draft: MortgageApplicationDraft) {

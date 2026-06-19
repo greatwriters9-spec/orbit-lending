@@ -1,13 +1,10 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Download, Star } from "lucide-react";
+import Link from "next/link";
+import { ArrowLeft, Download, Loader2, Send, Star } from "lucide-react";
 
-import {
-  SupportPriorityBadge,
-  SupportStatusBadge,
-} from "@/components/support/support-badges";
 import { Button } from "@/components/ui-kit/button";
 import { Input } from "@/components/ui-kit/input";
 import { formatApplicationDate } from "@/lib/applications/status-utils";
@@ -21,35 +18,63 @@ import type {
   SupportTicket,
   SupportTicketAttachment,
   SupportTicketMessage,
-  SupportTimelineEvent,
 } from "@/types/support";
+import { cn } from "@/lib/utils";
 
 type ClientTicketDetailProps = {
   ticket: SupportTicket;
   messages: SupportTicketMessage[];
-  timeline: SupportTimelineEvent[];
   attachments: SupportTicketAttachment[];
   satisfaction: { rating: number; feedback: string | null } | null;
 };
 
+function hasStaffReply(messages: SupportTicketMessage[]) {
+  return messages.some((message) => message.senderRole === "staff");
+}
+
+function isWaitingForAgent(ticket: SupportTicket, messages: SupportTicketMessage[]) {
+  if (["resolved", "closed"].includes(ticket.status)) {
+    return false;
+  }
+  return !hasStaffReply(messages);
+}
+
 export function ClientTicketDetail({
   ticket,
   messages,
-  timeline,
   attachments,
   satisfaction,
 }: ClientTicketDetailProps) {
   const router = useRouter();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [rating, setRating] = useState(5);
+
+  const waitingForAgent = isWaitingForAgent(ticket, messages);
+  const chatClosed = ticket.status === "closed";
 
   useEffect(() => {
     void markSupportTicketNotificationsReadAction(ticket.id).then(() => {
       router.refresh();
     });
   }, [ticket.id, router]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  useEffect(() => {
+    if (chatClosed || waitingForAgent) {
+      return;
+    }
+
+    const interval = window.setInterval(() => {
+      router.refresh();
+    }, 15000);
+
+    return () => window.clearInterval(interval);
+  }, [chatClosed, waitingForAgent, router]);
 
   function handleReply(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -59,9 +84,9 @@ export function ClientTicketDetail({
     startTransition(async () => {
       const result = await replyToTicketAction(formData);
       setError(result.error ?? null);
-      setSuccess(result.success ?? null);
       if (result.success) {
         event.currentTarget.reset();
+        router.refresh();
       }
     });
   }
@@ -76,184 +101,232 @@ export function ClientTicketDetail({
             ?.value ?? undefined,
       });
       setError(result.error ?? null);
-      setSuccess(result.success ?? null);
+      if (result.success) {
+        router.refresh();
+      }
     });
   }
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-2xl border border-brand-border bg-white p-6 shadow-[var(--shadow-card)]">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="font-mono text-xs text-muted-foreground">
-              {ticket.ticketNumber}
+    <div className="flex min-h-[calc(100vh-12rem)] flex-col overflow-hidden rounded-2xl border border-brand-border bg-white shadow-[var(--shadow-card)]">
+      <header className="shrink-0 border-b border-brand-border px-4 py-4 md:px-6">
+        <div className="flex items-center gap-3">
+          <Link
+            href="/dashboard/support"
+            className="inline-flex size-9 items-center justify-center rounded-lg border border-brand-border text-brand-navy hover:bg-brand-background"
+            aria-label="Back to Support"
+          >
+            <ArrowLeft className="size-4" />
+          </Link>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <span
+                className={cn(
+                  "size-2.5 rounded-full",
+                  waitingForAgent
+                    ? "animate-pulse bg-brand-warning"
+                    : chatClosed
+                      ? "bg-muted-foreground/40"
+                      : "bg-brand-success",
+                )}
+              />
+              <p className="text-sm font-semibold text-brand-navy">Live Support</p>
+            </div>
+            <h1 className="truncate text-lg font-bold text-brand-navy">{ticket.subject}</h1>
+            <p className="text-xs text-muted-foreground">
+              {TICKET_CATEGORY_LABELS[ticket.category]} · {ticket.ticketNumber}
             </p>
-            <h1 className="mt-1 text-2xl font-bold text-brand-navy">
-              {ticket.subject}
-            </h1>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {TICKET_CATEGORY_LABELS[ticket.category]} · Created{" "}
-              {formatApplicationDate(ticket.createdAt)}
-            </p>
-            {ticket.assignedStaffName ? (
-              <p className="mt-1 text-sm text-muted-foreground">
-                Assigned to {ticket.assignedStaffName}
-              </p>
-            ) : null}
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <SupportStatusBadge status={ticket.status} />
-            <SupportPriorityBadge priority={ticket.priority} />
           </div>
         </div>
-      </section>
+      </header>
 
-      <div className="grid gap-6 xl:grid-cols-[2fr_1fr]">
-        <section className="rounded-2xl border border-brand-border bg-white p-6 shadow-[var(--shadow-card)]">
-          <h2 className="heading-secondary text-lg">Conversation</h2>
-          <div className="mt-5 space-y-4">
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`rounded-xl border p-4 ${
-                  message.senderRole === "client"
-                    ? "border-brand-blue/20 bg-brand-blue/5"
-                    : "border-brand-border bg-brand-background/40"
-                }`}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm font-semibold text-brand-navy">
-                    {message.senderName}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {formatApplicationDate(message.createdAt)}
+      <div className="flex min-h-0 flex-1 flex-col">
+        <div className="flex-1 space-y-4 overflow-y-auto px-4 py-5 md:px-6">
+          {waitingForAgent ? (
+            <div className="mx-auto max-w-md rounded-2xl border border-brand-blue/15 bg-brand-blue/[0.05] px-4 py-4 text-center">
+              <p className="text-sm font-semibold text-brand-navy">
+                A live support agent will be with you shortly
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                We&apos;re connecting you with a support agent. Feel free to add more details below while you wait.
+              </p>
+            </div>
+          ) : null}
+
+          {messages.map((message) => {
+            const isClient = message.senderRole === "client";
+            const isSystem = message.senderRole === "system";
+
+            if (isSystem) {
+              return (
+                <div key={message.id} className="flex justify-center">
+                  <p className="rounded-full bg-brand-background px-4 py-1.5 text-xs text-muted-foreground">
+                    {message.message}
                   </p>
                 </div>
-                <p className="mt-2 text-sm text-muted-foreground whitespace-pre-wrap">
-                  {message.message}
-                </p>
-                {message.attachments?.length ? (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {message.attachments.map((attachment) => (
-                      <a
-                        key={attachment.id}
-                        href={attachment.downloadUrl ?? "#"}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 rounded-md border border-brand-border px-2 py-1 text-xs"
-                      >
-                        <Download className="size-3" />
-                        {attachment.fileName}
-                      </a>
-                    ))}
-                  </div>
-                ) : null}
-              </div>
-            ))}
-          </div>
+              );
+            }
 
-          {!["closed"].includes(ticket.status) ? (
-            <form onSubmit={handleReply} className="mt-6 space-y-3 border-t border-brand-border pt-6">
+            return (
+              <div
+                key={message.id}
+                className={cn("flex", isClient ? "justify-end" : "justify-start")}
+              >
+                <div
+                  className={cn(
+                    "max-w-[85%] rounded-2xl px-4 py-3 sm:max-w-[70%]",
+                    isClient
+                      ? "rounded-br-md bg-brand-blue text-white"
+                      : "rounded-bl-md border border-brand-border bg-brand-background/60 text-brand-navy",
+                  )}
+                >
+                  <div className="mb-1 flex items-center justify-between gap-3">
+                    <p
+                      className={cn(
+                        "text-xs font-semibold",
+                        isClient ? "text-white/90" : "text-brand-navy",
+                      )}
+                    >
+                      {isClient ? "You" : message.senderName || "Support Agent"}
+                    </p>
+                    <p
+                      className={cn(
+                        "text-[10px]",
+                        isClient ? "text-white/70" : "text-muted-foreground",
+                      )}
+                    >
+                      {formatApplicationDate(message.createdAt)}
+                    </p>
+                  </div>
+                  <p
+                    className={cn(
+                      "text-sm leading-relaxed whitespace-pre-wrap",
+                      isClient ? "text-white" : "text-brand-navy/90",
+                    )}
+                  >
+                    {message.message}
+                  </p>
+                  {message.attachments?.length ? (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {message.attachments.map((attachment) => (
+                        <a
+                          key={attachment.id}
+                          href={attachment.downloadUrl ?? "#"}
+                          target="_blank"
+                          rel="noreferrer"
+                          className={cn(
+                            "inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs",
+                            isClient
+                              ? "bg-white/15 text-white"
+                              : "border border-brand-border bg-white text-brand-navy",
+                          )}
+                        >
+                          <Download className="size-3" />
+                          {attachment.fileName}
+                        </a>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            );
+          })}
+          <div ref={messagesEndRef} />
+        </div>
+
+        {!chatClosed ? (
+          <form
+            onSubmit={handleReply}
+            className="shrink-0 border-t border-brand-border bg-white px-4 py-4 md:px-6"
+          >
+            <div className="flex gap-2">
               <textarea
                 name="message"
                 required
-                rows={4}
-                placeholder="Write your reply..."
-                className="w-full rounded-lg border border-brand-border px-3 py-2 text-sm"
-              />
-              <Input
-                name="attachment"
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx"
-                className="h-10"
-              />
-              <Button type="submit" disabled={isPending} className="bg-brand-blue text-white">
-                Send Reply
-              </Button>
-            </form>
-          ) : null}
-
-          {error ? <p className="mt-3 text-sm text-brand-danger">{error}</p> : null}
-          {success ? <p className="mt-3 text-sm text-brand-success">{success}</p> : null}
-        </section>
-
-        <div className="space-y-6">
-          <section className="rounded-2xl border border-brand-border bg-white p-5 shadow-[var(--shadow-card)]">
-            <h2 className="heading-secondary text-lg">Timeline</h2>
-            <div className="mt-4 space-y-4">
-              {timeline.map((event, index) => (
-                <div key={event.id} className="relative pl-6">
-                  {index < timeline.length - 1 ? (
-                    <span className="absolute top-2 left-[7px] h-full w-px bg-brand-border" />
-                  ) : null}
-                  <span className="absolute top-1.5 left-0 size-3 rounded-full bg-brand-blue" />
-                  <p className="text-sm font-medium text-brand-navy">{event.title}</p>
-                  {event.description ? (
-                    <p className="text-xs text-muted-foreground">{event.description}</p>
-                  ) : null}
-                  <p className="text-xs text-muted-foreground">
-                    {formatApplicationDate(event.createdAt)}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {attachments.length ? (
-            <section className="rounded-2xl border border-brand-border bg-white p-5 shadow-[var(--shadow-card)]">
-              <h2 className="heading-secondary text-lg">Attachments</h2>
-              <div className="mt-3 space-y-2">
-                {attachments.map((attachment) => (
-                  <a
-                    key={attachment.id}
-                    href={attachment.downloadUrl ?? "#"}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center gap-2 text-sm text-brand-blue"
-                  >
-                    <Download className="size-4" />
-                    {attachment.fileName}
-                  </a>
-                ))}
-              </div>
-            </section>
-          ) : null}
-
-          {["resolved", "closed"].includes(ticket.status) && !satisfaction ? (
-            <section className="rounded-2xl border border-brand-border bg-white p-5 shadow-[var(--shadow-card)]">
-              <h2 className="heading-secondary text-lg">Rate Your Experience</h2>
-              <div className="mt-3 flex gap-1">
-                {[1, 2, 3, 4, 5].map((value) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => setRating(value)}
-                    className="rounded p-1"
-                  >
-                    <Star
-                      className={`size-5 ${value <= rating ? "fill-brand-warning text-brand-warning" : "text-brand-border"}`}
-                    />
-                  </button>
-                ))}
-              </div>
-              <textarea
-                id="feedback"
-                rows={3}
-                placeholder="Optional feedback..."
-                className="mt-3 w-full rounded-lg border border-brand-border px-3 py-2 text-sm"
+                rows={2}
+                placeholder="Type your message..."
+                className="min-h-[44px] flex-1 resize-none rounded-xl border border-brand-border px-4 py-2.5 text-sm"
               />
               <Button
-                type="button"
+                type="submit"
                 disabled={isPending}
-                onClick={handleSatisfaction}
-                className="mt-3 bg-brand-blue text-white"
+                className="h-auto shrink-0 self-end bg-brand-blue px-4 text-white hover:bg-brand-blue/90"
               >
-                Submit Feedback
+                {isPending ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Send className="size-4" />
+                )}
               </Button>
-            </section>
-          ) : null}
-        </div>
+            </div>
+            <Input
+              name="attachment"
+              type="file"
+              accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx"
+              className="mt-2 h-9 text-xs"
+            />
+            {error ? <p className="mt-2 text-sm text-brand-danger">{error}</p> : null}
+          </form>
+        ) : (
+          <div className="shrink-0 border-t border-brand-border bg-brand-background/40 px-4 py-4 text-center text-sm text-muted-foreground md:px-6">
+            This conversation is closed. Open a new ticket if you need more help.
+          </div>
+        )}
       </div>
+
+      {attachments.length ? (
+        <div className="border-t border-brand-border px-4 py-3 md:px-6">
+          <p className="text-xs font-semibold text-brand-navy">Attachments</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {attachments.map((attachment) => (
+              <a
+                key={attachment.id}
+                href={attachment.downloadUrl ?? "#"}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-brand-blue hover:underline"
+              >
+                <Download className="size-3" />
+                {attachment.fileName}
+              </a>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {["resolved", "closed"].includes(ticket.status) && !satisfaction ? (
+        <div className="border-t border-brand-border px-4 py-4 md:px-6">
+          <p className="text-sm font-semibold text-brand-navy">How was your support experience?</p>
+          <div className="mt-2 flex gap-1">
+            {[1, 2, 3, 4, 5].map((value) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setRating(value)}
+                className="rounded p-1"
+              >
+                <Star
+                  className={`size-5 ${value <= rating ? "fill-brand-warning text-brand-warning" : "text-brand-border"}`}
+                />
+              </button>
+            ))}
+          </div>
+          <textarea
+            id="feedback"
+            rows={2}
+            placeholder="Optional feedback..."
+            className="mt-3 w-full rounded-xl border border-brand-border px-3 py-2 text-sm"
+          />
+          <Button
+            type="button"
+            disabled={isPending}
+            onClick={handleSatisfaction}
+            className="mt-3 bg-brand-blue text-white"
+          >
+            Submit Feedback
+          </Button>
+        </div>
+      ) : null}
     </div>
   );
 }

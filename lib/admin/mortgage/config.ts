@@ -4,6 +4,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role";
 import {
   DEFAULT_MORTGAGE_CONFIG,
   MORTGAGE_SETTINGS_KEY,
+  normalizeMortgageConfig,
   type MortgageConfig,
 } from "@/types/mortgage-config";
 
@@ -13,6 +14,15 @@ export const mortgageTermSchema = z.object({
   termMonths: z.coerce.number().int().min(1).max(600),
   interestRate: z.coerce.number().min(0).max(100),
   isPrimary: z.boolean().optional(),
+  tierRates: z
+    .object({
+      "5": z.coerce.number().min(0).max(100).optional(),
+      "10": z.coerce.number().min(0).max(100).optional(),
+      "15": z.coerce.number().min(0).max(100).optional(),
+      "20": z.coerce.number().min(0).max(100).optional(),
+      "25": z.coerce.number().min(0).max(100).optional(),
+    })
+    .optional(),
 });
 
 export const mortgageConfigSchema = z
@@ -39,7 +49,7 @@ export function parseMortgageConfig(value: unknown): MortgageConfig {
   if (!parsed.success) {
     return DEFAULT_MORTGAGE_CONFIG;
   }
-  return parsed.data;
+  return normalizeMortgageConfig(parsed.data);
 }
 
 export async function fetchMortgageConfig(): Promise<MortgageConfig> {

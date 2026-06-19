@@ -30,11 +30,11 @@ export function AskAssistantButton({
       <Link
         href="/dashboard/support/new?category=application_support"
         className={cn(
-          "fixed bottom-6 right-4 z-40 inline-flex items-center gap-2 rounded-full border border-[#E5E7EB] bg-white px-4 py-3 text-sm font-semibold text-brand-navy shadow-[0_10px_30px_rgba(15,23,42,0.12)] transition-colors hover:border-brand-blue/30 hover:text-brand-blue md:right-6",
+          "fixed bottom-6 right-4 z-40 inline-flex items-center gap-2.5 rounded-full border border-[#E5E7EB] bg-white px-5 py-3.5 text-[15px] font-semibold text-brand-navy shadow-[0_12px_32px_rgba(15,23,42,0.14)] transition-colors hover:border-brand-blue/30 hover:text-brand-blue md:right-6",
           className,
         )}
       >
-        <MessageCircle className="size-4 text-brand-blue" strokeWidth={1.75} />
+        <MessageCircle className="size-5 text-brand-blue" strokeWidth={1.75} />
         Ask Assistant
       </Link>
     );
@@ -46,11 +46,11 @@ export function AskAssistantButton({
         type="button"
         onClick={() => setOpen(true)}
         className={cn(
-          "fixed bottom-6 right-4 z-40 inline-flex items-center gap-2 rounded-full border border-[#E5E7EB] bg-white px-4 py-3 text-sm font-semibold text-brand-navy shadow-[0_10px_30px_rgba(15,23,42,0.12)] transition-colors hover:border-brand-blue/30 hover:text-brand-blue md:right-6",
+          "fixed bottom-6 right-4 z-40 inline-flex items-center gap-2.5 rounded-full border border-[#E5E7EB] bg-white px-5 py-3.5 text-[15px] font-semibold text-brand-navy shadow-[0_12px_32px_rgba(15,23,42,0.14)] transition-colors hover:border-brand-blue/30 hover:text-brand-blue md:right-6",
           className,
         )}
       >
-        <MessageCircle className="size-4 text-brand-blue" strokeWidth={1.75} />
+        <MessageCircle className="size-5 text-brand-blue" strokeWidth={1.75} />
         Ask Assistant
       </button>
       <AskAssistantModal
@@ -121,29 +121,13 @@ export function OnboardingFooter({ className }: { className?: string }) {
         className,
       )}
     >
-      <div className="mx-auto flex max-w-3xl flex-col items-center justify-between gap-2 px-4 py-3 sm:flex-row md:px-6">
-        <div className="flex items-center gap-3">
-          <OrbitLogo href="/" size="sm" />
-          <PoweredByPathward variant="compact" className="hidden sm:inline-flex" />
-        </div>
-        <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1 text-xs font-medium md:text-sm">
-          <Link href="/login" className="text-brand-blue hover:text-brand-blue/80">
-            Log In
-          </Link>
-          <Link href="/get-started" className="text-brand-blue hover:text-brand-blue/80">
-            Get Pre-Qualified
-          </Link>
-          <Link
-            href="/dashboard/support"
-            className="text-brand-blue hover:text-brand-blue/80"
-          >
-            Support
-          </Link>
-        </nav>
-        <div className="sm:hidden">
-          <PoweredByPathward variant="compact" />
-        </div>
-        <p className="hidden text-[11px] text-muted-foreground sm:block sm:text-xs">
+      <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-x-5 gap-y-2 px-5 py-4 md:px-6 md:py-5">
+        <OrbitLogo href="/" size="md" className="shrink-0" />
+        <PoweredByPathward
+          variant="onboarding-footer"
+          className="order-3 w-full sm:order-none sm:w-auto sm:flex-1"
+        />
+        <p className="shrink-0 text-xs font-medium text-brand-navy/65 sm:text-sm">
           © {new Date().getFullYear()} Orbit Mortgage
         </p>
       </div>

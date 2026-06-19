@@ -79,7 +79,7 @@ export default function CreateAccountPage() {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-lg flex-1 px-4 py-12 pb-36 md:px-6 md:py-16 md:pb-40">
+      <main className="mx-auto w-full max-w-lg flex-1 px-4 py-12 pb-44 md:px-6 md:py-16 md:pb-48">
         <div className="card-surface p-6 md:p-10">
           <h1 className="heading-primary text-3xl md:text-4xl">
             Create Your Orbit Mortgage Account
@@ -167,7 +167,7 @@ export default function CreateAccountPage() {
       </main>
 
       <AskAssistantButton
-        className="bottom-[4.75rem] md:bottom-[5rem]"
+        className="bottom-[5.5rem] md:bottom-[6rem]"
         source="create-account"
       />
       <OnboardingFooter />

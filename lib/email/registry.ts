@@ -72,13 +72,13 @@ export const TEMPLATE_DEPARTMENTS: Record<EmailTemplateKey, EmailDepartment> = {
 };
 
 export const DEPARTMENT_DISPLAY_NAMES: Record<EmailDepartment, string> = {
-  system: "Orbit Mortgage System",
-  loan_officer: "Loan Officer Department",
-  underwriting: "Underwriting Department",
-  funding: "Funding Department",
-  closings: "Closing Department",
-  support: "Client Support",
-  executive: "Executive Office",
+  system: "Orbit Mortgage",
+  loan_officer: "Orbit Mortgage Loan Team",
+  underwriting: "Orbit Mortgage Underwriting",
+  funding: "Orbit Mortgage Funding Team",
+  closings: "Orbit Mortgage Closing Team",
+  support: "Orbit Mortgage Support",
+  executive: "Orbit Mortgage",
 };
 
 export const DEPARTMENT_CONTACT_EMAILS: Record<EmailDepartment, string> = {

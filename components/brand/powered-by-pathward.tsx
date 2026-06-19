@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 
 type PoweredByPathwardProps = {
   className?: string;
-  variant?: "default" | "compact" | "auth" | "pill";
+  variant?: "default" | "compact" | "auth" | "pill" | "onboarding-footer";
 };
 
 export function PoweredByPathward({
@@ -13,6 +13,20 @@ export function PoweredByPathward({
   variant = "default",
 }: PoweredByPathwardProps) {
   const bankName = PATHWARD_BANK.name;
+
+  if (variant === "onboarding-footer") {
+    return (
+      <p
+        className={cn(
+          "text-center text-xs text-muted-foreground sm:text-sm",
+          className,
+        )}
+      >
+        Powered by{" "}
+        <span className="font-semibold text-brand-navy/80">{bankName}</span>
+      </p>
+    );
+  }
 
   if (variant === "pill") {
     return (
@@ -48,7 +62,8 @@ export function PoweredByPathward({
       <Building2
         className={cn(
           "shrink-0 text-brand-blue/70",
-          variant === "compact" ? "size-3" : "size-3.5",
+          variant === "compact" && "size-3",
+          variant !== "compact" && "size-3.5",
         )}
         strokeWidth={1.75}
         aria-hidden
@@ -58,7 +73,8 @@ export function PoweredByPathward({
         <span
           className={cn(
             "font-semibold",
-            variant === "auth" ? "text-[#334155]" : "text-brand-navy/80",
+            variant === "auth" && "text-[#334155]",
+            variant !== "auth" && "text-brand-navy/80",
           )}
         >
           {bankName}

@@ -10,7 +10,7 @@ import {
   getInitials,
 } from "@/lib/auth/profile";
 import { getProfileRouteForRole } from "@/lib/auth/navigation";
-import { getRoleLabel } from "@/lib/auth/roles";
+import { getRoleLabel, isClient } from "@/lib/auth/roles";
 import {
   fetchUnreadMessageCount,
   fetchUnreadNotificationCount,
@@ -35,7 +35,7 @@ export default async function DashboardLayout({
         : getDisplayName(ctx.profile, ctx.user.email),
     firstName: getDisplayName(ctx.profile, ctx.user.email),
     initials: getInitials(ctx.profile, ctx.user.email),
-    roleLabel: getRoleLabel(ctx.role),
+    roleLabel: isClient(ctx.role) ? "" : getRoleLabel(ctx.role),
     profileHref: getProfileRouteForRole(ctx.role),
   });
 

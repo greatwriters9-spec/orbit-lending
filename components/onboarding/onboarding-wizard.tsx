@@ -19,7 +19,13 @@ import {
   readMortgageApplicationDraft,
   writeMortgageApplicationDraft,
 } from "@/lib/onboarding/draft-storage";
-import { ONBOARDING_ROUTES } from "@/types/mortgage-onboarding";
+import { OnboardingMortgagePreferencesStep } from "@/components/onboarding/mortgage-preferences-step";
+import {
+  createDefaultMortgagePreferences,
+  validateMortgagePreferences,
+  resolveHomePriceFromDraft,
+} from "@/lib/mortgage/preferences";
+import { DEFAULT_MORTGAGE_CONFIG, type MortgageConfig } from "@/types/mortgage-config";
 import type {
   AssetInfo,
   BuyingStage,
@@ -29,6 +35,7 @@ import type {
   PropertyUse,
   PurchaseTimeline,
 } from "@/types/mortgage-onboarding";
+import { ONBOARDING_ROUTES } from "@/types/mortgage-onboarding";
 
 type StepKey =
   | "home-found"
@@ -41,6 +48,7 @@ type StepKey =
   | "purchase-price"
   | "property-type"
   | "property-use-found"
+  | "mortgage-preferences"
   | "about-you"
   | "contact"
   | "current-address"
@@ -55,6 +63,7 @@ const SEARCH_STEPS: StepKey[] = [
   "target-location",
   "target-price",
   "property-use-search",
+  "mortgage-preferences",
   "about-you",
   "contact",
   "current-address",
@@ -69,6 +78,7 @@ const FOUND_STEPS: StepKey[] = [
   "purchase-price",
   "property-type",
   "property-use-found",
+  "mortgage-preferences",
   "about-you",
   "contact",
   "current-address",
@@ -168,11 +178,13 @@ export function OnboardingWizard({
   mode = "create",
   applicationId,
   initialDraft,
+  mortgageConfig = DEFAULT_MORTGAGE_CONFIG,
 }: {
   isLoggedIn?: boolean;
   mode?: "create" | "edit";
   applicationId?: string;
   initialDraft?: MortgageApplicationDraft;
+  mortgageConfig?: MortgageConfig;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -213,7 +225,7 @@ export function OnboardingWizard({
 
   const steps = useMemo(() => getSteps(draft), [draft]);
   const currentStep = steps[stepIndex] ?? "home-found";
-  const totalSteps = draft.homeFound === undefined ? 12 : steps.length;
+  const totalSteps = draft.homeFound === undefined ? 13 : steps.length;
 
   useEffect(() => {
     if (currentStep !== "employment") {
@@ -228,6 +240,14 @@ export function OnboardingWizard({
       return next;
     });
   }, []);
+
+  useEffect(() => {
+    if (currentStep === "mortgage-preferences" && !draft.mortgagePreferences) {
+      updateDraft({
+        mortgagePreferences: createDefaultMortgagePreferences(mortgageConfig),
+      });
+    }
+  }, [currentStep, draft.mortgagePreferences, mortgageConfig, updateDraft]);
 
   const goNext = useCallback(async () => {
     setError(null);
@@ -316,6 +336,20 @@ export function OnboardingWizard({
           return false;
         }
         return true;
+      case "mortgage-preferences": {
+        const preferences =
+          draft.mortgagePreferences ?? createDefaultMortgagePreferences(mortgageConfig);
+        const validationError = validateMortgagePreferences(
+          preferences,
+          resolveHomePriceFromDraft(draft),
+          mortgageConfig,
+        );
+        if (validationError) {
+          setError(validationError);
+          return false;
+        }
+        return true;
+      }
       case "property-address":
         if (
           !draft.propertyAddress?.street ||
@@ -587,6 +621,15 @@ export function OnboardingWizard({
             ))}
           </div>
         </OnboardingQuestion>
+      ) : null}
+
+      {currentStep === "mortgage-preferences" ? (
+        <OnboardingMortgagePreferencesStep
+          draft={draft}
+          homePrice={resolveHomePriceFromDraft(draft)}
+          mortgageConfig={mortgageConfig}
+          onChange={(mortgagePreferences) => updateDraft({ mortgagePreferences })}
+        />
       ) : null}
 
       {currentStep === "property-address" ? (

@@ -132,14 +132,14 @@ export const TRANSACTION_TYPE_LABELS: Record<WalletTransactionType, string> = {
   withdrawal_approved: "Withdrawal Approved",
   withdrawal_rejected: "Withdrawal Rejected",
   repayment_received: "Repayment Received",
-  manual_adjustment: "Manual Adjustment",
-  fee_adjustment: "Fee Adjustment",
-  system_credit: "System Credit",
-  system_debit: "System Debit",
+  manual_adjustment: "Balance adjustment",
+  fee_adjustment: "Fee adjustment",
+  system_credit: "Account credit",
+  system_debit: "Account debit",
 };
 
 export const PATHWARD_BANK = {
   name: "Pathward National Bank",
-  tagline: "Powered by Pathward National Bank",
-  infrastructure: "Primary Banking Infrastructure",
+  tagline: "Banking services provided through Pathward National Bank",
+  infrastructure: "Banking Partner",
 } as const;

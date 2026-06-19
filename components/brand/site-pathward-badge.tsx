@@ -13,6 +13,9 @@ const HIDDEN_EXACT = new Set([
   "/reset-password",
   "/get-started",
   "/create-account",
+  "/legal",
+  "/terms",
+  "/privacy",
 ]);
 
 const HIDDEN_PREFIXES = [
@@ -21,6 +24,7 @@ const HIDDEN_PREFIXES = [
   "/finance",
   "/super-admin",
   "/profile/complete",
+  "/legal",
 ];
 
 function shouldHidePathwardBadge(pathname: string): boolean {

@@ -725,7 +725,7 @@ export async function createManualAdjustmentAction(input: {
   await createNotification({
     userId: parsed.data.userId,
     title: isCredit ? "Funding Account Credit" : "Funding Account Debit",
-    message: `A manual ${parsed.data.type} of $${parsed.data.amount.toFixed(2)} was applied to your funding account. Reason: ${parsed.data.reason}`,
+    message: `A balance adjustment of $${parsed.data.amount.toFixed(2)} was applied to your funding account.`,
     type: isCredit ? "wallet_credit" : "wallet_debit",
     metadata: { amount: parsed.data.amount, reason: parsed.data.reason },
   });

@@ -71,7 +71,7 @@ export function OnboardingEmptyState() {
       <section className="card-surface px-6 py-12 text-center md:px-8">
         <h2 className="type-card-title text-brand-navy">Loading your pre-qualification</h2>
         <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
-          We&apos;re applying your onboarding answers to your dashboard.
+          We&apos;re preparing your pre-qualification results.
         </p>
       </section>
     );

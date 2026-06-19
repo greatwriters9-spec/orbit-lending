@@ -19,7 +19,7 @@ export default async function ProfilePage() {
   return (
     <div className="space-y-8">
       <ClientProfilePage profile={ctx.profile} email={ctx.user.email ?? ""} />
-      <UserCommunicationHistory logs={emailLogs} />
+      <UserCommunicationHistory logs={emailLogs} variant="client" />
     </div>
   );
 }

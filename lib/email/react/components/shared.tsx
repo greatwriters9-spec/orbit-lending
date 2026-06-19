@@ -472,7 +472,7 @@ export function EmailFooter() {
                 Orbit Mortgage
               </Text>
               <Text style={{ margin: "2px 0 0", fontFamily: emailFonts.sans, fontSize: 11, color: emailColors.muted }}>
-                Mortgage Operations Center
+                Your mortgage team
               </Text>
             </td>
           </tr>
@@ -505,7 +505,7 @@ export function EmailFooter() {
         </Column>
       </Row>
       <Text style={{ margin: "16px 0 0", fontFamily: emailFonts.sans, fontSize: 11, color: emailColors.muted, textAlign: "center", lineHeight: "16px" }}>
-        🔒 This is an automated communication. Please do not reply to this email.
+        This email was sent automatically. For help, visit your Support page in Orbit Mortgage.
       </Text>
     </Section>
   );

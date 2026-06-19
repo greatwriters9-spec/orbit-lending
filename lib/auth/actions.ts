@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 
 import { AUTH_ROUTES } from "@/lib/auth/routes";
 import { getDefaultRouteForRole } from "@/lib/auth/roles";
+import { sanitizeRedirectPath } from "@/lib/auth/safe-redirect";
 import {
   forgotPasswordSchema,
   loginSchema,
@@ -58,9 +59,10 @@ export async function loginAction(
     ? await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle()
     : { data: null };
 
-  const redirectTo =
-    formData.get("redirect")?.toString() ||
-    getDefaultRouteForRole(profile?.role);
+  const redirectTo = sanitizeRedirectPath(
+    formData.get("redirect")?.toString(),
+    getDefaultRouteForRole(profile?.role),
+  );
 
   if (user) {
     const { notifySecurityEvent } = await import("@/lib/notifications/service");
@@ -275,7 +277,7 @@ export async function completeProfileAction(
       }
       createdOnboardingApplication = true;
     } catch {
-      return { error: "Could not apply your onboarding answers. Try again." };
+      return { error: "We couldn't save your information. Please try again." };
     }
   }
 

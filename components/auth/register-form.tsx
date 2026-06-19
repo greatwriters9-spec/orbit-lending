@@ -112,14 +112,14 @@ export function RegisterForm() {
         <p className="text-center text-[11px] leading-relaxed text-[#64748b]">
           By creating an account, you agree to our{" "}
           <Link
-            href="/terms"
+            href="/legal/terms-of-use"
             className="font-medium text-brand-navy underline-offset-2 hover:underline"
           >
-            Terms of Service
+            Terms of Use
           </Link>{" "}
           and{" "}
           <Link
-            href="/privacy"
+            href="/legal/privacy-policy"
             className="font-medium text-brand-navy underline-offset-2 hover:underline"
           >
             Privacy Policy

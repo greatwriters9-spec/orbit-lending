@@ -35,7 +35,7 @@ export const TICKET_STATUS_LABELS: Record<SupportTicketStatus, string> = {
   open: "Open",
   assigned: "Assigned",
   in_progress: "In Progress",
-  waiting_for_client: "Waiting For Client",
+  waiting_for_client: "Awaiting your reply",
   escalated: "Escalated",
   resolved: "Resolved",
   closed: "Closed",
@@ -109,6 +109,57 @@ export const QUICK_ACTION_CATEGORIES: Array<{
     label: "Document Assistance",
     category: "document_verification",
     description: "Upload or document submission help",
+  },
+];
+
+/** Client-facing issue picker shown when opening a support ticket. */
+export const CLIENT_ISSUE_OPTIONS: Array<{
+  label: string;
+  description: string;
+  category: SupportTicketCategory;
+  icon: "application" | "payment" | "documents" | "account" | "technical" | "general";
+}> = [
+  {
+    label: "Mortgage Application",
+    description: "Help with your application or pre-qualification",
+    category: "application_support",
+    icon: "application",
+  },
+  {
+    label: "Mortgage Status",
+    description: "Questions about approval, closing, or funding",
+    category: "loan_status_inquiry",
+    icon: "application",
+  },
+  {
+    label: "Payment Issue",
+    description: "Payment not showing or verification delay",
+    category: "payment_verification",
+    icon: "payment",
+  },
+  {
+    label: "Documents",
+    description: "Upload help or verification questions",
+    category: "document_verification",
+    icon: "documents",
+  },
+  {
+    label: "Account Access",
+    description: "Login, password, or profile issues",
+    category: "account_access",
+    icon: "account",
+  },
+  {
+    label: "Technical Problem",
+    description: "Something isn't working on the site",
+    category: "technical_issue",
+    icon: "technical",
+  },
+  {
+    label: "Something Else",
+    description: "General question or other concern",
+    category: "general_inquiry",
+    icon: "general",
   },
 ];
 

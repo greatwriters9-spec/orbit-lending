@@ -332,7 +332,7 @@ export async function processApplicationSubmission(applicationId: string) {
   await recordApplicationStatus(
     applicationId,
     "submitted",
-    "Application submitted successfully and queued for review.",
+    "Application submitted successfully. Our team is reviewing your application.",
   );
 
   await sendSystemMessage(

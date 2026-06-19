@@ -38,7 +38,7 @@ export default async function MyApplicationsPage() {
           title="Submitted Applications"
           description={
             applications.length > 0
-              ? `${applications.length} application${applications.length === 1 ? "" : "s"} in progress or completed.`
+              ? `${applications.length} active application${applications.length === 1 ? "" : "s"}.`
               : "You haven't submitted any applications yet."
           }
         />

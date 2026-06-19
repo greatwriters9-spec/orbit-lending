@@ -53,7 +53,7 @@ export function OnboardingShell({
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl flex-1 px-4 py-10 pb-36 md:px-6 md:py-14 md:pb-40">
+      <main className="mx-auto max-w-3xl flex-1 px-4 py-10 pb-44 md:px-6 md:py-14 md:pb-48">
         {showBack && onBack ? (
           <button
             type="button"
@@ -75,7 +75,7 @@ export function OnboardingShell({
 
       {showChrome ? (
         <>
-          <AskAssistantButton isLoggedIn={isLoggedIn} className="bottom-[4.75rem] md:bottom-[5rem]" />
+          <AskAssistantButton isLoggedIn={isLoggedIn} className="bottom-[5.5rem] md:bottom-[6rem]" />
           <OnboardingFooter />
         </>
       ) : null}

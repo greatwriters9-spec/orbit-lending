@@ -947,3 +947,32 @@
     border-radius: 9999px;
   }
 }
+
+@media print {
+  .legal-no-print {
+    display: none !important;
+  }
+
+  .legal-print-only {
+    display: block !important;
+  }
+
+  .legal-document {
+    background: #ffffff !important;
+    color: #0f2d78 !important;
+  }
+
+  .legal-document a {
+    color: #0f2d78 !important;
+    text-decoration: none !important;
+  }
+
+  .legal-document section,
+  .legal-document article {
+    break-inside: avoid-page;
+  }
+
+  body {
+    background: #ffffff !important;
+  }
+}

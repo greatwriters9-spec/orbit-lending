@@ -13,7 +13,7 @@ const CATEGORY_LABELS = {
   advisor: "Mortgage Advisor",
   underwriting: "Underwriting Team",
   support: "Support",
-  system: "System",
+  system: "Orbit Mortgage",
 } as const;
 
 export function MessagesWidget({ messages, className }: MessagesWidgetProps) {

@@ -26,6 +26,7 @@ import {
   generateLoanNumber,
 } from "@/lib/repayments/schedule-generator";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceRoleClient } from "@/lib/supabase/service-role";
 import { getOrCreateWallet } from "@/lib/wallet/ledger";
 import { mirrorWalletTransaction } from "@/lib/transactions/wallet-bridge";
 import { recordPlatformTransaction } from "@/lib/transactions/record";
@@ -869,7 +870,7 @@ export async function uploadPaymentProofAction(
 export async function processRepaymentStatusMaintenance(): Promise<{
   updated: number;
 }> {
-  const supabase = await createClient();
+  const supabase = createServiceRoleClient();
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -937,7 +938,7 @@ export async function processRepaymentStatusMaintenance(): Promise<{
 }
 
 export async function processRepaymentReminders(): Promise<{ sent: number }> {
-  const supabase = await createClient();
+  const supabase = createServiceRoleClient();
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 

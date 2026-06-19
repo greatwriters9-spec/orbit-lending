@@ -12,13 +12,13 @@ export async function GET(request: Request) {
   const cronSecret = process.env.CRON_SECRET;
 
   if (!cronSecret) {
-    if (process.env.NODE_ENV === "production") {
-      return NextResponse.json(
-        { error: "Cron secret is not configured." },
-        { status: 503 },
-      );
-    }
-  } else if (authHeader !== `Bearer ${cronSecret}`) {
+    return NextResponse.json(
+      { error: "Cron secret is not configured." },
+      { status: 503 },
+    );
+  }
+
+  if (authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

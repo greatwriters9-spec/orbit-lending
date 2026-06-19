@@ -3,6 +3,7 @@ import type {
   PreQualificationResult,
   PropertyAddress,
   TargetLocation,
+  MortgagePreferences,
 } from "@/types/mortgage-onboarding";
 
 type OnboardingMeta = {
@@ -15,6 +16,7 @@ type OnboardingMeta = {
   purchasePrice?: number;
   propertyType?: string;
   propertyUse?: string;
+  mortgagePreferences?: MortgagePreferences;
   preQualification?: PreQualificationResult;
 };
 

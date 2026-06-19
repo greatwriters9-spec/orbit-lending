@@ -69,6 +69,13 @@ export type CreditProfile = {
   maritalStatus: string;
 };
 
+export type MortgagePreferences = {
+  downPaymentMode: "percent" | "custom";
+  downPaymentPercent?: number;
+  downPaymentAmount?: number;
+  termMonths: number;
+};
+
 export type PreQualificationResult = {
   maximumHomePrice: number;
   estimatedMortgageAmount: number;
@@ -100,6 +107,7 @@ export type MortgageApplicationDraft = {
   employment?: EmploymentInfo;
   assets?: AssetInfo;
   creditProfile?: CreditProfile;
+  mortgagePreferences?: MortgagePreferences;
   preQualification?: PreQualificationResult;
   completedAt?: string;
 };
