@@ -85,6 +85,46 @@ function mapArticle(row: Record<string, unknown>): SupportKnowledgeArticle {
   };
 }
 
+async function attachBorrowerProfiles(
+  rows: Record<string, unknown>[],
+): Promise<SupportTicket[]> {
+  if (rows.length === 0) {
+    return [];
+  }
+
+  const supabase = await createClient();
+  const borrowerIds = [
+    ...new Set(
+      rows
+        .map((row) => row.borrower_id as string | undefined)
+        .filter(Boolean),
+    ),
+  ] as string[];
+
+  const profileById = new Map<
+    string,
+    { first_name?: string | null; last_name?: string | null; email?: string | null }
+  >();
+
+  if (borrowerIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("id, first_name, last_name, email")
+      .in("id", borrowerIds);
+
+    for (const profile of profiles ?? []) {
+      profileById.set(profile.id, profile);
+    }
+  }
+
+  return rows.map((row) =>
+    mapTicket({
+      ...row,
+      profiles: profileById.get(row.borrower_id as string) ?? null,
+    }),
+  );
+}
+
 export async function fetchClientTickets(
   borrowerId: string,
   filters?: SupportTicketFilters,
@@ -129,7 +169,7 @@ export async function fetchFinanceTickets(
   const supabase = await createClient();
   let query = supabase
     .from("support_tickets")
-    .select("*, profiles:borrower_id(first_name, last_name, email)")
+    .select("*")
     .order("updated_at", { ascending: false });
 
   if (filters?.status?.length) {
@@ -146,7 +186,7 @@ export async function fetchFinanceTickets(
   }
 
   const { data } = await query;
-  let rows = (data ?? []).map(mapTicket);
+  let rows = await attachBorrowerProfiles((data ?? []) as Record<string, unknown>[]);
 
   if (filters?.search) {
     const q = filters.search.toLowerCase();
@@ -164,15 +204,22 @@ export async function fetchFinanceTickets(
 
 export async function fetchTicketById(
   ticketId: string,
+  borrowerId?: string,
 ): Promise<SupportTicket | null> {
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("support_tickets")
-    .select("*, profiles:borrower_id(first_name, last_name, email)")
-    .eq("id", ticketId)
-    .maybeSingle();
+  let query = supabase.from("support_tickets").select("*").eq("id", ticketId);
 
-  return data ? mapTicket(data) : null;
+  if (borrowerId) {
+    query = query.eq("borrower_id", borrowerId);
+  }
+
+  const { data, error } = await query.maybeSingle();
+  if (error || !data) {
+    return null;
+  }
+
+  const [ticket] = await attachBorrowerProfiles([data as Record<string, unknown>]);
+  return ticket ?? null;
 }
 
 export async function fetchTicketMessages(

@@ -149,6 +149,7 @@ export async function registerAction(
 
   void notifyAdmin({
     event: "NEW_USER_REGISTRATION",
+    severity: "critical",
     payload: {
       name: `${parsed.data.firstName} ${parsed.data.lastName}`.trim(),
       email: parsed.data.email,

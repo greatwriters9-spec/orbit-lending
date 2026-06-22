@@ -21,8 +21,8 @@ export default async function SupportTicketPage({
   const ctx = await requireClient();
   const { ticketId } = await params;
 
-  const ticket = await fetchTicketById(ticketId);
-  if (!ticket || ticket.borrowerId !== ctx.user.id) {
+  const ticket = await fetchTicketById(ticketId, ctx.user.id);
+  if (!ticket) {
     notFound();
   }
 

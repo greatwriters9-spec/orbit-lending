@@ -117,7 +117,7 @@ const EVENT_DEFAULTS: Partial<
   NEW_USER_REGISTRATION: (payload) => ({
     title: "New User Registration",
     message: `${str(payload, "name")} (${str(payload, "email")}) registered for an Orbit Mortgage account.`,
-    severity: "normal",
+    severity: "critical",
     telegramBody: registrationTelegram(payload),
   }),
   EMAIL_VERIFIED: (payload) => ({

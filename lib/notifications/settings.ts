@@ -50,7 +50,7 @@ export function shouldDeliverAdminNotification(
   severity: AdminNotificationSeverity,
 ): boolean {
   if (settings.notificationMode === "critical_only") {
-    return severity === "critical";
+    return severity === "critical" || severity === "high";
   }
   return true;
 }
