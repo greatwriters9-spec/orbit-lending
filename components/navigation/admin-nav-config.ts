@@ -1,5 +1,6 @@
 import {
   Banknote,
+  Bell,
   ClipboardList,
   FileText,
   Home,
@@ -31,6 +32,7 @@ export const adminNavSections: NavSection[] = [
       },
       { title: "Reports", href: "/admin/reports", icon: FileText },
       { title: "Messages", href: "/admin/messages", icon: MessageSquare },
+      { title: "Admin Alerts", href: "/admin/notifications", icon: Bell },
       {
         title: "Communications",
         href: "/admin/communications",

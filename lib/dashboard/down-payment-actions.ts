@@ -18,6 +18,7 @@ import {
 import { getOrCreateWallet } from "@/lib/wallet/ledger";
 import { generateReferenceNumber } from "@/lib/wallet/utils";
 import { mirrorWalletTransaction } from "@/lib/transactions/wallet-bridge";
+import { notifyAdmin } from "@/lib/notifications/notify";
 import { createNotification } from "@/lib/wallet/notifications";
 import { creditPathwardAccountBalance } from "@/lib/wallet/pathward-closing";
 import type { DownPaymentMeta } from "@/types/mortgage-dashboard";
@@ -40,7 +41,7 @@ export async function submitDownPaymentVerificationAction(
 
   const { data: application } = await supabase
     .from("loan_applications")
-    .select("id, user_id, personal_info, status")
+    .select("id, user_id, personal_info, status, application_number")
     .eq("id", applicationId)
     .eq("user_id", user.id)
     .maybeSingle();
@@ -107,20 +108,31 @@ export async function submitDownPaymentVerificationAction(
     changed_by: user.id,
   });
 
-  const { data: admins } = await supabase
+  const { data: profile } = await supabase
     .from("profiles")
-    .select("id")
-    .in("role", ["super_admin", "admin", "finance_officer"]);
+    .select("first_name, last_name, email")
+    .eq("id", user.id)
+    .maybeSingle();
 
-  for (const admin of admins ?? []) {
-    await createNotification({
-      userId: admin.id,
-      title: "Down Payment Verification Request",
-      message: `A customer submitted a down payment verification request for application ${applicationId.slice(0, 8).toUpperCase()}.`,
-      type: "application_update",
-      metadata: { applicationId, userId: user.id },
-    });
-  }
+  const applicantName = `${profile?.first_name ?? ""} ${profile?.last_name ?? ""}`.trim() || profile?.email || "Applicant";
+
+  void notifyAdmin({
+    event:
+      phase === "admin_requested"
+        ? "DEPOSIT_VERIFICATION_REQUIRED"
+        : "DOWN_PAYMENT_SUBMITTED",
+    severity: "critical",
+    payload: {
+      name: applicantName,
+      email: profile?.email,
+      amount: requiredAmount,
+      applicationId: application.application_number ?? applicationId,
+      timestamp: new Date().toISOString(),
+    },
+    entityType: "application",
+    entityId: applicationId,
+    dashboardUrl: `/finance/applications/${applicationId}`,
+  });
 
   await createNotification({
     userId: user.id,
@@ -172,7 +184,7 @@ export async function reviewDownPaymentVerificationAction(input: {
 
   const { data: application } = await supabase
     .from("loan_applications")
-    .select("id, user_id, personal_info, status")
+    .select("id, user_id, personal_info, status, application_number")
     .eq("id", input.applicationId)
     .maybeSingle();
 
@@ -457,6 +469,31 @@ export async function reviewDownPaymentVerificationAction(input: {
     metadata: { applicationId: input.applicationId, decision: input.decision },
   });
 
+  if (input.decision === "approve") {
+    void notifyAdmin({
+      event: "DEPOSIT_APPROVED",
+      payload: {
+        amount: requiredAmount,
+        applicationId: application.application_number ?? input.applicationId,
+      },
+      entityType: "application",
+      entityId: input.applicationId,
+      dashboardUrl: `/finance/applications/${input.applicationId}`,
+    });
+  } else if (input.decision === "reject") {
+    void notifyAdmin({
+      event: "DEPOSIT_REJECTED",
+      severity: "high",
+      payload: {
+        applicationId: application.application_number ?? input.applicationId,
+        message: input.reason,
+      },
+      entityType: "application",
+      entityId: input.applicationId,
+      dashboardUrl: `/finance/applications/${input.applicationId}`,
+    });
+  }
+
   const emailHooks = await import("@/lib/email/hooks");
   if (input.decision === "approve") {
     void emailHooks.sendDepositVerifiedEmail(
@@ -519,7 +556,7 @@ export async function addFundingRequirementFeeAction(input: {
 
   const { data: application } = await supabase
     .from("loan_applications")
-    .select("id, user_id, personal_info, status")
+    .select("id, user_id, personal_info, status, application_number")
     .eq("id", input.applicationId)
     .maybeSingle();
 
@@ -601,6 +638,19 @@ export async function addFundingRequirementFeeAction(input: {
     },
   });
 
+  void notifyAdmin({
+    event: "ADDITIONAL_FUNDS_REQUIRED",
+    severity: "high",
+    payload: {
+      amount: input.amount,
+      applicationId: application.application_number ?? input.applicationId,
+      message: input.label.trim(),
+    },
+    entityType: "application",
+    entityId: input.applicationId,
+    dashboardUrl: `/finance/applications/${input.applicationId}`,
+  });
+
   const { sendAdditionalFundingRequiredEmail } = await import("@/lib/email/hooks");
   void sendAdditionalFundingRequiredEmail(
     application.user_id,
@@ -644,7 +694,7 @@ export async function removeFundingRequirementFeeAction(input: {
 
   const { data: application } = await supabase
     .from("loan_applications")
-    .select("id, user_id, personal_info, status")
+    .select("id, user_id, personal_info, status, application_number")
     .eq("id", input.applicationId)
     .maybeSingle();
 

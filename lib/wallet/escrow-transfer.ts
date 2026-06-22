@@ -13,6 +13,7 @@ import { logAuditEntry } from "@/lib/finance/audit";
 import { createClient } from "@/lib/supabase/server";
 import { getOrCreateWallet } from "@/lib/wallet/ledger";
 import { createNotification } from "@/lib/wallet/notifications";
+import { notifyAdmin } from "@/lib/notifications/notify";
 import { generateReferenceNumber } from "@/lib/wallet/utils";
 import { mirrorWalletTransaction } from "@/lib/transactions/wallet-bridge";
 import type { EscrowTransferMeta, SellerDestinationDetails } from "@/types/mortgage-dashboard";
@@ -263,25 +264,30 @@ export async function initiateEscrowTransferAction(
     },
   });
 
-  const { data: admins } = await supabase
+  const { data: applicantProfile } = await supabase
     .from("profiles")
-    .select("id")
-    .in("role", ["super_admin", "admin", "finance_officer"]);
+    .select("first_name, last_name, email")
+    .eq("id", user.id)
+    .maybeSingle();
 
-  for (const admin of admins ?? []) {
-    await createNotification({
-      userId: admin.id,
-      title: "Escrow Transfer Pending Approval",
-      message: `Client initiated an escrow transfer of $${transferAmount.toFixed(2)} for application ${application.application_number ?? application.id.slice(0, 8)}.`,
-      type: "withdrawal_requested",
-      metadata: {
-        withdrawalRequestId: withdrawal.id,
-        applicationId: application.id,
-        userId: user.id,
-        amount: transferAmount,
-      },
-    });
-  }
+  const applicantName =
+    `${applicantProfile?.first_name ?? ""} ${applicantProfile?.last_name ?? ""}`.trim() ||
+    applicantProfile?.email ||
+    "Applicant";
+
+  void notifyAdmin({
+    event: "ESCROW_TRANSFER_REQUESTED",
+    severity: "critical",
+    payload: {
+      name: applicantName,
+      amount: transferAmount,
+      applicationId: application.application_number ?? application.id,
+      timestamp: new Date().toISOString(),
+    },
+    entityType: "application",
+    entityId: application.id,
+    dashboardUrl: `/finance/applications/${application.id}`,
+  });
 
   await createNotification({
     userId: user.id,
@@ -362,6 +368,18 @@ export async function finalizeEscrowTransferApproval(
     "/dashboard",
   );
 
+  void notifyAdmin({
+    event: "ESCROW_TRANSFER_APPROVED",
+    severity: "high",
+    payload: {
+      amount: Number(request.amount),
+      applicationId: application.application_number ?? application.id,
+    },
+    entityType: "application",
+    entityId: application.id,
+    dashboardUrl: `/finance/applications/${application.id}`,
+  });
+
   revalidateEscrowPaths(request.user_id);
   return {};
 }
@@ -426,6 +444,19 @@ export async function finalizeEscrowTransferRejection(
       approvedBy: reviewerId,
     });
   }
+
+  void notifyAdmin({
+    event: "ESCROW_TRANSFER_CANCELLED",
+    severity: "high",
+    payload: {
+      amount: Number(request.amount),
+      applicationId: application.application_number ?? application.id,
+      message: reason,
+    },
+    entityType: "application",
+    entityId: application.id,
+    dashboardUrl: `/finance/applications/${application.id}`,
+  });
 
   revalidateEscrowPaths(request.user_id);
   return {};

@@ -13,6 +13,7 @@ import {
 } from "@/lib/auth/profile";
 import { getProfileRouteForRole } from "@/lib/auth/navigation";
 import { getRoleLabel, USER_ROLES } from "@/lib/auth/roles";
+import { fetchUnreadAdminNotificationCount } from "@/lib/notifications/admin-queries";
 
 export default async function FinanceLayout({
   children,
@@ -20,6 +21,7 @@ export default async function FinanceLayout({
   children: ReactNode;
 }) {
   const ctx = await requireFinanceStaff();
+  const unreadNotifications = await fetchUnreadAdminNotificationCount();
 
   const userDisplay = buildDashboardUser(ctx, {
     name: getDisplayName(ctx.profile, ctx.user.email),
@@ -31,13 +33,23 @@ export default async function FinanceLayout({
 
   if (ctx.role === USER_ROLES.superAdmin) {
     return (
-      <SuperAdminShell user={userDisplay}>{children}</SuperAdminShell>
+      <SuperAdminShell user={userDisplay} unreadNotifications={unreadNotifications}>
+        {children}
+      </SuperAdminShell>
     );
   }
 
   if (ctx.role === USER_ROLES.admin) {
-    return <AdminShell user={userDisplay}>{children}</AdminShell>;
+    return (
+      <AdminShell user={userDisplay} unreadNotifications={unreadNotifications}>
+        {children}
+      </AdminShell>
+    );
   }
 
-  return <FinanceShell user={userDisplay}>{children}</FinanceShell>;
+  return (
+    <FinanceShell user={userDisplay} unreadNotifications={unreadNotifications}>
+      {children}
+    </FinanceShell>
+  );
 }

@@ -12,6 +12,7 @@ import {
 import { requireAdmin, requireSuperAdmin } from "@/lib/auth/guards";
 import { logRoleChange } from "@/lib/auth/account-audit";
 import { notifyAccountStatusChange } from "@/lib/notifications/service";
+import { notifyAdmin } from "@/lib/notifications/notify";
 import { createClient } from "@/lib/supabase/server";
 import { getOrCreateWallet } from "@/lib/wallet/ledger";
 import { canLinkPathwardAccount, parseDownPaymentMeta } from "@/lib/dashboard/mortgage-journey";
@@ -188,7 +189,7 @@ export async function updateUserRoleAction(
 
   const { data: existing } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, email, first_name, last_name")
     .eq("id", parsed.data.userId)
     .maybeSingle();
 
@@ -225,6 +226,21 @@ export async function updateUserRoleAction(
     newRole,
     parsed.data.reason,
   );
+
+  void notifyAdmin({
+    event: "ROLE_CHANGED",
+    severity: "critical",
+    payload: {
+      email: existing.email,
+      role: newRole,
+      name:
+        `${existing.first_name ?? ""} ${existing.last_name ?? ""}`.trim() ||
+        existing.email,
+    },
+    entityType: "user",
+    entityId: parsed.data.userId,
+    dashboardUrl: "/super-admin/users",
+  });
 
   revalidateUserPaths(parsed.data.userId);
   return { success: "User role updated successfully." };

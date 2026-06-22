@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 
+import { notifyAdmin } from "@/lib/notifications/notify";
 import { createClient } from "@/lib/supabase/server";
 import type { EmailTemplateData } from "@/lib/email/types";
 import type { ApplicationStatus } from "@/types/application-details";
@@ -329,6 +330,12 @@ export async function scoreApplication(
 export async function processApplicationSubmission(applicationId: string) {
   const supabase = await createClient();
 
+  const { data: application } = await supabase
+    .from("loan_applications")
+    .select("id, user_id, requested_amount, application_number, personal_info")
+    .eq("id", applicationId)
+    .maybeSingle();
+
   await recordApplicationStatus(
     applicationId,
     "submitted",
@@ -349,5 +356,50 @@ export async function processApplicationSubmission(applicationId: string) {
       "Your application is now under review. We will notify you if additional information is needed.",
     skipValidation: true,
   });
+
+  if (application) {
+    const { data: profileRow } = await supabase
+      .from("profiles")
+      .select("first_name, last_name, email")
+      .eq("id", application.user_id)
+      .maybeSingle();
+
+    const personalInfo = (application.personal_info ?? {}) as Record<string, unknown>;
+    const personalName =
+      personalInfo.firstName && personalInfo.lastName
+        ? `${personalInfo.firstName} ${personalInfo.lastName}`.trim()
+        : "";
+    const applicantName =
+      personalName ||
+      `${profileRow?.first_name ?? ""} ${profileRow?.last_name ?? ""}`.trim() ||
+      profileRow?.email ||
+      "Applicant";
+
+    void notifyAdmin({
+      event: "NEW_MORTGAGE_APPLICATION",
+      severity: "critical",
+      payload: {
+        name: applicantName,
+        amount: application.requested_amount,
+        applicationId: application.application_number ?? applicationId,
+        timestamp: new Date().toISOString(),
+      },
+      entityType: "application",
+      entityId: applicationId,
+      dashboardUrl: `/finance/applications/${applicationId}`,
+    });
+
+    void notifyAdmin({
+      event: "APPLICATION_READY_FOR_REVIEW",
+      severity: "high",
+      payload: {
+        name: applicantName,
+        applicationId: application.application_number ?? applicationId,
+      },
+      entityType: "application",
+      entityId: applicationId,
+      dashboardUrl: `/finance/applications/${applicationId}`,
+    });
+  }
 }
 

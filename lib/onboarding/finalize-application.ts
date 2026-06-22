@@ -3,6 +3,7 @@ import { mapMortgageDraftToLoanApplication } from "@/lib/onboarding/map-draft";
 import { computePreQualification } from "@/lib/onboarding/pre-qualification";
 import { fetchMortgageConfig } from "@/lib/admin/mortgage/config";
 import { generateApplicationNumber } from "@/lib/loans/wizard-config";
+import { notifyAdmin } from "@/lib/notifications/notify";
 import { createNotification } from "@/lib/wallet/notifications";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { MortgageApplicationDraft } from "@/types/mortgage-onboarding";
@@ -72,6 +73,25 @@ export async function ensureOnboardingApplication(
   });
 
   await scoreApplication(application.id, userId);
+
+  const applicantName =
+    `${enrichedDraft.firstName ?? ""} ${enrichedDraft.lastName ?? ""}`.trim() ||
+    enrichedDraft.email ||
+    "Applicant";
+
+  void notifyAdmin({
+    event: "NEW_MORTGAGE_APPLICATION",
+    severity: "critical",
+    payload: {
+      name: applicantName,
+      amount: loanDraft.configuration.requestedAmount,
+      applicationId: applicationNumber,
+      timestamp: new Date().toISOString(),
+    },
+    entityType: "application",
+    entityId: application.id,
+    dashboardUrl: `/finance/applications/${application.id}`,
+  });
 
   await createNotification({
     userId,

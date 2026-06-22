@@ -6,6 +6,7 @@ import { z } from "zod";
 import { requireClient, requireFinanceStaff } from "@/lib/auth/guards";
 import { resolveRole } from "@/lib/auth/navigation";
 import { logAuditEntry } from "@/lib/finance/audit";
+import { notifyAdmin } from "@/lib/notifications/notify";
 import { notifyUser } from "@/lib/notifications/service";
 import {
   generateTicketNumber,
@@ -179,6 +180,19 @@ export async function createSupportTicketAction(
     priority: parsed.data.priority === "critical" ? "critical" : "high",
   });
 
+  void notifyAdmin({
+    event: "NEW_SUPPORT_MESSAGE",
+    severity: parsed.data.priority === "critical" ? "critical" : "high",
+    payload: {
+      name: senderName,
+      subject: parsed.data.subject,
+      ticketId: ticketNumber,
+    },
+    entityType: "support_ticket",
+    entityId: ticket.id,
+    dashboardUrl: `/finance/support/${ticket.id}`,
+  });
+
   await logAuditEntry({
     action: "support.ticket_created",
     entityType: "support_ticket",
@@ -269,6 +283,18 @@ export async function replyToTicketAction(
     eventType: "client_reply",
     title: "Client Responded",
     actorId: ctx.user.id,
+  });
+
+  void notifyAdmin({
+    event: "CLIENT_REPLY",
+    payload: {
+      name: senderName,
+      subject: ticket.subject,
+      ticketId: ticket.ticket_number,
+    },
+    entityType: "support_ticket",
+    entityId: ticketId,
+    dashboardUrl: `/finance/support/${ticketId}`,
   });
 
   revalidatePath(`/dashboard/support/${ticketId}`);

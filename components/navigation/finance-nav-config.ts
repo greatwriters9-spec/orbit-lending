@@ -1,5 +1,6 @@
 import {
   Banknote,
+  Bell,
   ClipboardList,
   FileSearch,
   Landmark,
@@ -55,6 +56,11 @@ export const financeNavSections: NavSection[] = [
         title: "Messages",
         href: "/finance/messages",
         icon: MessageSquare,
+      },
+      {
+        title: "Admin Alerts",
+        href: "/finance/notifications",
+        icon: Bell,
       },
       {
         title: "Transactions",

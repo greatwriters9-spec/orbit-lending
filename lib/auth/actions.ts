@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 
 import { AUTH_ROUTES } from "@/lib/auth/routes";
-import { getDefaultRouteForRole } from "@/lib/auth/roles";
+import { getDefaultRouteForRole, isAdminStaff, isFinanceStaff } from "@/lib/auth/roles";
 import { sanitizeRedirectPath } from "@/lib/auth/safe-redirect";
 import {
   forgotPasswordSchema,
@@ -20,6 +20,7 @@ import {
   sendPasswordResetViaResend,
 } from "@/lib/auth/resend-auth-delivery";
 import { ensureOnboardingApplication } from "@/lib/onboarding/finalize-application";
+import { notifyAdmin } from "@/lib/notifications/notify";
 import { createClient } from "@/lib/supabase/server";
 import type { MortgageApplicationDraft } from "@/types/mortgage-onboarding";
 
@@ -60,7 +61,7 @@ export async function loginAction(
   } = await supabase.auth.getUser();
 
   const { data: profile } = user
-    ? await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle()
+    ? await supabase.from("profiles").select("role, first_name, last_name, email").eq("id", user.id).maybeSingle()
     : { data: null };
 
   const redirectTo = sanitizeRedirectPath(
@@ -75,6 +76,24 @@ export async function loginAction(
       "New Login Detected",
       "Your Orbit Mortgage account was accessed. If this wasn't you, contact support immediately.",
     );
+
+    if (isAdminStaff(profile?.role) || isFinanceStaff(profile?.role)) {
+      const staffName =
+        `${profile?.first_name ?? ""} ${profile?.last_name ?? ""}`.trim() ||
+        profile?.email ||
+        user.email ||
+        "Staff";
+      void notifyAdmin({
+        event: "ADMIN_LOGIN",
+        payload: {
+          name: staffName,
+          email: profile?.email ?? user.email,
+        },
+        entityType: "user",
+        entityId: user.id,
+        dashboardUrl: getDefaultRouteForRole(profile?.role),
+      });
+    }
   }
 
   redirect(redirectTo);
@@ -127,6 +146,18 @@ export async function registerAction(
       last_name: parsed.data.lastName,
     })
     .eq("id", user.id);
+
+  void notifyAdmin({
+    event: "NEW_USER_REGISTRATION",
+    payload: {
+      name: `${parsed.data.firstName} ${parsed.data.lastName}`.trim(),
+      email: parsed.data.email,
+      timestamp: new Date().toISOString(),
+    },
+    entityType: "user",
+    entityId: user.id,
+    dashboardUrl: "/admin/users",
+  });
 
   if (needsEmailConfirmation) {
     return {
@@ -278,9 +309,20 @@ export async function completeProfileAction(
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, email")
     .eq("id", user.id)
     .maybeSingle();
+
+  void notifyAdmin({
+    event: "PROFILE_COMPLETED",
+    payload: {
+      name: `${parsed.data.firstName} ${parsed.data.lastName}`.trim(),
+      email: profile?.email ?? user.email,
+    },
+    entityType: "user",
+    entityId: user.id,
+    dashboardUrl: "/admin/users",
+  });
 
   if (createdOnboardingApplication) {
     redirect(AUTH_ROUTES.qualificationResult);

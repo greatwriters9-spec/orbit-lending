@@ -1,5 +1,6 @@
 import {
   Banknote,
+  Bell,
   ClipboardList,
   FileText,
   Home,
@@ -49,6 +50,11 @@ export const superAdminNavSections: NavSection[] = [
         title: "Communications",
         href: "/super-admin/communications",
         icon: Mail,
+      },
+      {
+        title: "Admin Alerts",
+        href: "/super-admin/notifications",
+        icon: Bell,
       },
       {
         title: "Compliance",

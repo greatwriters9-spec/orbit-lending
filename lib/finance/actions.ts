@@ -11,6 +11,7 @@ import {
   transitionApplicationStatus,
 } from "@/lib/applications/engine/processor";
 import { allDocumentRequestsApproved } from "@/lib/applications/document-request-status";
+import { notifyAdmin } from "@/lib/notifications/notify";
 import { createClient } from "@/lib/supabase/server";
 import type { FinanceActionState } from "@/types/finance";
 
@@ -154,6 +155,21 @@ export async function updateApplicationStatusAction(
 
   if (result.error) {
     return { error: result.error };
+  }
+
+  if (parsed.data.status === "rejected") {
+    const snapshot = await getApplicationSnapshot(parsed.data.applicationId);
+    void notifyAdmin({
+      event: "APPLICATION_REJECTED",
+      severity: "high",
+      payload: {
+        applicationId: snapshot?.application_number ?? parsed.data.applicationId,
+        message: parsed.data.note,
+      },
+      entityType: "application",
+      entityId: parsed.data.applicationId,
+      dashboardUrl: `/finance/applications/${parsed.data.applicationId}`,
+    });
   }
 
   revalidateApplicationPaths(parsed.data.applicationId);
@@ -421,6 +437,18 @@ export async function approveApplicationAction(
   if (result.error) {
     return { error: result.error };
   }
+
+  void notifyAdmin({
+    event: "APPLICATION_APPROVED",
+    severity: "high",
+    payload: {
+      applicationId: existing.application_number ?? parsed.data.applicationId,
+      amount: parsed.data.approvedAmount,
+    },
+    entityType: "application",
+    entityId: parsed.data.applicationId,
+    dashboardUrl: `/finance/applications/${parsed.data.applicationId}`,
+  });
 
   revalidateApplicationPaths(parsed.data.applicationId);
   revalidatePath("/finance/funding");

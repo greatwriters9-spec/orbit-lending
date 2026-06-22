@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { US_PHONE_PATTERN } from "@/lib/auth/input-formatters";
 import { requireSuperAdmin } from "@/lib/auth/guards";
+import { notifyAdmin } from "@/lib/notifications/notify";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
 import type {
@@ -33,46 +34,26 @@ function generateGuestConcernReference(): string {
   return `ORB-CON-${date}-${suffix}`;
 }
 
-async function notifySuperAdminsOfGuestConcern(input: {
+async function notifyAdminsOfGuestConcern(input: {
   referenceNumber: string;
   fullName: string;
   email: string;
   concern: string;
   concernId: string;
 }) {
-  const supabase = createServiceRoleClient();
-
-  const { data: admins } = await supabase
-    .from("profiles")
-    .select("id")
-    .eq("role", "super_admin");
-
-  if (!admins?.length) {
-    return;
-  }
-
-  const snippet =
-    input.concern.length > 120
-      ? `${input.concern.slice(0, 117)}...`
-      : input.concern;
-
-  await supabase.from("notifications").insert(
-    admins.map((admin) => ({
-      user_id: admin.id,
-      title: "New Guest Support Concern",
-      message: `${input.fullName} (${input.email}) — ${snippet} Ref: ${input.referenceNumber}`,
-      type: "general",
-      category: "support",
-      priority: "high",
-      action_url: "/super-admin/guest-concerns",
-      metadata: {
-        concernId: input.concernId,
-        referenceNumber: input.referenceNumber,
-        guestEmail: input.email,
-      },
-      modal_dismissed: true,
-    })),
-  );
+  void notifyAdmin({
+    event: "GENERAL_INQUIRY",
+    severity: "high",
+    payload: {
+      name: input.fullName,
+      email: input.email,
+      message: input.concern,
+      referenceNumber: input.referenceNumber,
+    },
+    entityType: "guest_concern",
+    entityId: input.concernId,
+    dashboardUrl: "/super-admin/guest-concerns",
+  });
 }
 
 export async function submitGuestConcernAction(
@@ -122,7 +103,7 @@ export async function submitGuestConcernAction(
   }
 
   try {
-    await notifySuperAdminsOfGuestConcern({
+    await notifyAdminsOfGuestConcern({
       referenceNumber,
       fullName: parsed.data.fullName,
       email: parsed.data.email,

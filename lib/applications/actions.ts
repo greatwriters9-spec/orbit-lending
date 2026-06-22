@@ -7,6 +7,7 @@ import {
   transitionApplicationStatus,
 } from "@/lib/applications/engine/processor";
 import { uploadApplicationDocumentFile } from "@/lib/documents/storage";
+import { notifyAdmin } from "@/lib/notifications/notify";
 import { createClient } from "@/lib/supabase/server";
 import type { ApplicationActionState } from "@/types/application-details";
 
@@ -196,6 +197,30 @@ export async function uploadDocumentRequestAction(
     void sendDocumentsReceivedForReviewEmail(applicationRow.user_id, {
       documentName: request.document_name,
       actionUrl: `/dashboard/loans/${applicationId}`,
+    });
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("first_name, last_name, email")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    const applicantName =
+      `${profile?.first_name ?? ""} ${profile?.last_name ?? ""}`.trim() ||
+      profile?.email ||
+      "Applicant";
+
+    void notifyAdmin({
+      event: "DOCUMENT_UPLOADED",
+      severity: "high",
+      payload: {
+        name: applicantName,
+        documentName: request.document_name,
+        applicationId,
+      },
+      entityType: "application",
+      entityId: applicationId,
+      dashboardUrl: `/finance/applications/${applicationId}`,
     });
 
     await notifyUser({

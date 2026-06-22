@@ -11,6 +11,7 @@ import {
 } from "@/lib/auth/profile";
 import { getProfileRouteForRole } from "@/lib/auth/navigation";
 import { getRoleLabel } from "@/lib/auth/roles";
+import { fetchUnreadAdminNotificationCount } from "@/lib/notifications/admin-queries";
 
 export default async function AdminLayout({
   children,
@@ -18,6 +19,7 @@ export default async function AdminLayout({
   children: ReactNode;
 }) {
   const ctx = await requireAdmin();
+  const unreadNotifications = await fetchUnreadAdminNotificationCount();
 
   const userDisplay = buildDashboardUser(ctx, {
     name: getDisplayName(ctx.profile, ctx.user.email),
@@ -27,5 +29,5 @@ export default async function AdminLayout({
     profileHref: getProfileRouteForRole(ctx.role),
   });
 
-  return <AdminShell user={userDisplay}>{children}</AdminShell>;
+  return <AdminShell user={userDisplay} unreadNotifications={unreadNotifications}>{children}</AdminShell>;
 }

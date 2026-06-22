@@ -33,6 +33,18 @@ export async function GET(request: Request) {
         if (user.email_confirmed_at) {
           const { sendWelcomeEmail } = await import("@/lib/email/hooks");
           void sendWelcomeEmail(user.id, profile?.first_name ?? undefined);
+
+          const { notifyAdmin } = await import("@/lib/notifications/notify");
+          void notifyAdmin({
+            event: "EMAIL_VERIFIED",
+            payload: {
+              email: user.email,
+              name: profile?.first_name ?? user.email,
+            },
+            entityType: "user",
+            entityId: user.id,
+            dashboardUrl: "/admin/users",
+          });
         }
       }
 

@@ -1,5 +1,7 @@
 import { SectionHeader } from "@/components/ui-kit/section-header";
 import { fetchPlatformSettings, updatePlatformSettingFormAction } from "@/lib/admin/settings/actions";
+import { AdminNotificationSettingsForm } from "@/components/admin/admin-notification-settings-form";
+import { fetchAdminNotificationSettings } from "@/lib/notifications/settings";
 import { hasAdminPermission } from "@/lib/admin/permissions";
 import { requireSuperAdmin } from "@/lib/auth/guards";
 import { redirect } from "next/navigation";
@@ -16,6 +18,7 @@ export default async function SuperAdminSettingsPage() {
   }
 
   const settings = await fetchPlatformSettings();
+  const notificationSettings = await fetchAdminNotificationSettings();
 
   return (
     <div className="space-y-6">
@@ -23,6 +26,8 @@ export default async function SuperAdminSettingsPage() {
         title="System Configuration"
         description="Institution-wide platform settings managed by the Chief Lending Officer."
       />
+
+      <AdminNotificationSettingsForm initialSettings={notificationSettings} />
 
       <div className="space-y-4">
         {settings.map((setting) => (

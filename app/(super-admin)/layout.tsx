@@ -11,6 +11,7 @@ import {
 } from "@/lib/auth/profile";
 import { getProfileRouteForRole } from "@/lib/auth/navigation";
 import { getRoleLabel } from "@/lib/auth/roles";
+import { fetchUnreadAdminNotificationCount } from "@/lib/notifications/admin-queries";
 
 export default async function SuperAdminLayout({
   children,
@@ -18,6 +19,7 @@ export default async function SuperAdminLayout({
   children: ReactNode;
 }) {
   const ctx = await requireSuperAdmin();
+  const unreadNotifications = await fetchUnreadAdminNotificationCount();
 
   const userDisplay = buildDashboardUser(ctx, {
     name: getDisplayName(ctx.profile, ctx.user.email),
@@ -27,5 +29,9 @@ export default async function SuperAdminLayout({
     profileHref: getProfileRouteForRole(ctx.role),
   });
 
-  return <SuperAdminShell user={userDisplay}>{children}</SuperAdminShell>;
+  return (
+    <SuperAdminShell user={userDisplay} unreadNotifications={unreadNotifications}>
+      {children}
+    </SuperAdminShell>
+  );
 }
