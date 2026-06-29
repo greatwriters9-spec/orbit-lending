@@ -22,6 +22,8 @@ export default async function AdminCommunicationsPage() {
       <CommunicationCenter
         initialUsers={data.users}
         initialLogs={data.logs}
+        clientCount={data.clientCount}
+        memberCount={data.memberCount}
         senderName={senderName}
         senderTitle={senderTitle}
       />
