@@ -7,6 +7,15 @@ const nextConfig: NextConfig = {
     },
     proxyClientMaxBodySize: "10mb",
   },
+  async redirects() {
+    return [
+      {
+        source: "/favicon.ico",
+        destination: "/icon",
+        permanent: true,
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {

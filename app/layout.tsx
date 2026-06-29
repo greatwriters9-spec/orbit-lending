@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 
+import { OrganizationJsonLd } from "@/components/seo/organization-json-ld";
 import { AppProviders } from "@/components/providers/app-providers";
 import { SitePathwardBadge } from "@/components/brand/site-pathward-badge";
+import { getSiteMetadata } from "@/lib/site/metadata";
 
 import "./globals.css";
 
@@ -13,11 +15,7 @@ const inter = Inter({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: "Orbit Mortgage | Digital Mortgage Platform",
-  description:
-    "A secure digital mortgage origination platform for homebuyers and staff.",
-};
+export const metadata: Metadata = getSiteMetadata();
 
 export default function RootLayout({
   children,
@@ -29,6 +27,7 @@ export default function RootLayout({
       <body
         className={`${inter.className} min-h-full bg-brand-background font-sans text-foreground`}
       >
+        <OrganizationJsonLd />
         <AppProviders>{children}</AppProviders>
         <SitePathwardBadge />
       </body>
