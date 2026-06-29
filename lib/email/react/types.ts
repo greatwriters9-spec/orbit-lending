@@ -19,6 +19,17 @@ export type EmailStaffSignature = {
   department: string;
 };
 
+export type EmailBrandingContext = {
+  institutionName: string;
+  tagline: string;
+  supportEmail: string;
+  supportPhone: string;
+  officeHours: string;
+  addressLine: string;
+  websiteDomain: string;
+  bankPartnerName: string;
+};
+
 export type EmailTemplateContent = {
   headline: string;
   body: string;
@@ -40,4 +51,5 @@ export type EmailTemplateContent = {
   showInfoGrid?: boolean;
   showContact?: boolean;
   communicationClass?: EmailCommunicationClass;
+  branding?: EmailBrandingContext;
 };

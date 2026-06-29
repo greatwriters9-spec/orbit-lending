@@ -199,6 +199,12 @@ export async function sendStaffMessage(
   message: string,
   senderName: string,
   senderRole: "finance" | "officer" = "finance",
+  emailOptions?: {
+    emailSubject?: string;
+    emailHeadline?: string;
+    staffTitle?: string;
+    staffEmail?: string;
+  },
 ) {
   const supabase = await createClient();
   const {
@@ -241,6 +247,7 @@ export async function sendStaffMessage(
       applicationId,
       senderName,
       message,
+      emailOptions,
     );
   }
 

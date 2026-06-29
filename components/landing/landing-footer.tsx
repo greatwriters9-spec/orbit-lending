@@ -2,7 +2,9 @@ import Link from "next/link";
 
 import { OrbitLogo } from "@/components/brand/orbit-logo";
 import { PoweredByPathward } from "@/components/brand/powered-by-pathward";
-import { LANDING_CONTAINER, PATHWARD_BANK } from "@/lib/landing/content";
+import { formatBrandingAddress } from "@/lib/admin/branding/config";
+import { LANDING_CONTAINER } from "@/lib/landing/content";
+import type { BrandingConfig } from "@/types/branding-config";
 
 const FOOTER_LINKS = {
   Resources: [
@@ -27,7 +29,13 @@ const FOOTER_LINKS = {
   ],
 };
 
-export function LandingFooter() {
+type LandingFooterProps = {
+  branding: BrandingConfig;
+};
+
+export function LandingFooter({ branding }: LandingFooterProps) {
+  const address = formatBrandingAddress(branding);
+
   return (
     <footer className="border-t border-brand-border bg-white">
       <div className={`${LANDING_CONTAINER} py-12`}>
@@ -37,8 +45,22 @@ export function LandingFooter() {
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted-foreground">
               Premium digital mortgage financing with transparent terms, real-time
               application tracking, and banking infrastructure powered by{" "}
-              {PATHWARD_BANK.name}. Helping you achieve your homeownership goals.
+              {branding.bankPartnerName}. Helping you achieve your homeownership goals.
             </p>
+            <div className="mt-4 space-y-1 text-sm text-muted-foreground">
+              <p>{address.replace(/\n/g, ", ")}</p>
+              <p>
+                <a href={`tel:${branding.supportPhone.replace(/[^\d+]/g, "")}`} className="hover:text-brand-blue">
+                  {branding.supportPhone}
+                </a>
+              </p>
+              <p>
+                <a href={`mailto:${branding.supportEmail}`} className="hover:text-brand-blue">
+                  {branding.supportEmail}
+                </a>
+              </p>
+              <p>{branding.officeHours}</p>
+            </div>
           </div>
 
           {Object.entries(FOOTER_LINKS).map(([title, links]) => (
@@ -61,11 +83,10 @@ export function LandingFooter() {
         </div>
 
         <div className="mt-10 flex flex-col gap-3 border-t border-brand-border pt-8 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} Orbit Mortgage. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} {branding.institutionName}. All rights reserved.</p>
           <PoweredByPathward variant="default" />
         </div>
       </div>
     </footer>
   );
 }
-

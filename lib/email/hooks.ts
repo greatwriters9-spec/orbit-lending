@@ -10,6 +10,8 @@ type TimelineEmailInput = {
   data?: EmailTemplateData;
   email?: string;
   metadata?: Record<string, unknown>;
+  subject?: string;
+  customMessage?: string;
 };
 
 export async function sendTimelineEmail(input: TimelineEmailInput) {
@@ -29,6 +31,8 @@ export async function sendTimelineEmail(input: TimelineEmailInput) {
     recipient,
     userId: input.userId,
     data: input.data,
+    subject: input.subject,
+    customMessage: input.customMessage,
     metadata: input.metadata,
   });
 }

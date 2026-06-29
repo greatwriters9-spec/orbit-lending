@@ -5,9 +5,9 @@ import { z } from "zod";
 
 import { requireAdmin } from "@/lib/auth/guards";
 import {
-  ADMIN_CUSTOM_TEMPLATES,
   ADMIN_SENDABLE_TEMPLATES,
   EMAIL_TEMPLATE_LABELS,
+  resolveTemplateDepartment,
 } from "@/lib/email/templates/catalog";
 import { fetchAllEmailCommunicationLogs } from "@/lib/email/queries";
 import { sendEmail } from "@/lib/email/service";
@@ -28,6 +28,9 @@ const sendCommunicationSchema = z.object({
   ]),
   template: z.string().min(1),
   subject: z.string().min(3, "Subject is required."),
+  headline: z.string().optional(),
+  staffName: z.string().optional(),
+  staffTitle: z.string().optional(),
   message: z.string().min(10, "Message must be at least 10 characters."),
 });
 
@@ -62,9 +65,7 @@ export async function fetchCommunicationCenterDataAction() {
     templates: ADMIN_SENDABLE_TEMPLATES.map((key) => ({
       key,
       label: EMAIL_TEMPLATE_LABELS[key],
-      department: ADMIN_CUSTOM_TEMPLATES.includes(key)
-        ? key.replace("custom_", "").replace(/_/g, " ")
-        : undefined,
+      department: resolveTemplateDepartment(key),
     })),
   };
 }
@@ -94,8 +95,12 @@ export async function sendAdminCommunicationAction(
     sentBy: ctx.user.id,
     data: {
       subject: parsed.data.subject,
-      headline: parsed.data.subject,
+      headline:
+        parsed.data.headline?.trim() ||
+        parsed.data.subject,
       message: parsed.data.message,
+      staffName: parsed.data.staffName?.trim() || undefined,
+      staffTitle: parsed.data.staffTitle?.trim() || undefined,
     },
     metadata: {
       source: "admin_communication_center",

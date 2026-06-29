@@ -22,6 +22,7 @@ import type {
   EmailDetailRow,
   EmailProgressStep,
   EmailStaffSignature,
+  EmailBrandingContext,
 } from "@/lib/email/react/types";
 
 function toneStyles(tone: EmailStatusTone = "neutral") {
@@ -94,10 +95,16 @@ export function OrbitLogoMark() {
 export function EmailBrandHeader({
   showPathward = true,
   minimal = false,
+  branding,
 }: {
   showPathward?: boolean;
   minimal?: boolean;
+  branding?: EmailBrandingContext;
 }) {
+  const institutionName = branding?.institutionName ?? BRAND_DISPLAY_NAME;
+  const tagline = branding?.tagline ?? ORBIT_MORTGAGE_TAGLINE;
+  const bankPartner = branding?.bankPartnerName ?? "Pathward National Bank";
+
   return (
     <Section style={{ backgroundColor: emailColors.headerBg, padding: minimal ? "28px 32px 20px" : "24px 32px 20px" }}>
       <Row>
@@ -120,7 +127,7 @@ export function EmailBrandHeader({
                       lineHeight: "24px",
                     }}
                   >
-                    {BRAND_DISPLAY_NAME}
+                    {institutionName}
                   </Text>
                   {!minimal ? (
                     <Text
@@ -132,7 +139,7 @@ export function EmailBrandHeader({
                         lineHeight: "16px",
                       }}
                     >
-                      {ORBIT_MORTGAGE_TAGLINE}
+                      {tagline}
                     </Text>
                   ) : null}
                 </td>
@@ -154,7 +161,7 @@ export function EmailBrandHeader({
                 textAlign: "right",
               }}
             >
-              Powered by Pathward National Bank
+              Powered by {bankPartner}
             </Text>
           </Column>
         ) : null}
@@ -401,10 +408,15 @@ export function EmailCtaBlock({
 export function EmailContactSection({
   department,
   email,
+  branding,
 }: {
   department: string;
   email: string;
+  branding?: EmailBrandingContext;
 }) {
+  const officeHours = branding?.officeHours ?? "Mon – Fri: 8:00 AM – 6:00 PM EST";
+  const supportPhone = branding?.supportPhone ?? "(313) 555-0189";
+
   return (
     <Section style={{ padding: "0 32px 28px" }}>
       <Row>
@@ -424,9 +436,9 @@ export function EmailContactSection({
             Office Hours
           </Text>
           <Text style={{ margin: 0, fontFamily: emailFonts.sans, fontSize: 12, color: emailColors.muted, lineHeight: "18px" }}>
-            Mon – Fri: 8:00 AM – 6:00 PM EST
+            {officeHours}
             <br />
-            (313) 555-0189
+            {supportPhone}
           </Text>
         </Column>
       </Row>
@@ -454,10 +466,15 @@ export function EmailSignatureBlock({ staff }: { staff: EmailStaffSignature }) {
   );
 }
 
-export function EmailFooter() {
-  const supportEmail = getSupportEmailAddress();
-  const websiteUrl = getWebsiteUrl();
-  const websiteDomain = getWebsiteDomain();
+export function EmailFooter({ branding }: { branding?: EmailBrandingContext }) {
+  const supportEmail = branding?.supportEmail ?? getSupportEmailAddress();
+  const websiteDomain = branding?.websiteDomain ?? getWebsiteDomain();
+  const institutionName = branding?.institutionName ?? BRAND_DISPLAY_NAME;
+  const bankPartner = branding?.bankPartnerName ?? "Pathward National Bank";
+  const addressLine = branding?.addressLine;
+  const websiteUrl = websiteDomain.startsWith("http")
+    ? websiteDomain
+    : getWebsiteUrl();
 
   return (
     <Section style={{ backgroundColor: emailColors.footerBg, padding: "28px 32px", borderTop: `1px solid ${emailColors.border}` }}>
@@ -469,7 +486,7 @@ export function EmailFooter() {
             </td>
             <td style={{ verticalAlign: "middle" }}>
               <Text style={{ margin: 0, fontFamily: emailFonts.sans, fontSize: 14, fontWeight: 700, color: emailColors.text }}>
-                {BRAND_DISPLAY_NAME}
+                {institutionName}
               </Text>
               <Text style={{ margin: "2px 0 0", fontFamily: emailFonts.sans, fontSize: 11, color: emailColors.muted }}>
                 Your mortgage team
@@ -490,8 +507,13 @@ export function EmailFooter() {
           textAlign: "center",
         }}
       >
-        Powered by Pathward National Bank
+        Powered by {bankPartner}
       </Text>
+      {addressLine ? (
+        <Text style={{ margin: "0 0 12px", fontFamily: emailFonts.sans, fontSize: 11, color: emailColors.muted, textAlign: "center", lineHeight: "16px", whiteSpace: "pre-line" }}>
+          {addressLine}
+        </Text>
+      ) : null}
       <Row>
         <Column align="center">
           <Link href={`mailto:${supportEmail}`} style={{ fontFamily: emailFonts.sans, fontSize: 12, color: emailColors.primary, textDecoration: "none" }}>
@@ -503,9 +525,16 @@ export function EmailFooter() {
             {websiteDomain.startsWith("www.") ? websiteDomain : `www.${websiteDomain}`}
           </Link>
         </Column>
+        {branding?.supportPhone ? (
+          <Column align="center">
+            <Text style={{ fontFamily: emailFonts.sans, fontSize: 12, color: emailColors.muted }}>
+              {branding.supportPhone}
+            </Text>
+          </Column>
+        ) : null}
       </Row>
       <Text style={{ margin: "16px 0 0", fontFamily: emailFonts.sans, fontSize: 11, color: emailColors.muted, textAlign: "center", lineHeight: "16px" }}>
-        {`This email was sent automatically. For help, visit your Support page in ${BRAND_DISPLAY_NAME}.`}
+        {`This email was sent on behalf of ${institutionName}. For help, visit your Support page in your dashboard.`}
       </Text>
     </Section>
   );

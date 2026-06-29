@@ -9,6 +9,8 @@ import {
 } from "@/lib/email/admin-actions";
 import {
   ADMIN_SENDABLE_TEMPLATES,
+  EMAIL_TEMPLATE_DEFAULT_HEADLINES,
+  EMAIL_TEMPLATE_DEFAULT_SUBJECTS,
   EMAIL_TEMPLATE_LABELS,
   getEmailTemplateLabel,
   resolveTemplateDepartment,
@@ -28,6 +30,8 @@ type CommunicationUser = {
 type CommunicationCenterProps = {
   initialUsers: CommunicationUser[];
   initialLogs: EmailCommunicationLog[];
+  senderName?: string;
+  senderTitle?: string;
 };
 
 const DEPARTMENT_OPTIONS: Array<{ value: EmailDepartment; label: string }> = [
@@ -43,6 +47,8 @@ const DEPARTMENT_OPTIONS: Array<{ value: EmailDepartment; label: string }> = [
 export function CommunicationCenter({
   initialUsers,
   initialLogs,
+  senderName: initialSenderName = "",
+  senderTitle: initialSenderTitle = "",
 }: CommunicationCenterProps) {
   const [users] = useState(initialUsers);
   const [logs, setLogs] = useState(initialLogs);
@@ -51,6 +57,9 @@ export function CommunicationCenter({
   const [department, setDepartment] = useState<EmailDepartment>("loan_officer");
   const [template, setTemplate] = useState(ADMIN_SENDABLE_TEMPLATES[0]);
   const [subject, setSubject] = useState("");
+  const [headline, setHeadline] = useState("");
+  const [staffName, setStaffName] = useState(initialSenderName);
+  const [staffTitle, setStaffTitle] = useState(initialSenderTitle);
   const [message, setMessage] = useState("");
   const [feedback, setFeedback] = useState<AdminCommunicationActionState | null>(
     null,
@@ -71,11 +80,11 @@ export function CommunicationCenter({
   }
 
   function handleTemplateChange(nextTemplate: string) {
-    setTemplate(nextTemplate as typeof template);
-    setDepartment(resolveTemplateDepartment(nextTemplate as typeof template));
-    if (!subject.trim()) {
-      setSubject(EMAIL_TEMPLATE_LABELS[nextTemplate as typeof template] ?? "");
-    }
+    const key = nextTemplate as typeof template;
+    setTemplate(key);
+    setDepartment(resolveTemplateDepartment(key));
+    setSubject(EMAIL_TEMPLATE_DEFAULT_SUBJECTS[key] ?? EMAIL_TEMPLATE_LABELS[key] ?? "");
+    setHeadline(EMAIL_TEMPLATE_DEFAULT_HEADLINES[key] ?? "");
   }
 
   function handleSubmit(event: React.FormEvent) {
@@ -89,6 +98,9 @@ export function CommunicationCenter({
         department,
         template,
         subject,
+        headline,
+        staffName,
+        staffTitle,
         message,
       });
 
@@ -174,12 +186,40 @@ export function CommunicationCenter({
           </div>
 
           <label className="block space-y-2">
-            <span className="text-sm font-semibold text-brand-navy">Subject</span>
+            <span className="text-sm font-semibold text-brand-navy">Email Subject</span>
             <Input
               required
               value={subject}
               onChange={(event) => setSubject(event.target.value)}
-              placeholder="Email subject line"
+              placeholder="Subject line the client sees in their inbox"
+            />
+          </label>
+
+          <div className="grid gap-5 md:grid-cols-2">
+            <label className="block space-y-2">
+              <span className="text-sm font-semibold text-brand-navy">Email Headline</span>
+              <Input
+                value={headline}
+                onChange={(event) => setHeadline(event.target.value)}
+                placeholder="Headline shown at the top of the email body"
+              />
+            </label>
+            <label className="block space-y-2">
+              <span className="text-sm font-semibold text-brand-navy">Sender Title</span>
+              <Input
+                value={staffTitle}
+                onChange={(event) => setStaffTitle(event.target.value)}
+                placeholder="Senior Loan Officer"
+              />
+            </label>
+          </div>
+
+          <label className="block space-y-2">
+            <span className="text-sm font-semibold text-brand-navy">Sender Name</span>
+            <Input
+              value={staffName}
+              onChange={(event) => setStaffName(event.target.value)}
+              placeholder="Name shown in the email signature"
             />
           </label>
 

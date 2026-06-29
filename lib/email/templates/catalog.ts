@@ -1,4 +1,9 @@
-import type { EmailTemplateContent } from "@/lib/email/react/types";
+import type { EmailTemplateContent, EmailBrandingContext } from "@/lib/email/react/types";
+import {
+  fetchBrandingConfig,
+  formatBrandingAddress,
+} from "@/lib/admin/branding/config";
+import type { BrandingConfig } from "@/types/branding-config";
 import { renderReactEmailTemplate } from "@/lib/email/react/render";
 import { getAppOrigin } from "@/lib/email/config";
 import {
@@ -48,23 +53,80 @@ function formatEmailDate(value?: string): string {
   });
 }
 
-function baseMeta(department: EmailDepartment, data: EmailTemplateData) {
+function brandingToEmailContext(config: BrandingConfig): EmailBrandingContext {
   return {
-    departmentName: DEPARTMENT_DISPLAY_NAMES[department],
-    referenceNumber: str(data, "applicationNumber", str(data, "referenceNumber")),
-    dateLabel: formatEmailDate(str(data, "dateLabel")),
-    contactDepartment: DEPARTMENT_DISPLAY_NAMES[department],
-    contactEmail: DEPARTMENT_CONTACT_EMAILS[department],
+    institutionName: config.institutionName,
+    tagline: config.tagline,
+    supportEmail: config.supportEmail,
+    supportPhone: config.supportPhone,
+    officeHours: config.officeHours,
+    addressLine: formatBrandingAddress(config),
+    websiteDomain: config.websiteDomain,
+    bankPartnerName: config.bankPartnerName,
   };
 }
 
-function staffForDepartment(department: EmailDepartment, data: EmailTemplateData) {
-  const defaults = DEFAULT_STAFF_BY_DEPARTMENT[department];
+function departmentDisplayName(
+  department: EmailDepartment,
+  branding?: BrandingConfig,
+): string {
+  if (department === "system") {
+    return branding?.institutionName ?? DEPARTMENT_DISPLAY_NAMES.system;
+  }
+  const defaults = branding?.departmentDefaults[
+    department as keyof BrandingConfig["departmentDefaults"]
+  ];
+  if (defaults?.staffName) {
+    return defaults.staffName;
+  }
+  return DEPARTMENT_DISPLAY_NAMES[department];
+}
+
+function baseMeta(
+  department: EmailDepartment,
+  data: EmailTemplateData,
+  branding?: BrandingConfig,
+) {
+  const deptKey = department as keyof BrandingConfig["departmentDefaults"];
+  const contactEmail =
+    branding?.departmentDefaults[deptKey]?.contactEmail ??
+    DEPARTMENT_CONTACT_EMAILS[department];
+
   return {
-    name: str(data, "staffName", defaults?.name ?? "Orbit Mortgage Team"),
-    title: str(data, "staffTitle", defaults?.title ?? "Mortgage Specialist"),
-    email: str(data, "staffEmail", DEPARTMENT_CONTACT_EMAILS[department]),
-    department: DEPARTMENT_DISPLAY_NAMES[department],
+    departmentName: departmentDisplayName(department, branding),
+    referenceNumber: str(data, "applicationNumber", str(data, "referenceNumber")),
+    dateLabel: formatEmailDate(str(data, "dateLabel")),
+    contactDepartment: departmentDisplayName(department, branding),
+    contactEmail,
+  };
+}
+
+function staffForDepartment(
+  department: EmailDepartment,
+  data: EmailTemplateData,
+  branding?: BrandingConfig,
+) {
+  const deptKey = department as keyof BrandingConfig["departmentDefaults"];
+  const brandingDefaults = branding?.departmentDefaults[deptKey];
+  const registryDefaults = DEFAULT_STAFF_BY_DEPARTMENT[department];
+
+  return {
+    name: str(
+      data,
+      "staffName",
+      brandingDefaults?.staffName ?? registryDefaults?.name ?? "Orbit Mortgage Team",
+    ),
+    title: str(
+      data,
+      "staffTitle",
+      brandingDefaults?.staffTitle ?? registryDefaults?.title ?? "Mortgage Specialist",
+    ),
+    email: str(
+      data,
+      "staffEmail",
+      brandingDefaults?.contactEmail ?? DEPARTMENT_CONTACT_EMAILS[department],
+    ),
+    department: departmentDisplayName(department, branding),
   };
 }
 
@@ -83,6 +145,7 @@ export function resolveEmailTemplate(
   template: EmailTemplateKey,
   data: EmailTemplateData = {},
   overrides?: { subject?: string; customMessage?: string },
+  branding?: BrandingConfig,
 ): ResolvedEmailTemplate {
   const department = TEMPLATE_DEPARTMENTS[template];
   const communicationClass = resolveTemplateCommunicationClass(template);
@@ -90,7 +153,8 @@ export function resolveEmailTemplate(
   const origin = getAppOrigin();
   const dashboardUrl = `${origin}/dashboard`;
   const loginUrl = `${origin}/login`;
-  const meta = baseMeta(department, data);
+  const meta = baseMeta(department, data, branding);
+  const emailBranding = branding ? brandingToEmailContext(branding) : undefined;
 
   const builders: Record<
     EmailTemplateKey,
@@ -251,7 +315,7 @@ export function resolveEmailTemplate(
         body: "Your assigned loan officer and underwriting team are reviewing your mortgage application.",
         tone: "pending",
         badge: "Under Review",
-        staff: staffForDepartment(department, data),
+        staff: staffForDepartment(department, data, branding),
         ctaLabel: "View Application Status",
         ctaUrl: str(data, "actionUrl", dashboardUrl),
         showProgress: false,
@@ -274,7 +338,7 @@ export function resolveEmailTemplate(
         detailRows: str(data, "documentNames")
           ? [{ label: "Requested Documents", value: str(data, "documentNames") || "—" }]
           : undefined,
-        staff: staffForDepartment(department, data),
+        staff: staffForDepartment(department, data, branding),
         ctaLabel: "Upload Documents",
         ctaUrl: str(data, "actionUrl", dashboardUrl),
         showProgress: false,
@@ -292,7 +356,7 @@ export function resolveEmailTemplate(
         detailRows: str(data, "documentName")
           ? [{ label: "Document", value: str(data, "documentName") || "—" }]
           : undefined,
-        staff: staffForDepartment(department, data),
+        staff: staffForDepartment(department, data, branding),
         ctaLabel: "View Application",
         ctaUrl: str(data, "actionUrl", dashboardUrl),
         showProgress: false,
@@ -346,7 +410,7 @@ export function resolveEmailTemplate(
         ),
         tone: "pending",
         badge: "On Hold",
-        executiveSignature: staffForDepartment("executive", data),
+        executiveSignature: staffForDepartment("executive", data, branding),
         ctaLabel: "View Application",
         ctaUrl: str(data, "actionUrl", dashboardUrl),
         showProgress: false,
@@ -366,7 +430,7 @@ export function resolveEmailTemplate(
           { label: "Estimated Mortgage", value: currency(data, "mortgageAmount") || "—" },
           { label: "Maximum Home Price", value: currency(data, "maxHomePrice") || "—" },
         ],
-        executiveSignature: staffForDepartment("executive", data),
+        executiveSignature: staffForDepartment("executive", data, branding),
         ctaLabel: "View Pre-Qualification",
         ctaUrl: str(data, "actionUrl", `${origin}/dashboard/qualification-result`),
         showProgress: false,
@@ -384,7 +448,7 @@ export function resolveEmailTemplate(
           { label: "Previous Amount", value: currency(data, "previousAmount") || "—" },
           { label: "Updated Amount", value: currency(data, "approvedAmount") || "—" },
         ],
-        executiveSignature: staffForDepartment("executive", data),
+        executiveSignature: staffForDepartment("executive", data, branding),
         ctaLabel: "Review Dashboard",
         ctaUrl: str(data, "actionUrl", dashboardUrl),
         showProgress: false,
@@ -458,7 +522,7 @@ export function resolveEmailTemplate(
         ),
         tone: "rejected",
         badge: "Action Required",
-        staff: staffForDepartment(department, data),
+        staff: staffForDepartment(department, data, branding),
         ctaLabel: "View Funding Account",
         ctaUrl: str(data, "actionUrl", dashboardUrl),
         showProgress: false,
@@ -471,7 +535,7 @@ export function resolveEmailTemplate(
         communicationClass,
         headline: "Your funding balance changed",
         body: "Your Orbit Mortgage funding account balance has been updated.",
-        staff: staffForDepartment(department, data),
+        staff: staffForDepartment(department, data, branding),
         detailRows: [{ label: "Current Balance", value: currency(data, "balance") || "—" }],
         ctaLabel: "View Account",
         ctaUrl: str(data, "actionUrl", `${origin}/wallet`),
@@ -532,7 +596,7 @@ export function resolveEmailTemplate(
         ),
         tone: "pending",
         badge: "Additional Funding",
-        staff: staffForDepartment(department, data),
+        staff: staffForDepartment(department, data, branding),
         detailRows: [
           { label: "Required Amount", value: currency(data, "amount") || "—" },
           { label: "Purpose", value: str(data, "label", "Closing Requirement") },
@@ -605,7 +669,7 @@ export function resolveEmailTemplate(
         communicationClass,
         headline: str(data, "headline", "Message from your loan officer"),
         body: overrides?.customMessage ?? str(data, "message", ""),
-        staff: staffForDepartment("loan_officer", data),
+        staff: staffForDepartment("loan_officer", data, branding),
         showProgress: false,
       },
     }),
@@ -617,7 +681,7 @@ export function resolveEmailTemplate(
         communicationClass,
         headline: str(data, "headline", "An update on your mortgage"),
         body: overrides?.customMessage ?? str(data, "message", ""),
-        executiveSignature: staffForDepartment("executive", data),
+        executiveSignature: staffForDepartment("executive", data, branding),
         showProgress: false,
         showContact: false,
       },
@@ -629,7 +693,7 @@ export function resolveEmailTemplate(
         communicationClass,
         headline: str(data, "headline", "An update on your funding account"),
         body: overrides?.customMessage ?? str(data, "message", ""),
-        staff: staffForDepartment("funding", data),
+        staff: staffForDepartment("funding", data, branding),
         showProgress: false,
       },
     }),
@@ -640,7 +704,7 @@ export function resolveEmailTemplate(
         communicationClass,
         headline: str(data, "headline", "An update on your closing"),
         body: overrides?.customMessage ?? str(data, "message", ""),
-        staff: staffForDepartment("closings", data),
+        staff: staffForDepartment("closings", data, branding),
         showProgress: false,
       },
     }),
@@ -650,6 +714,7 @@ export function resolveEmailTemplate(
   const content = {
     ...built.content,
     communicationClass,
+    branding: emailBranding,
     ...(overrides?.customMessage && template.startsWith("custom_")
       ? { body: overrides.customMessage }
       : {}),
@@ -667,7 +732,8 @@ export async function renderEmailFromTemplate(
   data?: EmailTemplateData,
   overrides?: { subject?: string; customMessage?: string },
 ) {
-  const resolved = resolveEmailTemplate(template, data, overrides);
+  const branding = await fetchBrandingConfig();
+  const resolved = resolveEmailTemplate(template, data, overrides, branding);
   const rendered = await renderReactEmailTemplate({
     template,
     preview: resolved.subject,
@@ -710,10 +776,24 @@ export const EMAIL_TEMPLATE_LABELS: Record<EmailTemplateKey, string> = {
   additional_funding_required: "Additional Funding Required",
   funds_released_to_seller: "Funds Released To Seller",
   mortgage_closed_successfully: "Mortgage Closed Successfully",
-  custom_loan_officer: "Custom — Loan Officer",
-  custom_chief_lending_officer: "Custom — Chief Lending Officer",
-  custom_funding_department: "Custom — Funding Department",
-  custom_closings_department: "Custom — Closings Department",
+  custom_loan_officer: "Loan Officer Message",
+  custom_chief_lending_officer: "Executive Message",
+  custom_funding_department: "Funding Department Message",
+  custom_closings_department: "Closing Department Message",
+};
+
+export const EMAIL_TEMPLATE_DEFAULT_SUBJECTS: Partial<Record<EmailTemplateKey, string>> = {
+  custom_loan_officer: "Message from Your Loan Officer",
+  custom_chief_lending_officer: "Important Update from Orbit Mortgage",
+  custom_funding_department: "Update on Your Funding Account",
+  custom_closings_department: "Update on Your Closing",
+};
+
+export const EMAIL_TEMPLATE_DEFAULT_HEADLINES: Partial<Record<EmailTemplateKey, string>> = {
+  custom_loan_officer: "Message from your loan officer",
+  custom_chief_lending_officer: "An update on your mortgage",
+  custom_funding_department: "An update on your funding account",
+  custom_closings_department: "An update on your closing",
 };
 
 export function getEmailTemplateLabel(templateKey: EmailTemplateKey): string {

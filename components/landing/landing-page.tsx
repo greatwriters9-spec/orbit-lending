@@ -9,8 +9,13 @@ import { LoanCalculator } from "./loan-calculator";
 import { Testimonials } from "./testimonials";
 import { TrustInfrastructure } from "./trust-infrastructure";
 import { WhyOrbit } from "./why-orbit";
+import type { BrandingConfig } from "@/types/branding-config";
 
-export function LandingPage() {
+type LandingPageProps = {
+  branding: BrandingConfig;
+};
+
+export function LandingPage({ branding }: LandingPageProps) {
   return (
     <div className="min-h-screen bg-white">
       <LandingNav />
@@ -25,7 +30,7 @@ export function LandingPage() {
         <Testimonials />
         <FinalCTA />
       </main>
-      <LandingFooter />
+      <LandingFooter branding={branding} />
     </div>
   );
 }

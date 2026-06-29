@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { LandingPage } from "@/components/landing";
+import { fetchBrandingConfig } from "@/lib/admin/branding/config";
 import { getSessionUser } from "@/lib/auth/actions";
 import { getDefaultRouteForRole } from "@/lib/auth/roles";
 import { createClient } from "@/lib/supabase/server";
@@ -26,6 +27,8 @@ export default async function Home() {
     redirect(getDefaultRouteForRole(profile?.role));
   }
 
-  return <LandingPage />;
+  const branding = await fetchBrandingConfig();
+
+  return <LandingPage branding={branding} />;
 }
 

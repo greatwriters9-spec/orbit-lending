@@ -37,6 +37,10 @@ const noteSchema = z.object({
 const messageSchema = z.object({
   applicationId: z.string().uuid(),
   message: z.string().min(3, "Message must be at least 3 characters."),
+  emailSubject: z.string().min(3).optional(),
+  emailHeadline: z.string().min(3).optional(),
+  staffName: z.string().min(2).optional(),
+  staffTitle: z.string().min(2).optional(),
 });
 
 const requestDocumentSchema = z.object({
@@ -74,7 +78,7 @@ const offerSchema = z.object({
 async function getStaffName(supabase: Awaited<ReturnType<typeof createClient>>, userId: string) {
   const { data } = await supabase
     .from("profiles")
-    .select("first_name, last_name")
+    .select("first_name, last_name, email")
     .eq("id", userId)
     .maybeSingle();
 
@@ -82,7 +86,7 @@ async function getStaffName(supabase: Awaited<ReturnType<typeof createClient>>, 
     return `${data.first_name} ${data.last_name}`;
   }
 
-  return "Loan Officer";
+  return data?.email ?? "Loan Officer";
 }
 
 function revalidateApplicationPaths(applicationId: string) {
@@ -234,12 +238,17 @@ export async function sendFinanceMessageAction(
     return { error: "Unauthorized." };
   }
 
-  const senderName = await getStaffName(supabase, user.id);
+  const senderName = parsed.data.staffName?.trim() || (await getStaffName(supabase, user.id));
   const result = await sendStaffMessage(
     parsed.data.applicationId,
     parsed.data.message,
     senderName,
     "finance",
+    {
+      emailSubject: parsed.data.emailSubject,
+      emailHeadline: parsed.data.emailHeadline,
+      staffTitle: parsed.data.staffTitle,
+    },
   );
 
   if (result.error) {

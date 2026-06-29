@@ -88,6 +88,10 @@ export function FinanceApplicationReview({
   const [statusNote, setStatusNote] = useState("");
   const [internalNote, setInternalNote] = useState("");
   const [message, setMessage] = useState("");
+  const [emailSubject, setEmailSubject] = useState("Message from Your Loan Officer");
+  const [emailHeadline, setEmailHeadline] = useState("Message from your loan officer");
+  const [staffName, setStaffName] = useState("");
+  const [staffTitle, setStaffTitle] = useState("Senior Loan Officer");
   const { documents: requestDocuments, setDocuments: setRequestDocuments } =
     useRequestDocumentsFormState();
   const [docMessage, setDocMessage] = useState("");
@@ -288,7 +292,10 @@ export function FinanceApplicationReview({
           </section>
 
           <section className="card-surface p-6 md:p-8">
-            <SectionHeader title="Applicant Messaging" description="Send messages visible to the applicant." />
+            <SectionHeader
+              title="Applicant Messaging"
+              description="Send a professional email and in-app message to the applicant."
+            />
             <div className="mt-4 max-h-64 space-y-3 overflow-y-auto">
               {application.messages.map((msg) => (
                 <div key={msg.id} className="rounded-xl border border-brand-border px-4 py-3">
@@ -298,6 +305,42 @@ export function FinanceApplicationReview({
                   <p className="mt-1 text-sm text-brand-navy">{msg.message}</p>
                 </div>
               ))}
+            </div>
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              <label className="block space-y-2 text-sm">
+                <span className="font-medium text-brand-navy">Email Subject</span>
+                <input
+                  value={emailSubject}
+                  onChange={(e) => setEmailSubject(e.target.value)}
+                  className="h-11 w-full rounded-xl border border-brand-border bg-brand-background px-4"
+                />
+              </label>
+              <label className="block space-y-2 text-sm">
+                <span className="font-medium text-brand-navy">Email Headline</span>
+                <input
+                  value={emailHeadline}
+                  onChange={(e) => setEmailHeadline(e.target.value)}
+                  className="h-11 w-full rounded-xl border border-brand-border bg-brand-background px-4"
+                />
+              </label>
+              <label className="block space-y-2 text-sm">
+                <span className="font-medium text-brand-navy">Sender Name</span>
+                <input
+                  value={staffName}
+                  onChange={(e) => setStaffName(e.target.value)}
+                  placeholder="Your name in the email signature"
+                  className="h-11 w-full rounded-xl border border-brand-border bg-brand-background px-4"
+                />
+              </label>
+              <label className="block space-y-2 text-sm">
+                <span className="font-medium text-brand-navy">Sender Title</span>
+                <input
+                  value={staffTitle}
+                  onChange={(e) => setStaffTitle(e.target.value)}
+                  placeholder="Senior Loan Officer"
+                  className="h-11 w-full rounded-xl border border-brand-border bg-brand-background px-4"
+                />
+              </label>
             </div>
             <textarea
               rows={3}
@@ -313,6 +356,10 @@ export function FinanceApplicationReview({
                   sendFinanceMessageAction({
                     applicationId: application.id,
                     message,
+                    emailSubject,
+                    emailHeadline,
+                    staffName: staffName.trim() || undefined,
+                    staffTitle: staffTitle.trim() || undefined,
                   }),
                 )
               }

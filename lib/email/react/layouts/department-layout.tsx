@@ -22,7 +22,7 @@ export function DepartmentLayout({
 }) {
   return (
     <EmailShell preview={preview}>
-      <EmailBrandHeader />
+      <EmailBrandHeader branding={content.branding} />
       <EmailMetaRow
         departmentName={content.departmentName ?? "Orbit Mortgage Department"}
         referenceNumber={content.referenceNumber}
@@ -37,8 +37,9 @@ export function DepartmentLayout({
       <EmailContactSection
         department={content.contactDepartment ?? content.departmentName ?? "department"}
         email={content.contactEmail ?? content.staff?.email ?? "support@orbittmortgage.com"}
+        branding={content.branding}
       />
-      <EmailFooter />
+      <EmailFooter branding={content.branding} />
     </EmailShell>
   );
 }

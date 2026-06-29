@@ -29,6 +29,8 @@ export type NotifyUserInput = {
   email?: string;
   emailTemplate?: EmailTemplateKey;
   emailData?: EmailTemplateData;
+  emailSubject?: string;
+  emailCustomMessage?: string;
 };
 
 export async function notifyUser(input: NotifyUserInput) {
@@ -63,6 +65,8 @@ export async function notifyUser(input: NotifyUserInput) {
         template: input.emailTemplate,
         data: input.emailData,
         email: recipientEmail,
+        subject: input.emailSubject,
+        customMessage: input.emailCustomMessage,
         metadata: {
           ...(input.metadata ?? {}),
           notificationTitle: input.title,
@@ -263,13 +267,21 @@ export async function notifyFinanceMessage(
   applicationId: string,
   senderName: string,
   preview: string,
+  options?: {
+    emailSubject?: string;
+    emailHeadline?: string;
+    staffTitle?: string;
+    staffEmail?: string;
+  },
 ) {
   const email = await resolveUserEmail(userId);
+  const headline = options?.emailHeadline?.trim() || "Message from your loan officer";
+  const subject = options?.emailSubject?.trim() || "Message from Your Loan Officer";
 
   await notifyUser({
     userId,
-    title: "Message from Loan Officer",
-    message: `${senderName}: ${preview.slice(0, 120)}${preview.length > 120 ? "…" : ""}`,
+    title: headline,
+    message: preview.length > 160 ? `${preview.slice(0, 157)}…` : preview,
     type: "application_update",
     category: "finance_message",
     priority: "high",
@@ -278,6 +290,18 @@ export async function notifyFinanceMessage(
     showModal: false,
     sendEmail: true,
     email: email ?? undefined,
+    emailTemplate: "custom_loan_officer",
+    emailSubject: subject,
+    emailCustomMessage: preview,
+    emailData: {
+      subject,
+      headline,
+      message: preview,
+      staffName: senderName,
+      staffTitle: options?.staffTitle,
+      staffEmail: options?.staffEmail,
+      actionUrl: `/dashboard/loans/${applicationId}`,
+    },
   });
 }
 

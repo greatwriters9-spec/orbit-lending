@@ -22,7 +22,7 @@ export function ExecutiveLayout({
 
   return (
     <EmailShell preview={preview} accentBar={false}>
-      <EmailBrandHeader showPathward minimal />
+      <EmailBrandHeader showPathward minimal branding={content.branding} />
       <Section style={{ padding: "8px 32px 20px" }}>
         <Text
           style={{
@@ -86,7 +86,7 @@ export function ExecutiveLayout({
         </Section>
       ) : null}
       {signature ? <EmailSignatureBlock staff={signature} /> : null}
-      <EmailFooter />
+      <EmailFooter branding={content.branding} />
     </EmailShell>
   );
 }
