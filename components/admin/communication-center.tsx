@@ -18,7 +18,9 @@ import {
 import type { EmailCommunicationLog, EmailDepartment } from "@/lib/email/types";
 import { Button } from "@/components/ui-kit/button";
 import { Input } from "@/components/ui-kit/input";
+import { RichEmailEditor } from "@/components/admin/rich-email-editor";
 import { formatApplicationDate } from "@/lib/applications/status-utils";
+import { stripHtmlToText } from "@/lib/email/sanitize-html";
 
 type CommunicationUser = {
   id: string;
@@ -92,6 +94,7 @@ export function CommunicationCenter({
   const [staffName, setStaffName] = useState(initialSenderName);
   const [staffTitle, setStaffTitle] = useState(initialSenderTitle);
   const [message, setMessage] = useState("");
+  const [editorKey, setEditorKey] = useState(0);
   const [feedback, setFeedback] = useState<AdminCommunicationActionState | null>(
     null,
   );
@@ -200,6 +203,11 @@ export function CommunicationCenter({
     event.preventDefault();
     setFeedback(null);
 
+    if (stripHtmlToText(message).length < 10) {
+      setFeedback({ error: "Message must be at least 10 characters." });
+      return;
+    }
+
     startTransition(async () => {
       const result = await sendAdminCommunicationAction({
         recipientMode,
@@ -223,6 +231,7 @@ export function CommunicationCenter({
         const refreshed = await fetchCommunicationCenterDataAction();
         setLogs(refreshed.logs);
         setMessage("");
+        setEditorKey((current) => current + 1);
         if (recipientMode === "multiple") {
           setSelectedUserIds([]);
         }
@@ -492,17 +501,16 @@ export function CommunicationCenter({
             />
           </label>
 
-          <label className="block space-y-2">
+          <div className="space-y-2">
             <span className="text-sm font-semibold text-brand-navy">Message</span>
-            <textarea
-              required
+            <RichEmailEditor
+              key={editorKey}
               value={message}
-              onChange={(event) => setMessage(event.target.value)}
-              rows={6}
-              className="w-full rounded-xl border border-brand-border bg-white px-3 py-3 text-sm"
-              placeholder="Write the client-facing message body..."
+              onChange={setMessage}
+              disabled={isPending}
+              placeholder="Write your client-facing message. Paste from Word to keep bold, underline, fonts, lists, and images."
             />
-          </label>
+          </div>
 
           {recipientMode === "single" && selectedUser ? (
             <p className="text-sm text-muted-foreground">

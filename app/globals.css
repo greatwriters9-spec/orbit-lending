@@ -1006,3 +1006,51 @@
     background: #ffffff !important;
   }
 }
+
+.rich-email-editor__content:empty::before {
+  content: attr(data-placeholder);
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.rich-email-editor__content img {
+  max-width: 100%;
+  height: auto;
+  margin: 12px 0;
+  border-radius: 8px;
+}
+
+.rich-email-editor__content p {
+  margin: 0 0 12px;
+}
+
+.rich-email-editor__content ul,
+.rich-email-editor__content ol {
+  margin: 0 0 12px;
+  padding-left: 1.5rem;
+}
+
+.rich-email-editor__content a {
+  color: #1a4a96;
+  text-decoration: underline;
+}
+
+.rich-email-editor__content blockquote {
+  margin: 0 0 12px;
+  padding-left: 12px;
+  border-left: 3px solid #dbeafe;
+  color: #475569;
+}
+
+.rich-email-editor__content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 12px;
+}
+
+.rich-email-editor__content td,
+.rich-email-editor__content th {
+  border: 1px solid #e2e8f0;
+  padding: 8px;
+  vertical-align: top;
+}

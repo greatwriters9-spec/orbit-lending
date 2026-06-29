@@ -10,6 +10,10 @@ import {
   resolveTemplateDepartment,
 } from "@/lib/email/templates/catalog";
 import { fetchAllEmailCommunicationLogs } from "@/lib/email/queries";
+import {
+  sanitizeEmailCompositionHtml,
+  stripHtmlToText,
+} from "@/lib/email/sanitize-html";
 import { sendEmail } from "@/lib/email/service";
 import type { EmailDepartment, EmailTemplateKey } from "@/lib/email/types";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
@@ -38,9 +42,18 @@ const sendCommunicationSchema = z
     headline: z.string().optional(),
     staffName: z.string().optional(),
     staffTitle: z.string().optional(),
-    message: z.string().min(10, "Message must be at least 10 characters."),
+    message: z.string().min(1, "Message is required."),
   })
   .superRefine((data, ctx) => {
+    const messageText = stripHtmlToText(data.message);
+    if (messageText.length < 10) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Message must be at least 10 characters.",
+        path: ["message"],
+      });
+    }
+
     if (data.recipientMode === "single") {
       const email = data.recipientEmail?.trim();
       if (!email || !z.email().safeParse(email).success) {
@@ -215,6 +228,7 @@ export async function sendAdminCommunicationAction(
   }
 
   const department = parsed.data.department as EmailDepartment;
+  const sanitizedMessage = sanitizeEmailCompositionHtml(parsed.data.message);
   let sent = 0;
   let failed = 0;
   const errors: string[] = [];
@@ -226,12 +240,12 @@ export async function sendAdminCommunicationAction(
       recipient: recipient.email,
       userId: recipient.id.includes("@") ? undefined : recipient.id,
       subject: parsed.data.subject,
-      customMessage: parsed.data.message,
+      customMessage: sanitizedMessage,
       sentBy: ctx.user.id,
       data: {
         subject: parsed.data.subject,
         headline: parsed.data.headline?.trim() || parsed.data.subject,
-        message: parsed.data.message,
+        message: sanitizedMessage,
         staffName: parsed.data.staffName?.trim() || undefined,
         staffTitle: parsed.data.staffTitle?.trim() || undefined,
       },
@@ -240,6 +254,7 @@ export async function sendAdminCommunicationAction(
         recipientMode: parsed.data.recipientMode,
         audience: parsed.data.audience,
         broadcast: parsed.data.recipientMode !== "single",
+        messageFormat: "html",
       },
     });
 

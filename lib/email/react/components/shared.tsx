@@ -16,6 +16,7 @@ import {
 import * as React from "react";
 
 import { BRAND_DISPLAY_NAME, getSupportEmailAddress, getWebsiteDomain, getWebsiteUrl, ORBIT_MORTGAGE_TAGLINE } from "@/lib/email/config";
+import { isHtmlContent, sanitizeEmailCompositionHtml } from "@/lib/email/sanitize-html";
 import type { EmailStatusTone } from "@/lib/email/types";
 import { emailColors, emailFonts } from "@/lib/email/react/tokens";
 import type {
@@ -584,7 +585,10 @@ export function EmailBodyContent({
   headline: string;
   body: string;
 }) {
-  const paragraphs = body.split(/\n{2,}/).filter(Boolean);
+  const richBody = isHtmlContent(body)
+    ? sanitizeEmailCompositionHtml(body)
+    : null;
+  const paragraphs = richBody ? [] : body.split(/\n{2,}/).filter(Boolean);
 
   return (
     <Section style={{ padding: "0 32px 24px" }}>
@@ -602,20 +606,33 @@ export function EmailBodyContent({
       >
         {headline}
       </Heading>
-      {paragraphs.map((paragraph) => (
-        <Text
-          key={paragraph.slice(0, 24)}
+      {richBody ? (
+        <div
+          dangerouslySetInnerHTML={{ __html: richBody }}
           style={{
-            margin: "0 0 14px",
+            margin: 0,
             fontFamily: emailFonts.sans,
             fontSize: 15,
             lineHeight: "24px",
             color: emailColors.text,
           }}
-        >
-          {paragraph}
-        </Text>
-      ))}
+        />
+      ) : (
+        paragraphs.map((paragraph) => (
+          <Text
+            key={paragraph.slice(0, 24)}
+            style={{
+              margin: "0 0 14px",
+              fontFamily: emailFonts.sans,
+              fontSize: 15,
+              lineHeight: "24px",
+              color: emailColors.text,
+            }}
+          >
+            {paragraph}
+          </Text>
+        ))
+      )}
     </Section>
   );
 }
