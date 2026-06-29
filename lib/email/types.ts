@@ -49,7 +49,8 @@ export type EmailTemplateKey =
   | "custom_loan_officer"
   | "custom_chief_lending_officer"
   | "custom_funding_department"
-  | "custom_closings_department";
+  | "custom_closings_department"
+  | "custom_message";
 
 export type EmailTemplateData = Record<string, string | number | undefined | null>;
 
@@ -84,5 +85,6 @@ export type EmailCommunicationLog = {
   resendId: string | null;
   errorMessage: string | null;
   sentBy: string | null;
+  metadata: Record<string, unknown>;
   createdAt: string;
 };

@@ -708,6 +708,22 @@ export function resolveEmailTemplate(
         showProgress: false,
       },
     }),
+    custom_message: () => ({
+      subject: str(data, "subject", "Message from Orbit Mortgage"),
+      content: {
+        ...meta,
+        communicationClass: "department",
+        headline: str(data, "headline", str(data, "subject", "Message from Orbit Mortgage")),
+        body: overrides?.customMessage ?? str(data, "message", ""),
+        staff: staffForDepartment(
+          (str(data, "department", "system") as EmailDepartment) || "system",
+          data,
+          branding,
+        ),
+        showProgress: false,
+        showContact: true,
+      },
+    }),
   };
 
   const built = builders[template]();
@@ -715,7 +731,8 @@ export function resolveEmailTemplate(
     ...built.content,
     communicationClass,
     branding: emailBranding,
-    ...(overrides?.customMessage && template.startsWith("custom_")
+    ...(overrides?.customMessage &&
+    (template.startsWith("custom_") || template === "custom_message")
       ? { body: overrides.customMessage }
       : {}),
   };
@@ -780,6 +797,7 @@ export const EMAIL_TEMPLATE_LABELS: Record<EmailTemplateKey, string> = {
   custom_chief_lending_officer: "Executive Message",
   custom_funding_department: "Funding Department Message",
   custom_closings_department: "Closing Department Message",
+  custom_message: "Custom Message",
 };
 
 export const EMAIL_TEMPLATE_DEFAULT_SUBJECTS: Partial<Record<EmailTemplateKey, string>> = {
@@ -787,6 +805,7 @@ export const EMAIL_TEMPLATE_DEFAULT_SUBJECTS: Partial<Record<EmailTemplateKey, s
   custom_chief_lending_officer: "Important Update from Orbit Mortgage",
   custom_funding_department: "Update on Your Funding Account",
   custom_closings_department: "Update on Your Closing",
+  custom_message: "",
 };
 
 export const EMAIL_TEMPLATE_DEFAULT_HEADLINES: Partial<Record<EmailTemplateKey, string>> = {
@@ -794,6 +813,7 @@ export const EMAIL_TEMPLATE_DEFAULT_HEADLINES: Partial<Record<EmailTemplateKey, 
   custom_chief_lending_officer: "An update on your mortgage",
   custom_funding_department: "An update on your funding account",
   custom_closings_department: "An update on your closing",
+  custom_message: "",
 };
 
 export function getEmailTemplateLabel(templateKey: EmailTemplateKey): string {
@@ -835,6 +855,7 @@ export const CLIENT_EMAIL_TEMPLATE_LABELS: Partial<Record<EmailTemplateKey, stri
   custom_chief_lending_officer: "Important update",
   custom_funding_department: "Funding update",
   custom_closings_department: "Closing update",
+  custom_message: "Custom message",
 };
 
 export function getClientEmailTemplateLabel(templateKey: EmailTemplateKey): string {
@@ -845,15 +866,19 @@ export function getClientEmailTemplateLabel(templateKey: EmailTemplateKey): stri
 }
 
 export const ADMIN_CUSTOM_TEMPLATES: EmailTemplateKey[] = [
+  "custom_message",
   "custom_loan_officer",
   "custom_chief_lending_officer",
   "custom_funding_department",
   "custom_closings_department",
 ];
 
-export const ADMIN_SENDABLE_TEMPLATES = Object.keys(
-  EMAIL_TEMPLATE_LABELS,
-) as EmailTemplateKey[];
+export const ADMIN_SENDABLE_TEMPLATES = [
+  "custom_message",
+  ...Object.keys(EMAIL_TEMPLATE_LABELS).filter(
+    (key) => key !== "custom_message",
+  ),
+] as EmailTemplateKey[];
 
 export const COMMUNICATION_CLASS_LABELS = {
   automated: "Automated System",

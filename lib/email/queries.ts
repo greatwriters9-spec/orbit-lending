@@ -16,6 +16,7 @@ type EmailLogRow = {
   resend_id: string | null;
   error_message: string | null;
   sent_by: string | null;
+  metadata: Record<string, unknown> | null;
   created_at: string;
 };
 
@@ -33,6 +34,7 @@ function mapEmailLog(row: EmailLogRow): EmailCommunicationLog {
     resendId: row.resend_id,
     errorMessage: row.error_message,
     sentBy: row.sent_by,
+    metadata: (row.metadata ?? {}) as Record<string, unknown>,
     createdAt: row.created_at,
   };
 }
@@ -84,4 +86,17 @@ export async function fetchRecentEmailCommunicationLogs(
     .limit(limit);
 
   return (data ?? []).map((row) => mapEmailLog(row as EmailLogRow));
+}
+
+export async function fetchEmailCommunicationLogById(
+  logId: string,
+): Promise<EmailCommunicationLog | null> {
+  const supabase = createServiceRoleClient();
+  const { data } = await supabase
+    .from("email_communication_logs")
+    .select("*")
+    .eq("id", logId)
+    .maybeSingle();
+
+  return data ? mapEmailLog(data as EmailLogRow) : null;
 }

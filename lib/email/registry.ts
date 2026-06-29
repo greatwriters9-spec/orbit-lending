@@ -41,6 +41,7 @@ export const TEMPLATE_COMMUNICATION_CLASS: Record<
   custom_chief_lending_officer: "executive",
   custom_funding_department: "department",
   custom_closings_department: "department",
+  custom_message: "department",
 };
 
 export const TEMPLATE_DEPARTMENTS: Record<EmailTemplateKey, EmailDepartment> = {
@@ -77,6 +78,7 @@ export const TEMPLATE_DEPARTMENTS: Record<EmailTemplateKey, EmailDepartment> = {
   custom_chief_lending_officer: "executive",
   custom_funding_department: "funding",
   custom_closings_department: "closings",
+  custom_message: "system",
 };
 
 export const DEPARTMENT_DISPLAY_NAMES: Record<EmailDepartment, string> = {

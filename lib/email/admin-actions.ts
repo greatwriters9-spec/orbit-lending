@@ -9,13 +9,17 @@ import {
   EMAIL_TEMPLATE_LABELS,
   resolveTemplateDepartment,
 } from "@/lib/email/templates/catalog";
-import { fetchAllEmailCommunicationLogs } from "@/lib/email/queries";
+import { fetchAllEmailCommunicationLogs, fetchEmailCommunicationLogById } from "@/lib/email/queries";
 import {
-  sanitizeEmailCompositionHtml,
-  stripHtmlToText,
-} from "@/lib/email/sanitize-html";
+  buildCommunicationLogMetadata,
+  renderCommunicationPreview,
+  sanitizeCommunicationMessage,
+  type CommunicationPreviewResult,
+  type CommunicationRecipient,
+} from "@/lib/email/communication-compose";
+import { stripHtmlToText } from "@/lib/email/sanitize-html";
 import { sendEmail } from "@/lib/email/service";
-import type { EmailDepartment, EmailTemplateKey } from "@/lib/email/types";
+import type { EmailDepartment, EmailCommunicationLog, EmailTemplateKey } from "@/lib/email/types";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
 
 const recipientModeSchema = z.enum(["single", "multiple", "all"]);
@@ -81,12 +85,12 @@ export type AdminCommunicationActionState = {
   success?: string;
 };
 
-export type CommunicationRecipient = {
-  id: string;
-  email: string;
-  name: string;
-  role: string;
+export type EmailCommunicationLogDetail = {
+  log: EmailCommunicationLog;
+  html: string;
 };
+
+export type { CommunicationRecipient } from "@/lib/email/communication-compose";
 
 function mapProfileToRecipient(user: {
   id: string;
@@ -228,7 +232,28 @@ export async function sendAdminCommunicationAction(
   }
 
   const department = parsed.data.department as EmailDepartment;
-  const sanitizedMessage = sanitizeEmailCompositionHtml(parsed.data.message);
+  const sanitizedMessage = sanitizeCommunicationMessage(parsed.data.message);
+  const preview = await renderCommunicationPreview({
+    compose: parsed.data,
+    sanitizedMessage,
+    recipients,
+  });
+
+  if (!preview.readyToSend) {
+    return {
+      error:
+        preview.checks.find((check) => !check.ok)?.detail ??
+        "Review the email details before sending.",
+    };
+  }
+
+  const logMetadata = buildCommunicationLogMetadata({
+    compose: parsed.data,
+    sanitizedMessage,
+    renderedHtml: preview.html,
+    recipientCount: recipients.length,
+  });
+
   let sent = 0;
   let failed = 0;
   const errors: string[] = [];
@@ -249,13 +274,7 @@ export async function sendAdminCommunicationAction(
         staffName: parsed.data.staffName?.trim() || undefined,
         staffTitle: parsed.data.staffTitle?.trim() || undefined,
       },
-      metadata: {
-        source: "admin_communication_center",
-        recipientMode: parsed.data.recipientMode,
-        audience: parsed.data.audience,
-        broadcast: parsed.data.recipientMode !== "single",
-        messageFormat: "html",
-      },
+      metadata: logMetadata,
     });
 
     if (result.ok) {
@@ -299,4 +318,115 @@ export async function sendAdminCommunicationAction(
   return {
     success: `Broadcast sent to ${sent} recipient${sent === 1 ? "" : "s"}.`,
   };
+}
+
+export async function previewAdminCommunicationAction(
+  input: z.infer<typeof sendCommunicationSchema>,
+): Promise<{ error?: string; preview?: CommunicationPreviewResult }> {
+  await requireAdmin();
+  const parsed = sendCommunicationSchema.safeParse(input);
+
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Invalid input." };
+  }
+
+  const template = parsed.data.template as EmailTemplateKey;
+  if (!ADMIN_SENDABLE_TEMPLATES.includes(template)) {
+    return { error: "Invalid email template selected." };
+  }
+
+  const recipients = await resolveCommunicationRecipients(parsed.data);
+  const sanitizedMessage = sanitizeCommunicationMessage(parsed.data.message);
+  const preview = await renderCommunicationPreview({
+    compose: parsed.data,
+    sanitizedMessage,
+    recipients,
+  });
+
+  return { preview };
+}
+
+export async function fetchEmailCommunicationLogDetailAction(
+  logId: string,
+): Promise<{ error?: string; detail?: EmailCommunicationLogDetail }> {
+  await requireAdmin();
+
+  const log = await fetchEmailCommunicationLogById(logId);
+  if (!log) {
+    return { error: "Email log not found." };
+  }
+
+  const storedHtml =
+    typeof log.metadata.renderedHtml === "string" ? log.metadata.renderedHtml : null;
+
+  if (storedHtml) {
+    return { detail: { log, html: storedHtml } };
+  }
+
+  const composition = log.metadata.composition as
+    | {
+        subject?: string;
+        headline?: string;
+        messageHtml?: string;
+        staffName?: string | null;
+        staffTitle?: string | null;
+        department?: EmailDepartment;
+        template?: EmailTemplateKey;
+      }
+    | undefined;
+
+  if (composition?.messageHtml && composition.template) {
+    const rendered = await renderCommunicationPreview({
+      compose: {
+        recipientMode: "single",
+        audience: "clients",
+        department: composition.department ?? log.department,
+        template: composition.template,
+        subject: composition.subject ?? log.subject,
+        headline: composition.headline,
+        staffName: composition.staffName ?? undefined,
+        staffTitle: composition.staffTitle ?? undefined,
+        message: composition.messageHtml,
+      },
+      sanitizedMessage: composition.messageHtml,
+      recipients: [
+        {
+          id: log.userId ?? log.recipientEmail,
+          email: log.recipientEmail,
+          name: log.recipientEmail,
+          role: "client",
+        },
+      ],
+    });
+
+    return { detail: { log, html: rendered.html } };
+  }
+
+  return {
+    detail: {
+      log,
+      html: `<html><body style="font-family:Arial,sans-serif;padding:24px;"><h1>${log.subject}</h1><p>Full email preview is not available for this older log entry.</p></body></html>`,
+    },
+  };
+}
+
+export async function deleteEmailCommunicationLogAction(
+  logId: string,
+): Promise<AdminCommunicationActionState> {
+  await requireAdmin();
+
+  const supabase = createServiceRoleClient();
+  const { error } = await supabase
+    .from("email_communication_logs")
+    .delete()
+    .eq("id", logId);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath("/admin/communications");
+  revalidatePath("/super-admin/communications");
+
+  return { success: "Email log deleted." };
 }

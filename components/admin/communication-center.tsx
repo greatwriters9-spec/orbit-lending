@@ -4,10 +4,13 @@ import { useMemo, useState, useTransition } from "react";
 
 import {
   fetchCommunicationCenterDataAction,
+  previewAdminCommunicationAction,
   sendAdminCommunicationAction,
   type AdminCommunicationActionState,
 } from "@/lib/email/admin-actions";
+import type { CommunicationPreviewResult } from "@/lib/email/communication-compose";
 import {
+  ADMIN_CUSTOM_TEMPLATES,
   ADMIN_SENDABLE_TEMPLATES,
   EMAIL_TEMPLATE_DEFAULT_HEADLINES,
   EMAIL_TEMPLATE_DEFAULT_SUBJECTS,
@@ -15,7 +18,9 @@ import {
   getEmailTemplateLabel,
   resolveTemplateDepartment,
 } from "@/lib/email/templates/catalog";
-import type { EmailCommunicationLog, EmailDepartment } from "@/lib/email/types";
+import type { EmailCommunicationLog, EmailDepartment, EmailTemplateKey } from "@/lib/email/types";
+import { CommunicationEmailPreviewSheet } from "@/components/admin/communication-email-preview-sheet";
+import { CommunicationLogDetailSheet } from "@/components/admin/communication-log-detail-sheet";
 import { Button } from "@/components/ui-kit/button";
 import { Input } from "@/components/ui-kit/input";
 import { RichEmailEditor } from "@/components/admin/rich-email-editor";
@@ -41,7 +46,11 @@ type CommunicationCenterProps = {
   senderTitle?: string;
 };
 
-const BROADCAST_TEMPLATE = "account_notification" as const;
+const BROADCAST_TEMPLATE = "custom_message" as const;
+
+const STANDARD_TEMPLATES = ADMIN_SENDABLE_TEMPLATES.filter(
+  (key) => !ADMIN_CUSTOM_TEMPLATES.includes(key),
+);
 
 const DEPARTMENT_OPTIONS: Array<{ value: EmailDepartment; label: string }> = [
   { value: "system", label: "Orbit Mortgage System" },
@@ -88,13 +97,19 @@ export function CommunicationCenter({
   const [userSearch, setUserSearch] = useState("");
   const [recipientEmail, setRecipientEmail] = useState("");
   const [department, setDepartment] = useState<EmailDepartment>("loan_officer");
-  const [template, setTemplate] = useState(ADMIN_SENDABLE_TEMPLATES[0]);
+  const [template, setTemplate] = useState<EmailTemplateKey>("custom_message");
   const [subject, setSubject] = useState("");
   const [headline, setHeadline] = useState("");
   const [staffName, setStaffName] = useState(initialSenderName);
   const [staffTitle, setStaffTitle] = useState(initialSenderTitle);
   const [message, setMessage] = useState("");
   const [editorKey, setEditorKey] = useState(0);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [preview, setPreview] = useState<CommunicationPreviewResult | null>(null);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [selectedLog, setSelectedLog] = useState<EmailCommunicationLog | null>(null);
+  const [logSheetOpen, setLogSheetOpen] = useState(false);
   const [feedback, setFeedback] = useState<AdminCommunicationActionState | null>(
     null,
   );
@@ -199,35 +214,61 @@ export function CommunicationCenter({
     setHeadline(EMAIL_TEMPLATE_DEFAULT_HEADLINES[key] ?? "");
   }
 
+  function buildComposePayload() {
+    return {
+      recipientMode,
+      audience,
+      recipientEmail: recipientMode === "single" ? recipientEmail : undefined,
+      userId: recipientMode === "single" ? selectedUserId || undefined : undefined,
+      userIds: recipientMode === "multiple" ? selectedUserIds : undefined,
+      department,
+      template,
+      subject,
+      headline,
+      staffName,
+      staffTitle,
+      message,
+    };
+  }
+
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     setFeedback(null);
+    setPreviewError(null);
 
     if (stripHtmlToText(message).length < 10) {
       setFeedback({ error: "Message must be at least 10 characters." });
       return;
     }
 
-    startTransition(async () => {
-      const result = await sendAdminCommunicationAction({
-        recipientMode,
-        audience,
-        recipientEmail:
-          recipientMode === "single" ? recipientEmail : undefined,
-        userId: recipientMode === "single" ? selectedUserId || undefined : undefined,
-        userIds: recipientMode === "multiple" ? selectedUserIds : undefined,
-        department,
-        template,
-        subject,
-        headline,
-        staffName,
-        staffTitle,
-        message,
-      });
+    setPreviewLoading(true);
+    setPreviewOpen(true);
 
+    startTransition(async () => {
+      const result = await previewAdminCommunicationAction(buildComposePayload());
+      setPreviewLoading(false);
+
+      if (result.error) {
+        setPreviewError(result.error);
+        setPreview(null);
+        return;
+      }
+
+      setPreview(result.preview ?? null);
+    });
+  }
+
+  function handleConfirmSend() {
+    setFeedback(null);
+    setPreviewError(null);
+
+    startTransition(async () => {
+      const result = await sendAdminCommunicationAction(buildComposePayload());
       setFeedback(result);
 
       if (result.success) {
+        setPreviewOpen(false);
+        setPreview(null);
         const refreshed = await fetchCommunicationCenterDataAction();
         setLogs(refreshed.logs);
         setMessage("");
@@ -235,16 +276,18 @@ export function CommunicationCenter({
         if (recipientMode === "multiple") {
           setSelectedUserIds([]);
         }
+      } else if (result.error) {
+        setPreviewError(result.error);
       }
     });
   }
 
   const submitLabel =
     recipientMode === "single"
-      ? "Send Email"
+      ? "Review Email"
       : recipientCount > 0
-        ? `Send to ${recipientCount} recipient${recipientCount === 1 ? "" : "s"}`
-        : "Send Broadcast";
+        ? `Review & Send to ${recipientCount} recipient${recipientCount === 1 ? "" : "s"}`
+        : "Review Broadcast";
 
   return (
     <div className="space-y-6">
@@ -446,11 +489,20 @@ export function CommunicationCenter({
                 onChange={(event) => handleTemplateChange(event.target.value)}
                 className="h-11 w-full rounded-xl border border-brand-border bg-white px-3 text-sm"
               >
-                {ADMIN_SENDABLE_TEMPLATES.map((key) => (
-                  <option key={key} value={key}>
-                    {EMAIL_TEMPLATE_LABELS[key]}
-                  </option>
-                ))}
+                <optgroup label="Custom templates">
+                  {ADMIN_CUSTOM_TEMPLATES.map((key) => (
+                    <option key={key} value={key}>
+                      {EMAIL_TEMPLATE_LABELS[key]}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label="Standard templates">
+                  {STANDARD_TEMPLATES.map((key) => (
+                    <option key={key} value={key}>
+                      {EMAIL_TEMPLATE_LABELS[key]}
+                    </option>
+                  ))}
+                </optgroup>
               </select>
             </label>
           </div>
@@ -463,7 +515,11 @@ export function CommunicationCenter({
               required
               value={subject}
               onChange={(event) => setSubject(event.target.value)}
-              placeholder="Subject line the client sees in their inbox"
+              placeholder={
+                template === "custom_message"
+                  ? "Name this email however you want the customer to see it"
+                  : "Subject line the client sees in their inbox"
+              }
             />
           </label>
 
@@ -567,12 +623,13 @@ export function CommunicationCenter({
                 <th className="px-3 py-3">Template</th>
                 <th className="px-3 py-3">Subject</th>
                 <th className="px-3 py-3">Status</th>
+                <th className="px-3 py-3">Actions</th>
               </tr>
             </thead>
             <tbody>
               {logs.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-3 py-6 text-muted-foreground">
+                  <td colSpan={7} className="px-3 py-6 text-muted-foreground">
                     No emails logged yet.
                   </td>
                 </tr>
@@ -591,6 +648,19 @@ export function CommunicationCenter({
                     </td>
                     <td className="px-3 py-3">{log.subject}</td>
                     <td className="px-3 py-3 capitalize">{log.status}</td>
+                    <td className="px-3 py-3">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedLog(log);
+                          setLogSheetOpen(true);
+                        }}
+                      >
+                        View
+                      </Button>
+                    </td>
                   </tr>
                 ))
               )}
@@ -598,6 +668,26 @@ export function CommunicationCenter({
           </table>
         </div>
       </div>
+
+      <CommunicationEmailPreviewSheet
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        preview={preview}
+        loading={previewLoading}
+        sending={isPending}
+        error={previewError}
+        onConfirmSend={handleConfirmSend}
+      />
+
+      <CommunicationLogDetailSheet
+        log={selectedLog}
+        open={logSheetOpen}
+        onOpenChange={setLogSheetOpen}
+        onDeleted={(logId) => {
+          setLogs((current) => current.filter((entry) => entry.id !== logId));
+          setSelectedLog(null);
+        }}
+      />
     </div>
   );
 }
