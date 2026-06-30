@@ -30,6 +30,7 @@ import type {
 } from "@/types/mortgage-dashboard";
 import type { PreQualificationResult, PropertyUse } from "@/types/mortgage-onboarding";
 import type { PathwardLinkedAccount } from "@/types/wallet";
+import { DEFAULT_FUNDING_BANK_NAME, getFundingBankName } from "@/types/wallet";
 
 const PROPERTY_TYPE_LABELS: Record<string, string> = {
   single_family: "Single Family Home",
@@ -289,7 +290,8 @@ export function buildPathwardFundingView(input: {
     !input.mortgageApproved || setupPending ? "Pending Setup" : "Active";
 
   return {
-    bankName: "Pathward National Bank",
+    bankName: DEFAULT_FUNDING_BANK_NAME,
+    wireBankName: getFundingBankName(input.linkedAccount?.fundingBankName),
     accountHolder: input.linkedAccount?.accountHolderName ?? "Pending Setup",
     routingNumber: input.linkedAccount?.routingNumber ?? "—",
     accountNumberLast4: input.linkedAccount?.accountNumberLast4 ?? "—",

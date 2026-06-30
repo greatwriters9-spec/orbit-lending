@@ -49,6 +49,7 @@ const roleSchema = z.object({
 
 const linkedPathwardAccountSchema = z.object({
   userId: z.string().uuid(),
+  fundingBankName: z.string().trim().min(2, "Funding bank name is required."),
   accountHolderName: z.string().min(2, "Account holder name is required."),
   routingNumber: z
     .string()
@@ -277,6 +278,7 @@ export async function updateLinkedPathwardAccountAction(
     !existingProfile?.pathward_account_number;
 
   const profileUpdate: Record<string, string | number> = {
+    funding_bank_name: parsed.data.fundingBankName.trim(),
     pathward_account_holder_name: parsed.data.accountHolderName.trim(),
     pathward_routing_number: parsed.data.routingNumber.trim(),
     pathward_account_number: parsed.data.accountNumber.trim(),
@@ -301,7 +303,7 @@ export async function updateLinkedPathwardAccountAction(
     userId: parsed.data.userId,
     title: "Funding Account Linked",
     message:
-      "Your Pathward funding account has been linked. Wire instructions are available in your dashboard. Your balance will update once mortgage funding is processed or your down payment is confirmed.",
+      "Your funding account has been linked. Wire instructions are available in your dashboard. Your balance will update once mortgage funding is processed or your down payment is confirmed.",
     type: "application_update",
   });
 
@@ -309,7 +311,7 @@ export async function updateLinkedPathwardAccountAction(
   void sendFundingAccountCreatedEmail(parsed.data.userId, "/dashboard");
 
   revalidateUserPaths(parsed.data.userId);
-  return { success: "Linked Pathward account updated." };
+  return { success: "Linked funding account updated." };
 }
 
 export async function updatePathwardAccountBalanceAction(

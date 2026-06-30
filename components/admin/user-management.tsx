@@ -24,6 +24,9 @@ import {
 import { getRoleLabel } from "@/lib/auth/roles";
 import type { AdminUserDetail } from "@/types/admin";
 import type { AccountStatus, UserRole } from "@/types/profile";
+import {
+  getFundingBankName,
+} from "@/types/wallet";
 
 type AccountStatusPanelProps = {
   user: AdminUserDetail;
@@ -37,11 +40,13 @@ export function AccountStatusPanel({
   canManageStatus,
   canChangeRole,
 }: AccountStatusPanelProps) {
+  const fundingBankName = getFundingBankName(user.fundingBankName);
   const [reason, setReason] = useState("");
   const [newStatus, setNewStatus] = useState<AccountStatus>(
     user.accountStatus as AccountStatus,
   );
   const [newRole, setNewRole] = useState(user.role);
+  const [fundingBank, setFundingBank] = useState(fundingBankName);
   const [accountHolderName, setAccountHolderName] = useState(
     user.pathwardAccountHolderName ?? "",
   );
@@ -205,11 +210,19 @@ export function AccountStatusPanel({
             Linked Pathward Account
           </h4>
           <p className="mt-1 text-xs text-muted-foreground">
-            Link after the client&apos;s mortgage application is approved. Linking
-            only stores account details — use Update Balance after confirming a
-            deposit, or fund the mortgage from the Funding Queue.
+            Link after the client&apos;s mortgage application is approved. Pathward
+            remains the platform banking partner — set the wire destination bank below
+            only when deposits go to a different institution. Linking stores account
+            details only; use Update Balance after confirming a deposit, or fund the
+            mortgage from the Funding Queue.
           </p>
         </div>
+        <Input
+          value={fundingBank}
+          onChange={(e) => setFundingBank(e.target.value)}
+          placeholder="Wire destination bank (e.g. Chase — defaults to Pathward National Bank)"
+          className="h-10"
+        />
         <Input
           value={accountHolderName}
           onChange={(e) => setAccountHolderName(e.target.value)}
@@ -234,6 +247,7 @@ export function AccountStatusPanel({
           type="button"
           disabled={
             isPending ||
+            !fundingBank.trim() ||
             !accountHolderName.trim() ||
             !routingNumber.trim() ||
             !accountNumber.trim()
@@ -242,6 +256,7 @@ export function AccountStatusPanel({
             run(() =>
               updateLinkedPathwardAccountAction({
                 userId: user.id,
+                fundingBankName: fundingBank,
                 accountHolderName,
                 routingNumber,
                 accountNumber,
@@ -256,8 +271,8 @@ export function AccountStatusPanel({
         {user.pathwardRoutingNumber && user.pathwardAccountNumber ? (
           <div className="space-y-3 border-t border-brand-border pt-4">
             <p className="text-xs text-muted-foreground">
-              Record a deposit confirmed by Pathward without changing routing or account
-              numbers.
+              Record a deposit confirmed at the wire destination bank without changing
+              routing or account numbers.
             </p>
             <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
               <Input

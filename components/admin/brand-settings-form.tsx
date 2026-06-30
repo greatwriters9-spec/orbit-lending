@@ -138,7 +138,12 @@ export function BrandSettingsForm({ initialSettings }: BrandSettingsFormProps) {
           <Input
             value={settings.bankPartnerName}
             onChange={(event) => updateField("bankPartnerName", event.target.value)}
+            placeholder="Pathward National Bank"
           />
+          <p className="text-xs text-muted-foreground">
+            Platform-wide banking partner shown on the site, emails, and footer. Per-client wire
+            destination banks are set separately when linking a funding account.
+          </p>
         </label>
       </div>
 

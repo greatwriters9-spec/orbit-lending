@@ -277,7 +277,7 @@ export function MobileMortgageDashboard({ view }: MobileMortgageDashboardProps) 
         open={depositModalOpen}
         onClose={() => setDepositModalOpen(false)}
         amount={depositAmount}
-        bankName={funding.bankName}
+        bankName={funding.wireBankName}
         accountHolder={funding.accountHolder}
         routingNumber={funding.routingNumber}
         accountNumber={accountNumber}

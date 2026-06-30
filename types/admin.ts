@@ -81,6 +81,7 @@ export type AdminUserDetail = AdminUserSummary & {
   pathwardAccountBalance: number;
   pathwardLinkedAt: string | null;
   pathwardWithdrawableApprovedAt: string | null;
+  fundingBankName: string | null;
 };
 
 export type AdminUserFundingApplication = {

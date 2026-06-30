@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import type { PathwardLinkedAccount } from "@/types/wallet";
+import { getFundingBankName } from "@/types/wallet";
 
 type ProfilePathwardRow = {
   pathward_account_holder_name: string | null;
@@ -8,6 +9,7 @@ type ProfilePathwardRow = {
   pathward_account_balance: number | null;
   pathward_linked_at: string | null;
   pathward_withdrawable_approved_at: string | null;
+  funding_bank_name: string | null;
 };
 
 const MORTGAGE_APPROVED_STATUSES = new Set([
@@ -32,6 +34,7 @@ export function mapPathwardLinkedAccount(
     accountBalance: Number(profile.pathward_account_balance ?? 0),
     linkedAt: profile.pathward_linked_at ?? null,
     withdrawableApprovedAt: profile.pathward_withdrawable_approved_at ?? null,
+    fundingBankName: getFundingBankName(profile.funding_bank_name),
   };
 }
 
@@ -43,7 +46,7 @@ export async function fetchPathwardLinkedAccount(
   const { data } = await supabase
     .from("profiles")
     .select(
-      "pathward_account_holder_name, pathward_routing_number, pathward_account_number, pathward_account_balance, pathward_linked_at, pathward_withdrawable_approved_at",
+      "pathward_account_holder_name, pathward_routing_number, pathward_account_number, pathward_account_balance, pathward_linked_at, pathward_withdrawable_approved_at, funding_bank_name",
     )
     .eq("id", userId)
     .maybeSingle();

@@ -27,6 +27,7 @@ type DbProfile = {
   pathward_account_balance: number | null;
   pathward_linked_at: string | null;
   pathward_withdrawable_approved_at: string | null;
+  funding_bank_name: string | null;
   profile_status: string;
   created_at: string;
 };
@@ -134,6 +135,7 @@ export async function fetchAdminUserDetail(
     pathwardAccountBalance: Number(p.pathward_account_balance ?? 0),
     pathwardLinkedAt: p.pathward_linked_at,
     pathwardWithdrawableApprovedAt: p.pathward_withdrawable_approved_at,
+    fundingBankName: p.funding_bank_name,
     profileStatus: p.profile_status,
     createdAt: p.created_at,
     applicationCount: count ?? 0,

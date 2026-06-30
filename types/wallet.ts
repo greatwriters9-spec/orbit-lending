@@ -100,7 +100,16 @@ export type PathwardLinkedAccount = {
   accountBalance: number;
   linkedAt: string | null;
   withdrawableApprovedAt: string | null;
+  /** Wire/deposit destination only — not used for platform partner branding. */
+  fundingBankName: string;
 };
+
+export const DEFAULT_FUNDING_BANK_NAME = "Pathward National Bank";
+
+export function getFundingBankName(name?: string | null): string {
+  const trimmed = name?.trim();
+  return trimmed || DEFAULT_FUNDING_BANK_NAME;
+}
 
 export type FundingQueueItem = {
   id: string;

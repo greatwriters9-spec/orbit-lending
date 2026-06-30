@@ -20,6 +20,7 @@ import type {
   AdminUserWallet,
 } from "@/types/admin";
 import type { UserRole } from "@/types/profile";
+import { getFundingBankName } from "@/types/wallet";
 
 type UserDetailViewProps = {
   user: AdminUserDetail;
@@ -60,6 +61,7 @@ export function UserDetailView({
   activeTab = "profile",
   fundingApplication = null,
 }: UserDetailViewProps) {
+  const fundingBankName = getFundingBankName(user.fundingBankName);
   const name =
     user.firstName && user.lastName
       ? `${user.firstName} ${user.lastName}`
@@ -128,7 +130,9 @@ export function UserDetailView({
         ))}
       </nav>
 
-      {activeTab === "profile" && <ProfileTab user={user} />}
+      {activeTab === "profile" && (
+        <ProfileTab user={user} fundingBankName={fundingBankName} />
+      )}
       {activeTab === "applications" && <ApplicationsTab items={applications} />}
       {activeTab === "loans" && <ApplicationsTab items={loans} emptyLabel="No active mortgages." />}
       {activeTab === "wallet" && <WalletTab wallet={wallet} />}
@@ -141,7 +145,13 @@ export function UserDetailView({
   );
 }
 
-function ProfileTab({ user }: { user: AdminUserDetail }) {
+function ProfileTab({
+  user,
+  fundingBankName,
+}: {
+  user: AdminUserDetail;
+  fundingBankName: string;
+}) {
   return (
     <div className="card-surface grid gap-4 p-6 sm:grid-cols-2">
       <Info label="Role" value={getRoleLabel(user.role)} />
@@ -157,12 +167,13 @@ function ProfileTab({ user }: { user: AdminUserDetail }) {
             : "—"
         }
       />
+      <Info label="Wire Destination Bank" value={fundingBankName} />
       <Info
-        label="Pathward Routing Number"
+        label="Routing Number"
         value={user.pathwardRoutingNumber ?? "—"}
       />
       <Info
-        label="Pathward Account Number"
+        label="Account Number"
         value={
           user.pathwardAccountNumber
             ? `••••${user.pathwardAccountNumber.slice(-4)}`
@@ -174,7 +185,7 @@ function ProfileTab({ user }: { user: AdminUserDetail }) {
         value={user.pathwardAccountHolderName ?? "—"}
       />
       <Info
-        label="Pathward Account Balance"
+        label="Account Balance"
         value={formatCurrency(user.pathwardAccountBalance)}
       />
       <Info

@@ -56,7 +56,10 @@ export type MortgageDetailsView = {
 };
 
 export type PathwardFundingView = {
+  /** Platform banking partner label — always Pathward for client-facing branding. */
   bankName: string;
+  /** Actual linked account bank for wire/deposit instructions only. */
+  wireBankName: string;
   accountHolder: string;
   routingNumber: string;
   accountNumberLast4: string;

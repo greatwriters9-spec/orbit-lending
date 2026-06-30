@@ -481,7 +481,7 @@ export function PathwardDepositInstructionsModal({
         </h2>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           Deposit <span className="font-semibold text-brand-navy">{amount}</span> to your
-          linked Pathward account using the wire details below.
+          funding account using the wire details below.
         </p>
 
         <div className="mt-5 space-y-3 rounded-xl border border-brand-border bg-brand-background/50 px-4 py-4">
@@ -833,6 +833,7 @@ function FundingBankSummary({
 
 function FundingAccountPanel({
   bankName,
+  wireBankName,
   accountNumber,
   statusLabel,
   depositLabel,
@@ -845,6 +846,7 @@ function FundingAccountPanel({
   onViewDetails,
 }: {
   bankName: string;
+  wireBankName?: string;
   accountNumber: string;
   statusLabel: string;
   depositLabel?: string;
@@ -856,6 +858,8 @@ function FundingAccountPanel({
   onMakePayment?: () => void;
   onViewDetails?: () => void;
 }) {
+  const depositBankName = wireBankName ?? bankName;
+
   return (
     <PremiumInsetPanel funding>
       {showFundingActions ? (
@@ -876,7 +880,7 @@ function FundingAccountPanel({
           )}
 
           <FundingBankSummary
-            bankName={bankName}
+            bankName={depositBankName}
             accountNumber={accountNumber}
             onViewDetails={showDepositUI ? onViewDetails : undefined}
           />
@@ -1029,7 +1033,7 @@ export function PathwardFundingAccountCard({ view }: { view: MortgageDashboardVi
 
           <PremiumCardFooter>
             <FundingAccountPanel
-              bankName="Pathward National Bank"
+              bankName={funding.bankName}
               accountNumber="••••0000"
               statusLabel={statusLabel}
             />
@@ -1059,6 +1063,7 @@ export function PathwardFundingAccountCard({ view }: { view: MortgageDashboardVi
           <PremiumCardFooter>
             <FundingAccountPanel
               bankName={funding.bankName}
+              wireBankName={funding.wireBankName}
               accountNumber={accountNumber}
               statusLabel={statusLabel}
               depositLabel={funding.depositLabel}
@@ -1079,7 +1084,7 @@ export function PathwardFundingAccountCard({ view }: { view: MortgageDashboardVi
         open={depositModalOpen}
         onClose={closeDepositModal}
         amount={depositAmount}
-        bankName={funding.bankName}
+        bankName={funding.wireBankName}
         accountHolder={funding.accountHolder}
         routingNumber={funding.routingNumber}
         accountNumber={accountNumber}
