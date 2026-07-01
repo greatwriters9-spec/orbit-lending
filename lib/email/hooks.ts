@@ -33,7 +33,10 @@ export async function sendTimelineEmail(input: TimelineEmailInput) {
     data: input.data,
     subject: input.subject,
     customMessage: input.customMessage,
-    metadata: input.metadata,
+    metadata: {
+      event: input.template,
+      ...(input.metadata ?? {}),
+    },
   });
 }
 

@@ -11,6 +11,7 @@ import {
   EmailProgressTimeline,
   EmailShell,
 } from "@/lib/email/react/components/shared";
+import { getSupportEmailAddress } from "@/lib/email/config";
 import type { EmailTemplateContent } from "@/lib/email/react/types";
 
 export function EmailLayout({
@@ -48,7 +49,7 @@ export function EmailLayout({
       {content.showContact !== false ? (
         <EmailContactSection
           department={content.contactDepartment ?? content.departmentName ?? "Support Team"}
-          email={content.contactEmail ?? "support@orbittmortgage.com"}
+          email={content.contactEmail ?? getSupportEmailAddress()}
           branding={content.branding}
         />
       ) : null}

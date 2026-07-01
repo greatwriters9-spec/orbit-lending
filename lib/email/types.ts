@@ -4,6 +4,7 @@ export const EMAIL_DEPARTMENTS = [
   "underwriting",
   "funding",
   "closings",
+  "compliance",
   "support",
   "executive",
 ] as const;

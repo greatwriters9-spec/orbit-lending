@@ -1,13 +1,17 @@
 import { cleanEnv } from "@/lib/env";
+import {
+  getEmailSender,
+  getEmailSenderByDepartment,
+} from "@/lib/email/emailRouter";
 import type { EmailDepartment } from "@/lib/email/types";
 
-/** Public-facing brand name used in email From headers and templates. */
+/** Public-facing brand name used in legacy helpers and dev fallbacks. */
 export const BRAND_DISPLAY_NAME = "Orbitt Mortgage";
 
-/** Verified Resend sending address for all outbound mail. */
+/** @deprecated Use getEmailSender() — retained for env fallbacks only. */
 export const PRIMARY_SENDER_EMAIL = "support@orbittmortgage.com";
 
-/** Reply-To address for all outbound mail. */
+/** @deprecated Use getEmailSender() — retained for env fallbacks only. */
 export const PRIMARY_REPLY_TO_EMAIL = "support@orbittmortgage.com";
 
 const DEPARTMENT_ENV_KEYS: Record<
@@ -33,6 +37,10 @@ const DEPARTMENT_ENV_KEYS: Record<
   closings: {
     address: "EMAIL_FROM_CLOSINGS",
     displayName: "EMAIL_NAME_CLOSINGS",
+  },
+  compliance: {
+    address: "EMAIL_FROM_COMPLIANCE",
+    displayName: "EMAIL_NAME_COMPLIANCE",
   },
   support: {
     address: "EMAIL_FROM_SUPPORT",
@@ -69,15 +77,13 @@ export function getWebsiteUrl(): string {
 export const ORBIT_MORTGAGE_TAGLINE = "Home financing made simple";
 
 export function getSupportEmailAddress(): string {
-  return getReplyToEmail();
+  return getEmailSenderByDepartment("support").replyTo;
 }
 
 export function getReplyToEmail(): string {
   return (
     cleanEnv(process.env.EMAIL_REPLY_TO) ||
-    cleanEnv(process.env.EMAIL_FROM_SUPPORT) ||
-    cleanEnv(process.env.EMAIL_FROM) ||
-    PRIMARY_REPLY_TO_EMAIL
+    getEmailSenderByDepartment("support").replyTo
   );
 }
 
@@ -85,30 +91,31 @@ export function getBrandedSender(): {
   address: string;
   displayName: string;
   from: string;
+  replyTo: string;
 } {
-  const address =
-    cleanEnv(process.env.EMAIL_FROM) ||
-    cleanEnv(process.env.EMAIL_FROM_SUPPORT) ||
-    PRIMARY_SENDER_EMAIL;
-  const displayName =
-    cleanEnv(process.env.EMAIL_NAME) ||
-    cleanEnv(process.env.EMAIL_NAME_SUPPORT) ||
-    BRAND_DISPLAY_NAME;
-
+  const sender = getEmailSender("support");
   return {
-    address,
-    displayName,
-    from: `${displayName} <${address}>`,
+    address: sender.fromEmail,
+    displayName: sender.fromName,
+    from: sender.from,
+    replyTo: sender.replyTo,
   };
 }
 
-/** All outbound email uses the unified Orbitt Mortgage sender. */
-export function resolveDepartmentSender(_department: EmailDepartment): {
+/** Resolve sender identity for a department (Communication Center override). */
+export function resolveDepartmentSender(department: EmailDepartment): {
   address: string;
   displayName: string;
   from: string;
+  replyTo: string;
 } {
-  return getBrandedSender();
+  const sender = getEmailSenderByDepartment(department);
+  return {
+    address: sender.fromEmail,
+    displayName: sender.fromName,
+    from: sender.from,
+    replyTo: sender.replyTo,
+  };
 }
 
 export function getResendApiKey(): string | null {
@@ -136,3 +143,5 @@ export function getDevFallbackFrom(): string {
 export function getLegacyDepartmentEnvKeys(department: EmailDepartment) {
   return DEPARTMENT_ENV_KEYS[department];
 }
+
+export { getEmailSender, getEmailSenderByDepartment } from "@/lib/email/emailRouter";

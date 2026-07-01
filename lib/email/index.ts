@@ -4,6 +4,12 @@ export * from "@/lib/email/types";
 export * from "@/lib/email/queries";
 export * from "@/lib/email/registry";
 export {
+  getEmailSender,
+  getEmailSenderByDepartment,
+  getDepartmentContactEmail,
+  resolveOutgoingEmailEvent,
+} from "@/lib/email/emailRouter";
+export {
   EMAIL_TEMPLATE_LABELS,
   ADMIN_SENDABLE_TEMPLATES,
   resolveTemplateDepartment,

@@ -38,6 +38,7 @@ const sendCommunicationSchema = z
       "underwriting",
       "funding",
       "closings",
+      "compliance",
       "support",
       "executive",
     ]),
@@ -274,7 +275,13 @@ export async function sendAdminCommunicationAction(
         staffName: parsed.data.staffName?.trim() || undefined,
         staffTitle: parsed.data.staffTitle?.trim() || undefined,
       },
-      metadata: logMetadata,
+      metadata: {
+        ...logMetadata,
+        event:
+          template === "custom_message"
+            ? `department:${department}`
+            : template,
+      },
     });
 
     if (result.ok) {

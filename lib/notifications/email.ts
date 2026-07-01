@@ -101,6 +101,7 @@ export async function sendAdminEmailNotification(
       },
       metadata: {
         adminNotificationEvent: input.event,
+        event: input.event,
         severity: input.severity,
       },
     });

@@ -44,34 +44,34 @@ export const DEFAULT_BRANDING_CONFIG: BrandingConfig = {
   bankPartnerName: "Pathward National Bank",
   departmentDefaults: {
     loan_officer: {
-      staffName: "Orbit Mortgage Loan Team",
+      staffName: "Jordan | Loan Officer",
       staffTitle: "Senior Loan Officer",
-      contactEmail: "support@orbittmortgage.com",
+      contactEmail: "loanofficer@orbittmortgage.com",
     },
     underwriting: {
-      staffName: "Orbit Mortgage Underwriting",
+      staffName: "Underwriting Department",
       staffTitle: "Underwriting Specialist",
-      contactEmail: "support@orbittmortgage.com",
+      contactEmail: "underwriting@orbittmortgage.com",
     },
     funding: {
-      staffName: "Orbit Mortgage Funding Team",
+      staffName: "Funding Department",
       staffTitle: "Funding Operations Manager",
-      contactEmail: "support@orbittmortgage.com",
+      contactEmail: "funding@orbittmortgage.com",
     },
     closings: {
-      staffName: "Orbit Mortgage Closing Team",
+      staffName: "Closing Department",
       staffTitle: "Closing Coordinator",
-      contactEmail: "support@orbittmortgage.com",
+      contactEmail: "closing@orbittmortgage.com",
     },
     support: {
-      staffName: "Orbit Mortgage Support",
+      staffName: "Customer Support",
       staffTitle: "Client Support Team",
       contactEmail: "support@orbittmortgage.com",
     },
     executive: {
-      staffName: "Orbit Mortgage Leadership",
+      staffName: "Chief Lending Officer",
       staffTitle: "Chief Lending Officer",
-      contactEmail: "support@orbittmortgage.com",
+      contactEmail: "lending@orbittmortgage.com",
     },
   },
 };

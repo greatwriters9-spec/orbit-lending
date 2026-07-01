@@ -53,11 +53,12 @@ const STANDARD_TEMPLATES = ADMIN_SENDABLE_TEMPLATES.filter(
 );
 
 const DEPARTMENT_OPTIONS: Array<{ value: EmailDepartment; label: string }> = [
-  { value: "system", label: "Orbit Mortgage System" },
+  { value: "system", label: "Orbitt Mortgage System" },
   { value: "loan_officer", label: "Loan Officer Department" },
   { value: "underwriting", label: "Underwriting Department" },
   { value: "funding", label: "Funding Department" },
   { value: "closings", label: "Closing Department" },
+  { value: "compliance", label: "Compliance Department" },
   { value: "support", label: "Client Support" },
   { value: "executive", label: "Chief Lending Officer" },
 ];

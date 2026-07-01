@@ -3,6 +3,7 @@ import type {
   EmailDepartment,
   EmailTemplateKey,
 } from "@/lib/email/types";
+import { getDepartmentContactEmails } from "@/lib/email/emailRouter";
 
 export const TEMPLATE_COMMUNICATION_CLASS: Record<
   EmailTemplateKey,
@@ -45,22 +46,22 @@ export const TEMPLATE_COMMUNICATION_CLASS: Record<
 };
 
 export const TEMPLATE_DEPARTMENTS: Record<EmailTemplateKey, EmailDepartment> = {
-  welcome: "system",
+  welcome: "loan_officer",
   verify_email: "system",
   verification_success: "system",
-  password_reset: "support",
-  magic_link: "support",
-  auth_verification_code: "support",
+  password_reset: "system",
+  magic_link: "system",
+  auth_verification_code: "system",
   account_notification: "support",
-  security_alert: "system",
-  application_submitted: "system",
+  security_alert: "compliance",
+  application_submitted: "loan_officer",
   application_under_review: "loan_officer",
   additional_documents_required: "underwriting",
   documents_received_for_review: "underwriting",
-  application_approved: "system",
-  application_rejected: "system",
+  application_approved: "loan_officer",
+  application_rejected: "loan_officer",
   application_on_hold: "executive",
-  pre_qualified_notice: "executive",
+  pre_qualified_notice: "loan_officer",
   eligible_amount_updated: "executive",
   funding_account_created: "funding",
   funding_account_activated: "funding",
@@ -78,35 +79,29 @@ export const TEMPLATE_DEPARTMENTS: Record<EmailTemplateKey, EmailDepartment> = {
   custom_chief_lending_officer: "executive",
   custom_funding_department: "funding",
   custom_closings_department: "closings",
-  custom_message: "system",
+  custom_message: "support",
 };
 
 export const DEPARTMENT_DISPLAY_NAMES: Record<EmailDepartment, string> = {
-  system: "Orbit Mortgage",
-  loan_officer: "Orbit Mortgage Loan Team",
-  underwriting: "Orbit Mortgage Underwriting",
-  funding: "Orbit Mortgage Funding Team",
-  closings: "Orbit Mortgage Closing Team",
-  support: "Orbit Mortgage Support",
-  executive: "Orbit Mortgage",
+  system: "Orbitt Mortgage",
+  loan_officer: "Jordan | Loan Officer",
+  underwriting: "Underwriting Department",
+  funding: "Funding Department",
+  closings: "Closing Department",
+  compliance: "Compliance Department",
+  support: "Customer Support",
+  executive: "Chief Lending Officer",
 };
 
-export const DEPARTMENT_CONTACT_EMAILS: Record<EmailDepartment, string> = {
-  system: "support@orbittmortgage.com",
-  loan_officer: "support@orbittmortgage.com",
-  underwriting: "support@orbittmortgage.com",
-  funding: "support@orbittmortgage.com",
-  closings: "support@orbittmortgage.com",
-  support: "support@orbittmortgage.com",
-  executive: "support@orbittmortgage.com",
-};
+export const DEPARTMENT_CONTACT_EMAILS: Record<EmailDepartment, string> =
+  getDepartmentContactEmails();
 
 export const DEFAULT_STAFF_BY_DEPARTMENT: Partial<
   Record<EmailDepartment, { name: string; title: string }>
 > = {
   loan_officer: {
-    name: "Jordan Ellis",
-    title: "Senior Loan Officer",
+    name: "Jordan",
+    title: "Loan Officer",
   },
   underwriting: {
     name: "Morgan Blake",

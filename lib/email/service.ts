@@ -1,8 +1,11 @@
 import {
   getEmailTestOverride,
   getResendApiKey,
-  resolveDepartmentSender,
 } from "@/lib/email/config";
+import {
+  getEmailSender,
+  resolveOutgoingEmailEvent,
+} from "@/lib/email/emailRouter";
 import { deliverResendEmailWithDevFallback } from "@/lib/email/resend-client";
 import { renderEmailFromTemplate } from "@/lib/email/templates/catalog";
 import type {
@@ -60,9 +63,13 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
     customMessage: input.customMessage,
   });
 
-  const sender = resolveDepartmentSender(
-    input.department ?? rendered.department,
-  );
+  const event = resolveOutgoingEmailEvent({
+    template: input.template,
+    department: input.department,
+    metadata: input.metadata,
+  });
+  const sender = getEmailSender(event);
+  const logDepartment = sender.department;
 
   const testOverride = getEmailTestOverride();
   const recipient = testOverride ?? input.recipient.trim();
@@ -75,9 +82,9 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
     const logId = await createEmailLog({
       userId: input.userId,
       recipientEmail: input.recipient,
-      senderEmail: sender.address,
-      senderDisplayName: sender.displayName,
-      department: input.department ?? rendered.department,
+      senderEmail: sender.fromEmail,
+      senderDisplayName: sender.fromName,
+      department: logDepartment,
       templateKey: input.template,
       subject: rendered.subject,
       status: process.env.NODE_ENV === "development" ? "skipped" : "failed",
@@ -101,9 +108,9 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
   const pendingLogId = await createEmailLog({
     userId: input.userId,
     recipientEmail: input.recipient,
-    senderEmail: sender.address,
-    senderDisplayName: sender.displayName,
-    department: input.department ?? rendered.department,
+    senderEmail: sender.fromEmail,
+    senderDisplayName: sender.fromName,
+    department: logDepartment,
     templateKey: input.template,
     subject: rendered.subject,
     status: "pending",
@@ -117,6 +124,7 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
     subject,
     html: rendered.html,
     text: rendered.text,
+    replyTo: sender.replyTo,
   });
 
   const supabase = createServiceRoleClient();
