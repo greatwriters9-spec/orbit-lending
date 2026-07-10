@@ -1,4 +1,4 @@
-import { scoreApplication } from "@/lib/applications/engine/processor";
+import { sendPreQualifiedNoticeEmail } from "@/lib/email/hooks";
 import { mapMortgageDraftToLoanApplication } from "@/lib/onboarding/map-draft";
 import { computePreQualification } from "@/lib/onboarding/pre-qualification";
 import { fetchMortgageConfig } from "@/lib/admin/mortgage/config";
@@ -8,12 +8,19 @@ import { createNotification } from "@/lib/wallet/notifications";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { MortgageApplicationDraft } from "@/types/mortgage-onboarding";
 
+type EnsureApplicationOptions = {
+  mode?: "pre_qualification" | "full_application";
+};
+
 export async function ensureOnboardingApplication(
   supabase: SupabaseClient,
   userId: string,
   email: string | undefined,
   draft: MortgageApplicationDraft,
+  options: EnsureApplicationOptions = {},
 ): Promise<{ error?: string }> {
+  const mode = options.mode ?? "pre_qualification";
+
   const { count } = await supabase
     .from("loan_applications")
     .select("id", { count: "exact", head: true })
@@ -23,7 +30,7 @@ export async function ensureOnboardingApplication(
     return {};
   }
 
-  if (!draft.firstName || !draft.lastName) {
+  if (mode === "full_application" && (!draft.firstName || !draft.lastName)) {
     return {};
   }
 
@@ -41,6 +48,8 @@ export async function ensureOnboardingApplication(
 
   const loanDraft = mapMortgageDraftToLoanApplication(enrichedDraft, preQual);
   const applicationNumber = generateApplicationNumber();
+  const isPreQualification = mode === "pre_qualification";
+  const status = isPreQualification ? "pre_qualified" : "submitted";
 
   const { data: application, error: applicationError } = await supabase
     .from("loan_applications")
@@ -50,13 +59,13 @@ export async function ensureOnboardingApplication(
       requested_amount: loanDraft.configuration.requestedAmount,
       selected_term_id: loanDraft.configuration.selectedTermId,
       purpose: loanDraft.configuration.purpose,
-      status: "submitted",
+      status,
       personal_info: loanDraft.personalInfo,
       financial_info: loanDraft.financialInfo,
       requirement_documents: loanDraft.documents,
       current_step: loanDraft.currentStep,
       application_number: applicationNumber,
-      submitted_at: new Date().toISOString(),
+      submitted_at: isPreQualification ? null : new Date().toISOString(),
     })
     .select("id")
     .single();
@@ -67,17 +76,42 @@ export async function ensureOnboardingApplication(
 
   await supabase.from("application_status_history").insert({
     application_id: application.id,
-    status: "submitted",
-    note: "Mortgage application submitted through Orbit Mortgage onboarding.",
+    status,
+    note: isPreQualification
+      ? "Buying power assessment completed through Orbit Mortgage pre-qualification."
+      : "Mortgage application submitted through Orbit Mortgage onboarding.",
     changed_by: userId,
   });
 
-  await scoreApplication(application.id, userId);
-
   const applicantName =
     `${enrichedDraft.firstName ?? ""} ${enrichedDraft.lastName ?? ""}`.trim() ||
-    enrichedDraft.email ||
+    enrichedDraft.email?.split("@")[0] ||
     "Applicant";
+
+  if (isPreQualification) {
+    await createNotification({
+      userId,
+      title: "Pre-Qualification Complete",
+      message:
+        "Your estimated buying power has been saved. Complete your mortgage application when you're ready to move forward.",
+      type: "application_update",
+      metadata: {
+        applicationId: application.id,
+        preQualification: preQual,
+      },
+    });
+
+    void sendPreQualifiedNoticeEmail(userId, {
+      mortgageAmount: preQual.estimatedMortgageAmount,
+      maxHomePrice: preQual.maximumHomePrice,
+      actionUrl: "/dashboard",
+    });
+
+    return {};
+  }
+
+  const { scoreApplication } = await import("@/lib/applications/engine/processor");
+  await scoreApplication(application.id, userId);
 
   void notifyAdmin({
     event: "NEW_MORTGAGE_APPLICATION",

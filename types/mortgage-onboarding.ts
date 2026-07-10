@@ -1,3 +1,30 @@
+export type BuyingGoal =
+  | "first_home"
+  | "another_home"
+  | "refinancing"
+  | "exploring";
+
+export type CreditRange =
+  | "excellent"
+  | "very_good"
+  | "good"
+  | "fair"
+  | "building"
+  | "prefer_not_to_say";
+
+export type AssessmentEmploymentStatus =
+  | "employed"
+  | "self_employed"
+  | "retired"
+  | "military"
+  | "other";
+
+export type MilitaryService =
+  | "veteran"
+  | "active_duty"
+  | "reserve"
+  | "none";
+
 export type PurchaseTimeline =
   | "within_30_days"
   | "2_3_months"
@@ -88,7 +115,14 @@ export type PreQualificationResult = {
 };
 
 export type MortgageApplicationDraft = {
+  buyingGoal?: BuyingGoal;
   homeFound?: boolean;
+  plannedDownPayment?: number;
+  annualHouseholdIncome?: number;
+  monthlyDebtPayments?: number;
+  creditRange?: CreditRange;
+  employmentStatus?: AssessmentEmploymentStatus;
+  militaryService?: MilitaryService;
   purchaseTimeline?: PurchaseTimeline;
   buyingStage?: BuyingStage;
   targetLocation?: TargetLocation;
@@ -116,5 +150,6 @@ export const MORTGAGE_APPLICATION_DRAFT_KEY = "mortgageApplicationDraft";
 
 export const ONBOARDING_ROUTES = {
   getStarted: "/get-started",
+  congratulations: "/get-started/congratulations",
   createAccount: "/create-account",
 } as const;

@@ -20,7 +20,8 @@ export async function syncProfileFromOnboardingDraft(
       address: draft.address?.street ?? null,
       zip_code: draft.address?.zip ?? draft.targetLocation?.zip ?? null,
       date_of_birth: draft.dateOfBirth ?? null,
-      profile_status: "complete",
+      profile_status:
+        draft.firstName && draft.lastName ? "complete" : "incomplete",
     })
     .eq("id", userId);
 }

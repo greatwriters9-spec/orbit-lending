@@ -7,7 +7,14 @@ import type {
 } from "@/types/mortgage-onboarding";
 
 type OnboardingMeta = {
+  buyingGoal?: MortgageApplicationDraft["buyingGoal"];
   homeFound?: boolean;
+  plannedDownPayment?: number;
+  annualHouseholdIncome?: number;
+  monthlyDebtPayments?: number;
+  creditRange?: MortgageApplicationDraft["creditRange"];
+  employmentStatus?: MortgageApplicationDraft["employmentStatus"];
+  militaryService?: MortgageApplicationDraft["militaryService"];
   purchaseTimeline?: MortgageApplicationDraft["purchaseTimeline"];
   buyingStage?: MortgageApplicationDraft["buyingStage"];
   targetLocation?: TargetLocation;

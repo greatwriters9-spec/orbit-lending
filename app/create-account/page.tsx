@@ -3,17 +3,9 @@
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 
-import {
-  AskAssistantButton,
-  OnboardingFooter,
-  OnboardingStepFaq,
-  OnboardingTestimonials,
-} from "@/components/onboarding/onboarding-chrome";
 import { createAccountFromOnboardingAction } from "@/lib/onboarding/actions";
 import { EMAIL_ALREADY_REGISTERED_MESSAGE } from "@/lib/auth/sign-up";
-import {
-  readMortgageApplicationDraft,
-} from "@/lib/onboarding/draft-storage";
+import { readMortgageApplicationDraft } from "@/lib/onboarding/draft-storage";
 import { ONBOARDING_ROUTES } from "@/types/mortgage-onboarding";
 import type { MortgageApplicationDraft } from "@/types/mortgage-onboarding";
 import { PasswordInput } from "@/components/auth/password-input";
@@ -23,24 +15,29 @@ import { onboardingInputClassName } from "@/components/onboarding/onboarding-she
 
 export default function CreateAccountPage() {
   const [draft, setDraft] = useState<MortgageApplicationDraft | null>(null);
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     const stored = readMortgageApplicationDraft();
-    if (!stored?.email) {
+    if (!stored?.preQualification) {
       window.location.href = ONBOARDING_ROUTES.getStarted;
       return;
     }
     setDraft(stored);
+    if (stored.email) {
+      setEmail(stored.email);
+    }
   }, []);
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    if (!draft?.email) {
+    if (!draft?.preQualification) {
       return;
     }
 
@@ -49,10 +46,11 @@ export default function CreateAccountPage() {
 
     startTransition(async () => {
       const result = await createAccountFromOnboardingAction({
-        email: draft.email!,
+        email,
         password,
         confirmPassword,
-        draft,
+        acceptTerms,
+        draft: { ...draft, email },
       });
 
       if (result.error) {
@@ -79,14 +77,14 @@ export default function CreateAccountPage() {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-lg flex-1 px-4 py-12 pb-44 md:px-6 md:py-16 md:pb-48">
+      <main className="mx-auto w-full max-w-lg flex-1 px-4 py-12 pb-16 md:px-6 md:py-16">
         <div className="card-surface p-6 md:p-10">
           <h1 className="heading-primary text-3xl md:text-4xl">
             Create Your Orbit Mortgage Account
           </h1>
           <p className="mt-3 text-base leading-relaxed text-muted-foreground md:text-lg">
-            Your pre-qualification answers are saved. Create a password to view
-            your results.
+            Your estimated buying power will be securely saved to your account so
+            you can continue your mortgage journey at any time.
           </p>
 
           {error ? (
@@ -121,14 +119,18 @@ export default function CreateAccountPage() {
                 </span>
                 <input
                   type="email"
-                  readOnly
-                  value={draft.email ?? ""}
-                  className={`${onboardingInputClassName()} bg-[#F8FAFC] text-muted-foreground`}
+                  required
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  className={onboardingInputClassName()}
+                  autoComplete="email"
                 />
               </label>
 
               <label className="block space-y-3">
-                <span className="text-base font-semibold text-brand-navy md:text-lg">Password</span>
+                <span className="text-base font-semibold text-brand-navy md:text-lg">
+                  Password
+                </span>
                 <PasswordInput
                   required
                   value={password}
@@ -151,26 +153,37 @@ export default function CreateAccountPage() {
                 />
               </label>
 
+              <label className="flex items-start gap-3 pt-1">
+                <input
+                  type="checkbox"
+                  required
+                  checked={acceptTerms}
+                  onChange={(event) => setAcceptTerms(event.target.checked)}
+                  className="mt-1 size-4 rounded border-brand-border text-brand-blue focus:ring-brand-blue"
+                />
+                <span className="text-sm leading-relaxed text-muted-foreground">
+                  I accept the{" "}
+                  <Link href="/terms" className="font-semibold text-brand-blue hover:underline">
+                    Terms
+                  </Link>{" "}
+                  and{" "}
+                  <Link href="/privacy" className="font-semibold text-brand-blue hover:underline">
+                    Privacy Policy
+                  </Link>
+                </span>
+              </label>
+
               <Button
                 type="submit"
-                disabled={isPending}
+                disabled={isPending || !acceptTerms}
                 className="h-14 w-full rounded-xl bg-brand-blue text-base font-semibold text-white hover:bg-brand-blue/90 md:text-lg"
               >
-                {isPending ? "Creating Account..." : "Create Account"}
+                {isPending ? "Creating Account..." : "Create My Account"}
               </Button>
             </form>
           )}
         </div>
-
-        <OnboardingStepFaq stepKey="create-account" />
-        <OnboardingTestimonials step={12} />
       </main>
-
-      <AskAssistantButton
-        className="bottom-[5.5rem] md:bottom-[6rem]"
-        source="create-account"
-      />
-      <OnboardingFooter />
     </div>
   );
 }

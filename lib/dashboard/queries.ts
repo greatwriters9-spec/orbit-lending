@@ -15,6 +15,7 @@ import { formatCurrency } from "@/lib/loans/queries";
 import { getOrCreateWallet } from "@/lib/wallet/ledger";
 import { fetchPathwardLinkedAccount, isMortgageApprovedForWithdrawal } from "@/lib/wallet/pathward-account";
 import { parseOnboardingMeta } from "@/lib/onboarding/parse-application";
+import { extractDocumentChecklistFromPersonalInfo } from "@/lib/mortgage-application/map-to-db";
 import { fetchSupportSummary } from "@/lib/support/queries";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -95,6 +96,8 @@ export type ClientDashboardData = {
   targetLocation?: { city: string; state: string; zip: string };
   propertyAddress?: { street: string; city: string; state: string; zip: string };
   purchasePrice?: number;
+  documentChecklist: import("@/types/mortgage-full-application").DocumentChecklistItem[];
+  submittedAt?: string;
 };
 
 const EMPTY_PROGRESS: ProgressStep[] = [
@@ -378,6 +381,8 @@ export async function fetchClientDashboardData(
     targetLocation: onboardingMeta?.targetLocation,
     propertyAddress: onboardingMeta?.propertyAddress,
     purchasePrice: onboardingMeta?.purchasePrice,
+    documentChecklist: extractDocumentChecklistFromPersonalInfo(personalInfo),
+    submittedAt: latestApplication?.submitted_at ?? undefined,
   };
 }
 
@@ -552,9 +557,10 @@ function buildNextAction(input: {
   switch (input.dashboardState) {
     case "pre_qualified":
       return {
-        title: "Continue Your Application",
-        message: `You are eligible for up to ${formatCurrency(input.summary.approvedMortgageAmount)}. Complete your mortgage application to move toward approval and funding.`,
-        buttonLabel: "Continue Application",
+        title: "Complete Your Mortgage Application",
+        message:
+          "You're pre-qualified based on the information you've provided. The next step is to complete your full mortgage application so our team can verify your information and determine your final loan eligibility.",
+        buttonLabel: "Start Mortgage Application",
         buttonHref: appHref,
       };
     case "property_submitted":

@@ -18,7 +18,7 @@ const TRANSITIONS: Record<ApplicationStatus, ApplicationStatus[]> = {
     "pre_approved",
     "approved",
   ],
-  pre_qualified: ["offer_sent", "information_required", "rejected", "approved"],
+  pre_qualified: ["submitted", "offer_sent", "information_required", "rejected", "approved"],
   pre_approved: ["offer_sent", "pending_finance_approval", "rejected", "approved"],
   information_required: [
     "under_review",

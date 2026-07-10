@@ -5,15 +5,37 @@ import type {
 } from "@/types/mortgage-onboarding";
 import { getEmploymentStatusForScoring } from "@/lib/onboarding/pre-qualification";
 
+const BUYING_GOAL_LABELS: Record<string, string> = {
+  first_home: "first home purchase",
+  another_home: "another home purchase",
+  refinancing: "refinancing",
+  exploring: "home buying exploration",
+};
+
 function buildPurpose(draft: MortgageApplicationDraft): string {
+  const goalLabel = draft.buyingGoal
+    ? BUYING_GOAL_LABELS[draft.buyingGoal]
+    : undefined;
   const use = draft.propertyUse?.replace(/_/g, " ") ?? "primary residence";
+
+  if (goalLabel === "refinancing") {
+    return "Refinance through Orbit Mortgage pre-qualification";
+  }
+
   if (draft.homeFound && draft.propertyAddress) {
     return `Purchase ${use} at ${draft.propertyAddress.street}, ${draft.propertyAddress.city}, ${draft.propertyAddress.state}`;
   }
-  if (draft.targetLocation) {
-    return `Purchase ${use} in ${draft.targetLocation.city}, ${draft.targetLocation.state}`;
+  if (draft.targetLocation?.state) {
+    const location = draft.targetLocation.city
+      ? `${draft.targetLocation.city}, ${draft.targetLocation.state}`
+      : draft.targetLocation.state;
+    return goalLabel
+      ? `${goalLabel} in ${location}`
+      : `Purchase ${use} in ${location}`;
   }
-  return `Purchase ${use} through Orbit Mortgage onboarding`;
+  return goalLabel
+    ? `${goalLabel} through Orbit Mortgage pre-qualification`
+    : `Purchase ${use} through Orbit Mortgage pre-qualification`;
 }
 
 export function mapMortgageDraftToLoanApplication(
@@ -50,7 +72,14 @@ export function mapMortgageDraftToLoanApplication(
       zipCode: draft.address?.zip ?? draft.targetLocation?.zip ?? "",
       yearsAtAddress: draft.address?.yearsAtAddress ?? "",
       onboarding: {
+        buyingGoal: draft.buyingGoal,
         homeFound: draft.homeFound ?? false,
+        plannedDownPayment: draft.plannedDownPayment,
+        annualHouseholdIncome: draft.annualHouseholdIncome,
+        monthlyDebtPayments: draft.monthlyDebtPayments,
+        creditRange: draft.creditRange,
+        employmentStatus: draft.employmentStatus,
+        militaryService: draft.militaryService,
         purchaseTimeline: draft.purchaseTimeline,
         buyingStage: draft.buyingStage,
         targetLocation: draft.targetLocation,
@@ -69,7 +98,7 @@ export function mapMortgageDraftToLoanApplication(
       jobTitle: draft.employment?.position ?? "",
       monthlyIncome,
       monthlyExpenses,
-      existingDebt: 0,
+      existingDebt: draft.monthlyDebtPayments ?? 0,
       employmentType: draft.employment?.employmentType,
       yearsEmployed: draft.employment?.yearsEmployed,
       annualIncome: draft.employment?.annualIncome,

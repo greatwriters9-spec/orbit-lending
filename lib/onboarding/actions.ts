@@ -37,12 +37,49 @@ const createAccountSchema = z
       .regex(/[A-Z]/, "Include at least one uppercase letter")
       .regex(/[0-9]/, "Include at least one number"),
     confirmPassword: z.string(),
+    acceptTerms: z.boolean().refine((value) => value, {
+      message: "You must accept the Terms and Privacy Policy.",
+    }),
     draft: z.custom<MortgageApplicationDraft>(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
     path: ["confirmPassword"],
   });
+
+async function finalizePreQualificationForUser(
+  userId: string,
+  email: string | undefined,
+  draft: MortgageApplicationDraft,
+): Promise<OnboardingActionState> {
+  if (!draft.preQualification) {
+    const mortgageConfig = await fetchMortgageConfig();
+    const preQual = computePreQualification(draft, mortgageConfig);
+    if (!preQual) {
+      return { error: "Unable to calculate pre-qualification. Try again." };
+    }
+    draft = { ...draft, preQualification: preQual };
+  }
+
+  const supabase = await createClient();
+  const enrichedDraft = enrichOnboardingDraft(draft, email);
+
+  await syncProfileFromOnboardingDraft(supabase, userId, enrichedDraft);
+
+  const applicationResult = await ensureOnboardingApplication(
+    supabase,
+    userId,
+    email,
+    enrichedDraft,
+    { mode: "pre_qualification" },
+  );
+
+  if (applicationResult.error) {
+    return { error: applicationResult.error };
+  }
+
+  return {};
+}
 
 async function getOrigin() {
   const headersList = await headers();
@@ -80,6 +117,7 @@ async function finalizeOnboardingForUser(
     userId,
     email,
     enrichedDraft,
+    { mode: "full_application" },
   );
 
   if (applicationResult.error) {
@@ -87,6 +125,36 @@ async function finalizeOnboardingForUser(
   }
 
   return {};
+}
+
+export async function finalizePreQualificationAction(
+  draft: MortgageApplicationDraft,
+): Promise<OnboardingActionState> {
+  const parsed = onboardingDraftSchema.safeParse(draft);
+  if (!parsed.success) {
+    return { error: "Invalid assessment data." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { needsAccount: true };
+  }
+
+  const result = await finalizePreQualificationForUser(
+    user.id,
+    user.email,
+    parsed.data,
+  );
+
+  if (result.error) {
+    return result;
+  }
+
+  redirect(AUTH_ROUTES.dashboard);
 }
 
 export async function finalizeOnboardingAction(
@@ -128,14 +196,8 @@ export async function createAccountFromOnboardingAction(
   }
 
   const draft = parsed.data.draft;
-  if (!draft.firstName || !draft.lastName || !draft.email) {
-    return { error: "Complete the onboarding questions before creating an account." };
-  }
-
-  const mortgageConfig = await fetchMortgageConfig();
-  const preQual = computePreQualification(draft, mortgageConfig);
-  if (!preQual) {
-    return { error: "Unable to calculate pre-qualification. Try again." };
+  if (!draft.preQualification) {
+    return { error: "Complete the buying power assessment before creating an account." };
   }
 
   const origin = await getOrigin();
@@ -146,12 +208,8 @@ export async function createAccountFromOnboardingAction(
     email: parsed.data.email,
     password: parsed.data.password,
     emailRedirectTo,
-    metadata: {
-      first_name: draft.firstName,
-      middle_name: draft.middleName,
-      last_name: draft.lastName,
-    },
-    firstName: draft.firstName,
+    metadata: {},
+    firstName: parsed.data.email.split("@")[0],
   });
 
   if (!registration.ok) {
@@ -177,13 +235,12 @@ export async function createAccountFromOnboardingAction(
   }
 
   const userId = user.id;
-  const result = await finalizeOnboardingForUser(
+  const result = await finalizePreQualificationForUser(
     userId,
     parsed.data.email,
     {
       ...draft,
       email: parsed.data.email,
-      preQualification: preQual,
       completedAt: new Date().toISOString(),
     },
   );
@@ -192,7 +249,7 @@ export async function createAccountFromOnboardingAction(
     return { error: result.error };
   }
 
-  redirect(AUTH_ROUTES.qualificationResult);
+  redirect(AUTH_ROUTES.dashboard);
 }
 
 export async function updateApplicationFromOnboardingAction(

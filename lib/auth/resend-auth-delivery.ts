@@ -38,15 +38,27 @@ export async function registerUserWithResendVerification(
 ): Promise<RegisterWithResendResult> {
   const admin = createServiceRoleClient();
 
-  const { data, error } = await admin.auth.admin.generateLink({
-    type: "signup",
-    email: input.email,
-    password: input.password,
-    options: {
-      redirectTo: input.emailRedirectTo,
-      data: input.metadata,
-    },
-  });
+  let data;
+  let error;
+
+  try {
+    ({ data, error } = await admin.auth.admin.generateLink({
+      type: "signup",
+      email: input.email,
+      password: input.password,
+      options: {
+        redirectTo: input.emailRedirectTo,
+        data: input.metadata,
+      },
+    }));
+  } catch (cause) {
+    console.error("[registerUserWithResendVerification] Supabase request failed:", cause);
+    return {
+      ok: false,
+      error:
+        "Unable to reach the authentication service. If you're running locally on Windows, restart the app with `npm run start` and try again.",
+    };
+  }
 
   const signUpError = resolveSignUpError(data?.user, error);
   if (signUpError) {

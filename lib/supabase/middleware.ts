@@ -22,6 +22,23 @@ function matchesPrefix(pathname: string, prefixes: readonly string[]) {
   return prefixes.some((prefix) => pathname.startsWith(prefix));
 }
 
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T | null> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<null>((resolve) => {
+        timeoutId = setTimeout(() => resolve(null), timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  }
+}
+
 async function getUserProfile(
   supabase: ReturnType<typeof createServerClient>,
   userId: string,
@@ -62,9 +79,8 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const authResult = await withTimeout(supabase.auth.getUser(), 2000);
+  const user = authResult?.data.user ?? null;
 
   const { pathname } = request.nextUrl;
   const isProtected = matchesPrefix(pathname, PROTECTED_PREFIXES);
@@ -78,7 +94,9 @@ export async function updateSession(request: NextRequest) {
   }
 
   if (user) {
-    const { role, accountStatus } = await getUserProfile(supabase, user.id);
+    const profile = await withTimeout(getUserProfile(supabase, user.id), 2000);
+    const role = profile?.role ?? "client";
+    const accountStatus = profile?.accountStatus ?? "active";
 
     if (isAuthRoute) {
       const url = request.nextUrl.clone();
