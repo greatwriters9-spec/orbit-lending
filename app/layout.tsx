@@ -7,6 +7,7 @@ import { AppProviders } from "@/components/providers/app-providers";
 import { CompanyProvider } from "@/components/providers/company-provider";
 import { SitePathwardBadge } from "@/components/brand/site-pathward-badge";
 import { getCompanyContext } from "@/lib/company/server";
+import { isOakstoneCompany } from "@/lib/design-system/oakstone/theme";
 import { getSiteMetadata } from "@/lib/site/metadata";
 
 import "./globals.css";
@@ -37,12 +38,20 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     description: branding.tagline,
     applicationName: company.companyName,
-    icons: company.favicon
-      ? {
-          icon: [{ url: company.favicon, type: "image/png" }],
-          shortcut: company.favicon,
-        }
-      : base.icons,
+    icons: {
+      icon: [
+        {
+          url: company.favicon ?? "/icon",
+          type: "image/png",
+          sizes: "48x48",
+        },
+        ...(isOakstoneCompany(company.slug) || company.favicon
+          ? []
+          : [{ url: "/orbit-icon.svg", type: "image/svg+xml" as const }]),
+      ],
+      shortcut: company.favicon ?? "/icon",
+      apple: [{ url: "/apple-icon", sizes: "180x180", type: "image/png" }],
+    },
     openGraph: {
       ...base.openGraph,
       siteName: company.companyName,

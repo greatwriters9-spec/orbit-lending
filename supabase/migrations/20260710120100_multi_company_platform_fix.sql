@@ -113,6 +113,7 @@ on conflict (id) do update set
 update public.companies
 set
   logo = '/companies/oakstone-logo.png',
+  favicon = '/companies/oakstone-favicon.png',
   hero_background = '/assets/oakstone/hero-home.webp',
   primary_color = '#0F6A4A',
   secondary_color = '#D4A53A',
