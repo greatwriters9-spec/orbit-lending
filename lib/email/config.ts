@@ -1,17 +1,18 @@
 import { cleanEnv } from "@/lib/env";
+import type { CompanyEmailBranding } from "@/lib/email/company-branding";
 import {
   getEmailSender,
   getEmailSenderByDepartment,
 } from "@/lib/email/emailRouter";
 import type { EmailDepartment } from "@/lib/email/types";
 
-/** Public-facing brand name used in legacy helpers and dev fallbacks. */
+/** @deprecated Dev-only fallback brand name. Use company branding in production paths. */
 export const BRAND_DISPLAY_NAME = "Orbitt Mortgage";
 
-/** @deprecated Use getEmailSender() — retained for env fallbacks only. */
+/** @deprecated Dev-only fallback sender. Use company branding in production paths. */
 export const PRIMARY_SENDER_EMAIL = "support@orbittmortgage.com";
 
-/** @deprecated Use getEmailSender() — retained for env fallbacks only. */
+/** @deprecated Dev-only fallback reply-to. Use company branding in production paths. */
 export const PRIMARY_REPLY_TO_EMAIL = "support@orbittmortgage.com";
 
 const DEPARTMENT_ENV_KEYS: Record<
@@ -59,6 +60,7 @@ export function getAppOrigin(): string {
   );
 }
 
+/** @deprecated Dev-only fallback website domain. Use company branding in production paths. */
 export function getWebsiteDomain(): string {
   return (
     process.env.NEXT_PUBLIC_WEBSITE_DOMAIN?.trim() ||
@@ -66,6 +68,7 @@ export function getWebsiteDomain(): string {
   );
 }
 
+/** @deprecated Dev-only fallback website URL. Use company branding in production paths. */
 export function getWebsiteUrl(): string {
   const domain = getWebsiteDomain();
   if (domain.startsWith("http://") || domain.startsWith("https://")) {
@@ -74,26 +77,37 @@ export function getWebsiteUrl(): string {
   return `https://${domain}`;
 }
 
+/** @deprecated Dev-only fallback tagline. Use company branding in production paths. */
 export const ORBIT_MORTGAGE_TAGLINE = "Home financing made simple";
 
-export function getSupportEmailAddress(): string {
-  return getEmailSenderByDepartment("support").replyTo;
+/** @deprecated Use company branding supportEmail in production paths. */
+export function getSupportEmailAddress(
+  branding?: Pick<CompanyEmailBranding, "supportEmail">,
+): string {
+  if (branding?.supportEmail) {
+    return branding.supportEmail;
+  }
+  return PRIMARY_REPLY_TO_EMAIL;
 }
 
-export function getReplyToEmail(): string {
+/** @deprecated Dev-only fallback reply-to. Production sends pass explicit replyTo. */
+export function getReplyToEmail(
+  branding?: Pick<CompanyEmailBranding, "supportEmail">,
+): string {
   return (
     cleanEnv(process.env.EMAIL_REPLY_TO) ||
-    getEmailSenderByDepartment("support").replyTo
+    getSupportEmailAddress(branding)
   );
 }
 
-export function getBrandedSender(): {
+/** @deprecated Use getEmailSender(event, companyBranding) with resolved company branding. */
+export function getBrandedSender(companyBranding: CompanyEmailBranding): {
   address: string;
   displayName: string;
   from: string;
   replyTo: string;
 } {
-  const sender = getEmailSender("support");
+  const sender = getEmailSender("support", companyBranding);
   return {
     address: sender.fromEmail,
     displayName: sender.fromName,
@@ -102,14 +116,17 @@ export function getBrandedSender(): {
   };
 }
 
-/** Resolve sender identity for a department (Communication Center override). */
-export function resolveDepartmentSender(department: EmailDepartment): {
+/** @deprecated Use getEmailSenderByDepartment(department, companyBranding). */
+export function resolveDepartmentSender(
+  department: EmailDepartment,
+  companyBranding: CompanyEmailBranding,
+): {
   address: string;
   displayName: string;
   from: string;
   replyTo: string;
 } {
-  const sender = getEmailSenderByDepartment(department);
+  const sender = getEmailSenderByDepartment(department, companyBranding);
   return {
     address: sender.fromEmail,
     displayName: sender.fromName,
@@ -131,6 +148,7 @@ export function getEmailTestOverride(): string | null {
   return testTo || null;
 }
 
+/** @deprecated Dev-only Resend sandbox sender. */
 export function getDevFallbackFrom(): string {
   const devFrom = cleanEnv(process.env.RESEND_DEV_FROM);
   if (devFrom) {

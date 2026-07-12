@@ -1,3 +1,6 @@
+import type { CompanyEmailBranding } from "@/lib/email/company-branding";
+import { getDepartmentSenderIdentity } from "@/lib/email/company-branding";
+import { EMAIL_DEPARTMENTS } from "@/lib/email/types";
 import type { EmailDepartment, EmailTemplateKey } from "@/lib/email/types";
 
 export type EmailSenderIdentity = {
@@ -10,52 +13,6 @@ export type EmailSenderIdentity = {
 };
 
 type RoutedDepartment = EmailDepartment;
-
-const DEPARTMENT_IDENTITIES: Record<
-  RoutedDepartment,
-  { fromName: string; fromEmail: string; replyTo: string }
-> = {
-  system: {
-    fromName: "Orbitt Mortgage",
-    fromEmail: "noreply@orbittmortgage.com",
-    replyTo: "noreply@orbittmortgage.com",
-  },
-  loan_officer: {
-    fromName: "Jordan | Loan Officer",
-    fromEmail: "loanofficer@orbittmortgage.com",
-    replyTo: "loanofficer@orbittmortgage.com",
-  },
-  underwriting: {
-    fromName: "Underwriting Department",
-    fromEmail: "underwriting@orbittmortgage.com",
-    replyTo: "underwriting@orbittmortgage.com",
-  },
-  funding: {
-    fromName: "Funding Department",
-    fromEmail: "funding@orbittmortgage.com",
-    replyTo: "funding@orbittmortgage.com",
-  },
-  closings: {
-    fromName: "Closing Department",
-    fromEmail: "closing@orbittmortgage.com",
-    replyTo: "closing@orbittmortgage.com",
-  },
-  compliance: {
-    fromName: "Compliance Department",
-    fromEmail: "compliance@orbittmortgage.com",
-    replyTo: "compliance@orbittmortgage.com",
-  },
-  support: {
-    fromName: "Customer Support",
-    fromEmail: "support@orbittmortgage.com",
-    replyTo: "support@orbittmortgage.com",
-  },
-  executive: {
-    fromName: "Chief Lending Officer",
-    fromEmail: "lending@orbittmortgage.com",
-    replyTo: "lending@orbittmortgage.com",
-  },
-};
 
 /** Canonical event → department routing for outbound email identities. */
 const EVENT_ROUTING: Record<string, RoutedDepartment> = {
@@ -227,12 +184,10 @@ const EMAIL_TEMPLATE_KEYS = new Set<string>([
   "custom_message",
 ]);
 
-function formatFromHeader(fromName: string, fromEmail: string): string {
-  return `${fromName} <${fromEmail}>`;
-}
+const EMAIL_DEPARTMENT_SET = new Set<string>(EMAIL_DEPARTMENTS);
 
 function isEmailDepartment(value: string): value is EmailDepartment {
-  return value in DEPARTMENT_IDENTITIES;
+  return EMAIL_DEPARTMENT_SET.has(value);
 }
 
 function resolveEventDepartment(event: string): RoutedDepartment {
@@ -266,17 +221,9 @@ function resolveEventDepartment(event: string): RoutedDepartment {
 
 export function getEmailSenderByDepartment(
   department: EmailDepartment,
+  companyBranding: CompanyEmailBranding,
 ): EmailSenderIdentity {
-  const identity =
-    DEPARTMENT_IDENTITIES[department] ?? DEPARTMENT_IDENTITIES.support;
-
-  return {
-    fromName: identity.fromName,
-    fromEmail: identity.fromEmail,
-    replyTo: identity.replyTo,
-    department,
-    from: formatFromHeader(identity.fromName, identity.fromEmail),
-  };
+  return getDepartmentSenderIdentity(companyBranding, department);
 }
 
 /**
@@ -284,13 +231,12 @@ export function getEmailSenderByDepartment(
  * Accepts template keys, auth action types, admin notification events,
  * or `department:{name}` selectors from the Communication Center.
  */
-export function getEmailSender(event: string): EmailSenderIdentity {
+export function getEmailSender(
+  event: string,
+  companyBranding: CompanyEmailBranding,
+): EmailSenderIdentity {
   const department = resolveEventDepartment(event);
-  return getEmailSenderByDepartment(department);
-}
-
-export function getDepartmentContactEmail(department: EmailDepartment): string {
-  return getEmailSenderByDepartment(department).replyTo;
+  return getEmailSenderByDepartment(department, companyBranding);
 }
 
 export function resolveOutgoingEmailEvent(input: {
@@ -323,17 +269,4 @@ export function resolveOutgoingEmailEvent(input: {
   }
 
   return input.template;
-}
-
-export function getDepartmentContactEmails(): Record<EmailDepartment, string> {
-  return {
-    system: getDepartmentContactEmail("system"),
-    loan_officer: getDepartmentContactEmail("loan_officer"),
-    underwriting: getDepartmentContactEmail("underwriting"),
-    funding: getDepartmentContactEmail("funding"),
-    closings: getDepartmentContactEmail("closings"),
-    compliance: getDepartmentContactEmail("compliance"),
-    support: getDepartmentContactEmail("support"),
-    executive: getDepartmentContactEmail("executive"),
-  };
 }

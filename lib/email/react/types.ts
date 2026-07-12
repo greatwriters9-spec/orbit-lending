@@ -27,9 +27,24 @@ export type EmailBrandingContext = {
   officeHours: string;
   addressLine: string;
   websiteDomain: string;
+  websiteUrl: string;
   bankPartnerName: string;
   logoUrl?: string | null;
   primaryColor?: string;
+  secondaryColor?: string;
+  noReplyEmail?: string;
+  footerText?: string | null;
+  socialLinks?: {
+    facebook: string | null;
+    instagram: string | null;
+    linkedin: string | null;
+    twitter: string | null;
+    tiktok: string | null;
+    youtube: string | null;
+    threads: string | null;
+    telegram: string | null;
+    whatsapp: string | null;
+  };
 };
 
 export type EmailTemplateContent = {

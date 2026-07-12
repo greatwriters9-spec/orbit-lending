@@ -1,15 +1,14 @@
 import type { EmailTemplateContent, EmailBrandingContext } from "@/lib/email/react/types";
 import { formatBrandingAddress } from "@/lib/admin/branding/config";
 import {
-  fetchBrandingConfig,
-} from "@/lib/admin/branding/fetch-config.server";
-import { fetchCompanyById } from "@/lib/company/queries";
-import { DEFAULT_BRANDING_CONFIG, type BrandingConfig } from "@/types/branding-config";
+  type CompanyEmailBranding,
+  getDepartmentContactEmailForBranding,
+  resolveCompanyEmailBranding,
+} from "@/lib/email/company-branding";
+import { DEFAULT_BRANDING_CONFIG } from "@/types/branding-config";
 import { renderReactEmailTemplate } from "@/lib/email/react/render";
-import { getAppOrigin } from "@/lib/email/config";
 import {
   DEFAULT_STAFF_BY_DEPARTMENT,
-  DEPARTMENT_CONTACT_EMAILS,
   DEPARTMENT_DISPLAY_NAMES,
   resolveTemplateCommunicationClass,
   resolveTemplateDepartment,
@@ -55,32 +54,37 @@ function formatEmailDate(value?: string): string {
 }
 
 function brandingToEmailContext(
-  config: BrandingConfig,
-  extras?: { logoUrl?: string | null; primaryColor?: string },
+  companyBranding: CompanyEmailBranding,
 ): EmailBrandingContext {
+  const config = companyBranding.branding;
   return {
     institutionName: config.institutionName,
     tagline: config.tagline,
-    supportEmail: config.supportEmail,
+    supportEmail: companyBranding.supportEmail,
     supportPhone: config.supportPhone,
     officeHours: config.officeHours,
     addressLine: formatBrandingAddress(config),
     websiteDomain: config.websiteDomain,
+    websiteUrl: companyBranding.websiteUrl,
     bankPartnerName: config.bankPartnerName,
-    logoUrl: extras?.logoUrl ?? null,
-    primaryColor: extras?.primaryColor,
+    logoUrl: companyBranding.logo,
+    primaryColor: companyBranding.primaryColor,
+    secondaryColor: companyBranding.secondaryColor,
+    noReplyEmail: companyBranding.noReplyEmail,
+    footerText: companyBranding.footerText,
+    socialLinks: companyBranding.socialLinks,
   };
 }
 
 function departmentDisplayName(
   department: EmailDepartment,
-  branding?: BrandingConfig,
+  companyBranding?: CompanyEmailBranding,
 ): string {
   if (department === "system") {
-    return branding?.institutionName ?? DEPARTMENT_DISPLAY_NAMES.system;
+    return companyBranding?.name ?? DEPARTMENT_DISPLAY_NAMES.system;
   }
-  const defaults = branding?.departmentDefaults[
-    department as keyof BrandingConfig["departmentDefaults"]
+  const defaults = companyBranding?.branding.departmentDefaults[
+    department as keyof typeof companyBranding.branding.departmentDefaults
   ];
   if (defaults?.staffName) {
     return defaults.staffName;
@@ -91,18 +95,17 @@ function departmentDisplayName(
 function baseMeta(
   department: EmailDepartment,
   data: EmailTemplateData,
-  branding?: BrandingConfig,
+  companyBranding?: CompanyEmailBranding,
 ) {
-  const deptKey = department as keyof BrandingConfig["departmentDefaults"];
-  const contactEmail =
-    branding?.departmentDefaults[deptKey]?.contactEmail ??
-    DEPARTMENT_CONTACT_EMAILS[department];
+  const contactEmail = companyBranding
+    ? getDepartmentContactEmailForBranding(companyBranding, department)
+    : "";
 
   return {
-    departmentName: departmentDisplayName(department, branding),
+    departmentName: departmentDisplayName(department, companyBranding),
     referenceNumber: str(data, "applicationNumber", str(data, "referenceNumber")),
     dateLabel: formatEmailDate(str(data, "dateLabel")),
-    contactDepartment: departmentDisplayName(department, branding),
+    contactDepartment: departmentDisplayName(department, companyBranding),
     contactEmail,
   };
 }
@@ -110,29 +113,29 @@ function baseMeta(
 function staffForDepartment(
   department: EmailDepartment,
   data: EmailTemplateData,
-  branding?: BrandingConfig,
+  companyBranding?: CompanyEmailBranding,
 ) {
-  const deptKey = department as keyof BrandingConfig["departmentDefaults"];
-  const brandingDefaults = branding?.departmentDefaults[deptKey];
+  const brandingDefaults = companyBranding?.branding.departmentDefaults[
+    department as keyof typeof companyBranding.branding.departmentDefaults
+  ];
   const registryDefaults = DEFAULT_STAFF_BY_DEPARTMENT[department];
+  const contactEmail = companyBranding
+    ? getDepartmentContactEmailForBranding(companyBranding, department)
+    : brandingDefaults?.contactEmail ?? "";
 
   return {
     name: str(
       data,
       "staffName",
-      brandingDefaults?.staffName ?? registryDefaults?.name ?? `${DEFAULT_BRANDING_CONFIG.institutionName} Team`,
+      brandingDefaults?.staffName ?? registryDefaults?.name ?? `${companyBranding?.name ?? DEFAULT_BRANDING_CONFIG.institutionName} Team`,
     ),
     title: str(
       data,
       "staffTitle",
       brandingDefaults?.staffTitle ?? registryDefaults?.title ?? "Mortgage Specialist",
     ),
-    email: str(
-      data,
-      "staffEmail",
-      brandingDefaults?.contactEmail ?? DEPARTMENT_CONTACT_EMAILS[department],
-    ),
-    department: departmentDisplayName(department, branding),
+    email: str(data, "staffEmail", contactEmail),
+    department: departmentDisplayName(department, companyBranding),
   };
 }
 
@@ -151,17 +154,17 @@ export function resolveEmailTemplate(
   template: EmailTemplateKey,
   data: EmailTemplateData = {},
   overrides?: { subject?: string; customMessage?: string },
-  branding?: BrandingConfig,
+  companyBranding?: CompanyEmailBranding,
 ): ResolvedEmailTemplate {
   const department = TEMPLATE_DEPARTMENTS[template];
   const communicationClass = resolveTemplateCommunicationClass(template);
   const firstName = str(data, "firstName", "there");
-  const origin = getAppOrigin();
+  const origin = companyBranding?.websiteUrl ?? "";
   const dashboardUrl = `${origin}/dashboard`;
   const loginUrl = `${origin}/login`;
-  const meta = baseMeta(department, data, branding);
-  const emailBranding = branding ? brandingToEmailContext(branding) : undefined;
-  const brand = branding?.institutionName ?? DEFAULT_BRANDING_CONFIG.institutionName;
+  const meta = baseMeta(department, data, companyBranding);
+  const emailBranding = companyBranding ? brandingToEmailContext(companyBranding) : undefined;
+  const brand = companyBranding?.name ?? DEFAULT_BRANDING_CONFIG.institutionName;
 
   const builders: Record<
     EmailTemplateKey,
@@ -216,7 +219,7 @@ export function resolveEmailTemplate(
       content: {
         ...meta,
         departmentName: DEPARTMENT_DISPLAY_NAMES.support,
-        contactEmail: DEPARTMENT_CONTACT_EMAILS.support,
+        contactEmail: companyBranding?.supportEmail ?? meta.contactEmail,
         communicationClass,
         headline: "Password reset requested",
         body: `We received a request to reset your ${brand} portal password. If you did not make this request, contact our support team immediately.`,
@@ -322,7 +325,7 @@ export function resolveEmailTemplate(
         body: "Your assigned loan officer and underwriting team are reviewing your mortgage application.",
         tone: "pending",
         badge: "Under Review",
-        staff: staffForDepartment(department, data, branding),
+        staff: staffForDepartment(department, data, companyBranding),
         ctaLabel: "View Application Status",
         ctaUrl: str(data, "actionUrl", dashboardUrl),
         showProgress: false,
@@ -345,7 +348,7 @@ export function resolveEmailTemplate(
         detailRows: str(data, "documentNames")
           ? [{ label: "Requested Documents", value: str(data, "documentNames") || "—" }]
           : undefined,
-        staff: staffForDepartment(department, data, branding),
+        staff: staffForDepartment(department, data, companyBranding),
         ctaLabel: "Upload Documents",
         ctaUrl: str(data, "actionUrl", dashboardUrl),
         showProgress: false,
@@ -363,7 +366,7 @@ export function resolveEmailTemplate(
         detailRows: str(data, "documentName")
           ? [{ label: "Document", value: str(data, "documentName") || "—" }]
           : undefined,
-        staff: staffForDepartment(department, data, branding),
+        staff: staffForDepartment(department, data, companyBranding),
         ctaLabel: "View Application",
         ctaUrl: str(data, "actionUrl", dashboardUrl),
         showProgress: false,
@@ -417,7 +420,7 @@ export function resolveEmailTemplate(
         ),
         tone: "pending",
         badge: "On Hold",
-        executiveSignature: staffForDepartment("executive", data, branding),
+        executiveSignature: staffForDepartment("executive", data, companyBranding),
         ctaLabel: "View Application",
         ctaUrl: str(data, "actionUrl", dashboardUrl),
         showProgress: false,
@@ -437,7 +440,7 @@ export function resolveEmailTemplate(
           { label: "Estimated Mortgage", value: currency(data, "mortgageAmount") || "—" },
           { label: "Maximum Home Price", value: currency(data, "maxHomePrice") || "—" },
         ],
-        executiveSignature: staffForDepartment("executive", data, branding),
+        executiveSignature: staffForDepartment("executive", data, companyBranding),
         ctaLabel: "View Pre-Qualification",
         ctaUrl: str(data, "actionUrl", `${origin}/dashboard/qualification-result`),
         showProgress: false,
@@ -455,7 +458,7 @@ export function resolveEmailTemplate(
           { label: "Previous Amount", value: currency(data, "previousAmount") || "—" },
           { label: "Updated Amount", value: currency(data, "approvedAmount") || "—" },
         ],
-        executiveSignature: staffForDepartment("executive", data, branding),
+        executiveSignature: staffForDepartment("executive", data, companyBranding),
         ctaLabel: "Review Dashboard",
         ctaUrl: str(data, "actionUrl", dashboardUrl),
         showProgress: false,
@@ -529,7 +532,7 @@ export function resolveEmailTemplate(
         ),
         tone: "rejected",
         badge: "Action Required",
-        staff: staffForDepartment(department, data, branding),
+        staff: staffForDepartment(department, data, companyBranding),
         ctaLabel: "View Funding Account",
         ctaUrl: str(data, "actionUrl", dashboardUrl),
         showProgress: false,
@@ -542,7 +545,7 @@ export function resolveEmailTemplate(
         communicationClass,
         headline: "Your funding balance changed",
         body: `Your ${brand} funding account balance has been updated.`,
-        staff: staffForDepartment(department, data, branding),
+        staff: staffForDepartment(department, data, companyBranding),
         detailRows: [{ label: "Current Balance", value: currency(data, "balance") || "—" }],
         ctaLabel: "View Account",
         ctaUrl: str(data, "actionUrl", `${origin}/wallet`),
@@ -603,7 +606,7 @@ export function resolveEmailTemplate(
         ),
         tone: "pending",
         badge: "Additional Funding",
-        staff: staffForDepartment(department, data, branding),
+        staff: staffForDepartment(department, data, companyBranding),
         detailRows: [
           { label: "Required Amount", value: currency(data, "amount") || "—" },
           { label: "Purpose", value: str(data, "label", "Closing Requirement") },
@@ -676,7 +679,7 @@ export function resolveEmailTemplate(
         communicationClass,
         headline: str(data, "headline", "Message from your loan officer"),
         body: overrides?.customMessage ?? str(data, "message", ""),
-        staff: staffForDepartment("loan_officer", data, branding),
+        staff: staffForDepartment("loan_officer", data, companyBranding),
         showProgress: false,
       },
     }),
@@ -688,7 +691,7 @@ export function resolveEmailTemplate(
         communicationClass,
         headline: str(data, "headline", "An update on your mortgage"),
         body: overrides?.customMessage ?? str(data, "message", ""),
-        executiveSignature: staffForDepartment("executive", data, branding),
+        executiveSignature: staffForDepartment("executive", data, companyBranding),
         showProgress: false,
         showContact: false,
       },
@@ -700,7 +703,7 @@ export function resolveEmailTemplate(
         communicationClass,
         headline: str(data, "headline", "An update on your funding account"),
         body: overrides?.customMessage ?? str(data, "message", ""),
-        staff: staffForDepartment("funding", data, branding),
+        staff: staffForDepartment("funding", data, companyBranding),
         showProgress: false,
       },
     }),
@@ -711,7 +714,7 @@ export function resolveEmailTemplate(
         communicationClass,
         headline: str(data, "headline", "An update on your closing"),
         body: overrides?.customMessage ?? str(data, "message", ""),
-        staff: staffForDepartment("closings", data, branding),
+        staff: staffForDepartment("closings", data, companyBranding),
         showProgress: false,
       },
     }),
@@ -725,7 +728,7 @@ export function resolveEmailTemplate(
         staff: staffForDepartment(
           (str(data, "department", "system") as EmailDepartment) || "system",
           data,
-          branding,
+          companyBranding,
         ),
         showProgress: false,
         showContact: true,
@@ -757,22 +760,8 @@ export async function renderEmailFromTemplate(
   overrides?: { subject?: string; customMessage?: string },
   companyId?: string,
 ) {
-  const branding = await fetchBrandingConfig(companyId);
-  let company = companyId ? await fetchCompanyById(companyId) : null;
-  if (!company) {
-    try {
-      const { getCompanyContext } = await import("@/lib/company/server");
-      company = (await getCompanyContext()).company;
-    } catch {
-      // Host context unavailable outside a request.
-    }
-  }
-  const emailBranding = brandingToEmailContext(branding, {
-    logoUrl: company?.logo ?? null,
-    primaryColor: company?.primaryColor,
-  });
-  const resolved = resolveEmailTemplate(template, data, overrides, branding);
-  resolved.content.branding = emailBranding;
+  const companyBranding = await resolveCompanyEmailBranding(companyId);
+  const resolved = resolveEmailTemplate(template, data, overrides, companyBranding);
   const rendered = await renderReactEmailTemplate({
     template,
     preview: resolved.subject,

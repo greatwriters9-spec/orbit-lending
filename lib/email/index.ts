@@ -6,9 +6,14 @@ export * from "@/lib/email/registry";
 export {
   getEmailSender,
   getEmailSenderByDepartment,
-  getDepartmentContactEmail,
   resolveOutgoingEmailEvent,
 } from "@/lib/email/emailRouter";
+export {
+  companyToEmailBranding,
+  getDepartmentContactEmailForBranding,
+  getDepartmentSenderIdentity,
+  resolveCompanyEmailBranding,
+} from "@/lib/email/company-branding";
 export {
   EMAIL_TEMPLATE_LABELS,
   ADMIN_SENDABLE_TEMPLATES,

@@ -15,6 +15,7 @@ export type CompanyRow = {
   headquarters_address: string | null;
   business_address: string | null;
   support_email: string | null;
+  no_reply_email: string | null;
   general_email: string | null;
   phone_number: string | null;
   secondary_phone: string | null;
@@ -65,6 +66,7 @@ export function mapCompanyRow(row: CompanyRow): CompanyRecord {
     headquartersAddress: row.headquarters_address,
     businessAddress: row.business_address,
     supportEmail: row.support_email,
+    noReplyEmail: row.no_reply_email,
     generalEmail: row.general_email,
     phoneNumber: row.phone_number,
     secondaryPhone: row.secondary_phone,
@@ -117,6 +119,7 @@ export function mapCompanyToRow(
     headquarters_address: company.headquartersAddress ?? null,
     business_address: company.businessAddress ?? null,
     support_email: company.supportEmail ?? null,
+    no_reply_email: company.noReplyEmail ?? null,
     general_email: company.generalEmail ?? null,
     phone_number: company.phoneNumber ?? null,
     secondary_phone: company.secondaryPhone ?? null,

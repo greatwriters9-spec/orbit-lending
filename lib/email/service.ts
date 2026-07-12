@@ -2,6 +2,7 @@ import {
   getEmailTestOverride,
   getResendApiKey,
 } from "@/lib/email/config";
+import { resolveCompanyEmailBranding } from "@/lib/email/company-branding";
 import {
   getEmailSender,
   resolveOutgoingEmailEvent,
@@ -101,6 +102,7 @@ async function createEmailLog(input: {
 
 export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult> {
   const companyId = await resolveEmailCompanyId(input);
+  const companyBranding = await resolveCompanyEmailBranding(companyId);
   const rendered = await renderEmailFromTemplate(input.template, input.data, {
     subject: input.subject,
     customMessage: input.customMessage,
@@ -111,7 +113,7 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
     department: input.department,
     metadata: input.metadata,
   });
-  const sender = getEmailSender(event);
+  const sender = getEmailSender(event, companyBranding);
   const logDepartment = sender.department;
 
   const testOverride = getEmailTestOverride();

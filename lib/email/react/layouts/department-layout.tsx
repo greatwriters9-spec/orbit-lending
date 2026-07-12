@@ -11,7 +11,6 @@ import {
   EmailShell,
   EmailSignatureBlock,
 } from "@/lib/email/react/components/shared";
-import { getSupportEmailAddress } from "@/lib/email/config";
 import type { EmailTemplateContent } from "@/lib/email/react/types";
 
 export function DepartmentLayout({
@@ -37,7 +36,7 @@ export function DepartmentLayout({
       {content.staff ? <EmailSignatureBlock staff={content.staff} /> : null}
       <EmailContactSection
         department={content.contactDepartment ?? content.departmentName ?? "department"}
-        email={content.contactEmail ?? content.staff?.email ?? getSupportEmailAddress()}
+        email={content.contactEmail ?? content.staff?.email ?? content.branding?.supportEmail ?? ""}
         branding={content.branding}
       />
       <EmailFooter branding={content.branding} />

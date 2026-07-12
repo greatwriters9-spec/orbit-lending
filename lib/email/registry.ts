@@ -3,7 +3,6 @@ import type {
   EmailDepartment,
   EmailTemplateKey,
 } from "@/lib/email/types";
-import { getDepartmentContactEmails } from "@/lib/email/emailRouter";
 
 export const TEMPLATE_COMMUNICATION_CLASS: Record<
   EmailTemplateKey,
@@ -83,8 +82,8 @@ export const TEMPLATE_DEPARTMENTS: Record<EmailTemplateKey, EmailDepartment> = {
 };
 
 export const DEPARTMENT_DISPLAY_NAMES: Record<EmailDepartment, string> = {
-  system: "Orbitt Mortgage",
-  loan_officer: "Jordan | Loan Officer",
+  system: "Automated Notifications",
+  loan_officer: "Loan Officer",
   underwriting: "Underwriting Department",
   funding: "Funding Department",
   closings: "Closing Department",
@@ -92,9 +91,6 @@ export const DEPARTMENT_DISPLAY_NAMES: Record<EmailDepartment, string> = {
   support: "Customer Support",
   executive: "Chief Lending Officer",
 };
-
-export const DEPARTMENT_CONTACT_EMAILS: Record<EmailDepartment, string> =
-  getDepartmentContactEmails();
 
 export const DEFAULT_STAFF_BY_DEPARTMENT: Partial<
   Record<EmailDepartment, { name: string; title: string }>
@@ -116,7 +112,7 @@ export const DEFAULT_STAFF_BY_DEPARTMENT: Partial<
     title: "Closing Coordinator",
   },
   support: {
-    name: "Orbit Mortgage Support",
+    name: "Client Support",
     title: "Client Support Team",
   },
   executive: {

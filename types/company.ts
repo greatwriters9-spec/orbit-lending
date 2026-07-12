@@ -17,6 +17,7 @@ export type CompanyRecord = {
   headquartersAddress: string | null;
   businessAddress: string | null;
   supportEmail: string | null;
+  noReplyEmail: string | null;
   generalEmail: string | null;
   phoneNumber: string | null;
   secondaryPhone: string | null;

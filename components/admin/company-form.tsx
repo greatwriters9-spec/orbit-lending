@@ -34,6 +34,7 @@ export function CompanyForm({ company }: CompanyFormProps) {
     headquartersAddress: company?.headquartersAddress ?? "",
     businessAddress: company?.businessAddress ?? "",
     supportEmail: company?.supportEmail ?? "",
+    noReplyEmail: company?.noReplyEmail ?? "",
     generalEmail: company?.generalEmail ?? "",
     phoneNumber: company?.phoneNumber ?? "",
     secondaryPhone: company?.secondaryPhone ?? "",
@@ -91,6 +92,7 @@ export function CompanyForm({ company }: CompanyFormProps) {
         headquartersAddress: form.headquartersAddress || null,
         businessAddress: form.businessAddress || null,
         supportEmail: form.supportEmail || null,
+        noReplyEmail: form.noReplyEmail || null,
         generalEmail: form.generalEmail || null,
         phoneNumber: form.phoneNumber || null,
         secondaryPhone: form.secondaryPhone || null,
@@ -207,6 +209,7 @@ export function CompanyForm({ company }: CompanyFormProps) {
         <h2 className="text-lg font-semibold text-brand-navy">Contact & Business</h2>
         <div className="grid gap-4 md:grid-cols-2">
           <label className="space-y-2 text-sm"><span className="font-medium text-brand-navy">Support Email</span><input className={inputClassName} value={form.supportEmail} onChange={(e) => update("supportEmail", e.target.value)} /></label>
+          <label className="space-y-2 text-sm"><span className="font-medium text-brand-navy">No-Reply Email</span><input className={inputClassName} value={form.noReplyEmail} onChange={(e) => update("noReplyEmail", e.target.value)} /></label>
           <label className="space-y-2 text-sm"><span className="font-medium text-brand-navy">General Email</span><input className={inputClassName} value={form.generalEmail} onChange={(e) => update("generalEmail", e.target.value)} /></label>
           <label className="space-y-2 text-sm"><span className="font-medium text-brand-navy">Phone</span><input className={inputClassName} value={form.phoneNumber} onChange={(e) => update("phoneNumber", e.target.value)} /></label>
           <label className="space-y-2 text-sm"><span className="font-medium text-brand-navy">Secondary Phone</span><input className={inputClassName} value={form.secondaryPhone} onChange={(e) => update("secondaryPhone", e.target.value)} /></label>

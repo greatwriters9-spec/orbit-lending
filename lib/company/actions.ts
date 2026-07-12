@@ -29,6 +29,7 @@ const companyInputSchema = z.object({
   headquartersAddress: z.string().nullable().optional(),
   businessAddress: z.string().nullable().optional(),
   supportEmail: z.string().email().nullable().optional(),
+  noReplyEmail: z.string().email().nullable().optional(),
   generalEmail: z.string().email().nullable().optional(),
   phoneNumber: z.string().nullable().optional(),
   secondaryPhone: z.string().nullable().optional(),

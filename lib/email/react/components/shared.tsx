@@ -15,7 +15,7 @@ import {
 } from "@react-email/components";
 import * as React from "react";
 
-import { BRAND_DISPLAY_NAME, getAppOrigin, getSupportEmailAddress, getWebsiteDomain, getWebsiteUrl, ORBIT_MORTGAGE_TAGLINE } from "@/lib/email/config";
+import { getAppOrigin } from "@/lib/email/config";
 import { isHtmlContent, sanitizeEmailCompositionHtml } from "@/lib/email/sanitize-html";
 import type { EmailStatusTone } from "@/lib/email/types";
 import { emailColors, emailFonts } from "@/lib/email/react/tokens";
@@ -40,6 +40,10 @@ function toneStyles(tone: EmailStatusTone = "neutral") {
 }
 
 function resolveLogoOrigin(branding?: EmailBrandingContext): string {
+  const websiteUrl = branding?.websiteUrl?.trim();
+  if (websiteUrl) {
+    return websiteUrl.replace(/\/$/, "");
+  }
   const domain = branding?.websiteDomain?.trim();
   if (!domain) {
     return getAppOrigin();
@@ -143,8 +147,8 @@ export function EmailBrandHeader({
   minimal?: boolean;
   branding?: EmailBrandingContext;
 }) {
-  const institutionName = branding?.institutionName ?? BRAND_DISPLAY_NAME;
-  const tagline = branding?.tagline ?? ORBIT_MORTGAGE_TAGLINE;
+  const institutionName = branding?.institutionName ?? "";
+  const tagline = branding?.tagline ?? "";
   const bankPartner = branding?.bankPartnerName ?? "Pathward National Bank";
 
   return (
@@ -509,14 +513,17 @@ export function EmailSignatureBlock({ staff }: { staff: EmailStaffSignature }) {
 }
 
 export function EmailFooter({ branding }: { branding?: EmailBrandingContext }) {
-  const supportEmail = branding?.supportEmail ?? getSupportEmailAddress();
-  const websiteDomain = branding?.websiteDomain ?? getWebsiteDomain();
-  const institutionName = branding?.institutionName ?? BRAND_DISPLAY_NAME;
+  const supportEmail = branding?.supportEmail ?? "";
+  const websiteDomain = branding?.websiteDomain ?? "";
+  const institutionName = branding?.institutionName ?? "";
   const bankPartner = branding?.bankPartnerName ?? "Pathward National Bank";
   const addressLine = branding?.addressLine;
-  const websiteUrl = websiteDomain.startsWith("http")
-    ? websiteDomain
-    : getWebsiteUrl();
+  const websiteUrl = branding?.websiteUrl?.trim()
+    || (websiteDomain
+      ? (websiteDomain.startsWith("http")
+        ? websiteDomain
+        : `https://${websiteDomain}`)
+      : "");
 
   return (
     <Section style={{ backgroundColor: emailColors.footerBg, padding: "28px 32px", borderTop: `1px solid ${emailColors.border}` }}>

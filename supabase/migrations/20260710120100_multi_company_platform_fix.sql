@@ -22,6 +22,7 @@ create table if not exists public.companies (
   headquarters_address text,
   business_address text,
   support_email text,
+  no_reply_email text,
   general_email text,
   phone_number text,
   secondary_phone text,
@@ -59,7 +60,7 @@ create table if not exists public.companies (
 insert into public.companies (
   id, company_name, slug, domain, alternate_domains,
   primary_color, secondary_color, accent_color, background_color,
-  headquarters_address, business_address, support_email, general_email,
+  headquarters_address, business_address, support_email, no_reply_email, general_email,
   phone_number, business_hours, banking_partner, website, tagline,
   hero_title, hero_subtitle, hero_button_text, footer_text, copyright_text,
   about_us, mission, vision, why_choose_us, branding_settings
@@ -70,7 +71,7 @@ insert into public.companies (
   '#0f2d78', '#1e4db7', '#6b7280', '#ffffff',
   '500 Mortgage Way, Suite 200, Omaha, NE 68102',
   '500 Mortgage Way, Suite 200, Omaha, NE 68102',
-  'support@orbittmortgage.com', 'info@orbittmortgage.com',
+  'support@orbittmortgage.com', 'noreply@orbittmortgage.com', 'info@orbittmortgage.com',
   '(313) 555-0189', 'Mon – Fri: 8:00 AM – 6:00 PM EST',
   'Pathward National Bank', 'https://orbitmortgage.com',
   'Home financing made simple',
@@ -91,7 +92,7 @@ insert into public.companies (
   '#0F6A4A', '#D4A53A', '#1A7A57', '#F8FAFC',
   '1200 OakStone Plaza, Suite 400, Charlotte, NC 28202',
   '1200 OakStone Plaza, Suite 400, Charlotte, NC 28202',
-  'support@oakstonemortgage.com', 'info@oakstonemortgage.com',
+  'support@oakstonemortgage.com', 'noreply@oakstonemortgage.com', 'info@oakstonemortgage.com',
   '(866) 555-0123', 'Mon – Fri: 8:00 AM – 6:00 PM EST',
   'Pathward National Bank', 'https://oakstonemortgage.com',
   'Rooted in strength. Built for your future.',
@@ -108,6 +109,7 @@ insert into public.companies (
 )
 on conflict (id) do update set
   alternate_domains = excluded.alternate_domains,
+  no_reply_email = excluded.no_reply_email,
   updated_at = now();
 
 update public.companies
