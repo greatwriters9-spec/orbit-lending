@@ -12,7 +12,6 @@ import {
   onboardingInputClassName,
 } from "@/components/onboarding/onboarding-shell";
 import { OnboardingStateInput } from "@/components/onboarding/onboarding-state-input";
-import { ConfirmProfileStep } from "@/components/onboarding/confirm-profile-step";
 import { Button } from "@/components/ui-kit/button";
 import { formatSSNInput, formatUSPhoneInput, isCompleteSSN, isCompleteUSPhone } from "@/lib/auth/input-formatters";
 import { finalizeOnboardingAction, updateApplicationFromOnboardingAction } from "@/lib/onboarding/actions";
@@ -56,7 +55,6 @@ type StepKey =
   | "about-you"
   | "contact"
   | "current-address"
-  | "confirm-profile"
   | "employment"
   | "assets"
   | "credit";
@@ -145,24 +143,6 @@ const MARITAL_STATUS_OPTIONS = [
 
 const PERSONAL_DETAIL_STEPS = new Set<StepKey>(["about-you", "contact", "current-address"]);
 
-function personalizeSteps(steps: StepKey[]): StepKey[] {
-  const result: StepKey[] = [];
-  let addedConfirm = false;
-
-  for (const step of steps) {
-    if (PERSONAL_DETAIL_STEPS.has(step)) {
-      if (!addedConfirm) {
-        result.push("confirm-profile");
-        addedConfirm = true;
-      }
-      continue;
-    }
-    result.push(step);
-  }
-
-  return result;
-}
-
 function getSteps(
   draft: MortgageApplicationDraft,
   options?: { skipPersonalDetails?: boolean },
@@ -178,7 +158,7 @@ function getSteps(
   }
 
   if (options?.skipPersonalDetails) {
-    return personalizeSteps(steps);
+    return steps.filter((step) => !PERSONAL_DETAIL_STEPS.has(step));
   }
 
   return steps;
@@ -433,31 +413,6 @@ export function OnboardingWizard({
       case "about-you":
         if (!draft.firstName || !draft.lastName || !draft.dateOfBirth) {
           setError("Enter your name and date of birth.");
-          return false;
-        }
-        return true;
-      case "confirm-profile":
-        if (!draft.firstName || !draft.lastName || !draft.dateOfBirth) {
-          setError(
-            "Your profile is missing your name or date of birth. Update your profile to continue.",
-          );
-          return false;
-        }
-        if (!draft.email) {
-          setError("Your profile is missing an email address. Update your profile to continue.");
-          return false;
-        }
-        if (!draft.phone || !isCompleteUSPhone(draft.phone)) {
-          setError("Your profile is missing a valid phone number. Update your profile to continue.");
-          return false;
-        }
-        if (
-          !draft.address?.street ||
-          !draft.address.city ||
-          !draft.address.state ||
-          !draft.address.zip
-        ) {
-          setError("Your profile is missing a complete address. Update your profile to continue.");
           return false;
         }
         return true;
@@ -817,8 +772,6 @@ export function OnboardingWizard({
           </div>
         </OnboardingQuestion>
       ) : null}
-
-      {currentStep === "confirm-profile" ? <ConfirmProfileStep draft={draft} /> : null}
 
       {currentStep === "about-you" ? (
         <OnboardingQuestion title="About You">
@@ -1244,9 +1197,7 @@ export function OnboardingWizard({
                   : "Continue to Account"
               : currentStep === "employment" && employmentPhase === "type"
                 ? "Continue"
-                : currentStep === "confirm-profile"
-                  ? "Confirm and Continue"
-                  : "Continue"}
+                : "Continue"}
           <ArrowRight className="size-5" />
         </Button>
       </div>

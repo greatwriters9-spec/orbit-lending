@@ -10,6 +10,7 @@ export type ApplicationSectionKey =
   | "declarations"
   | "documents"
   | "review"
+  | "e-sign"
   | "consent";
 
 export const APPLICATION_SECTIONS: ApplicationSectionKey[] = [
@@ -24,6 +25,7 @@ export const APPLICATION_SECTIONS: ApplicationSectionKey[] = [
   "declarations",
   "documents",
   "review",
+  "e-sign",
   "consent",
 ];
 
@@ -39,6 +41,7 @@ export const APPLICATION_SECTION_LABELS: Record<ApplicationSectionKey, string> =
   declarations: "Declarations",
   documents: "Document Checklist",
   review: "Review",
+  "e-sign": "E-Signature",
   consent: "Consent",
 };
 
@@ -148,23 +151,31 @@ export type FullLoanDetails = {
   occupancyType: string;
 };
 
+export type DeclarationAnswer = boolean | null;
+
 export type FullDeclarations = {
-  bankruptcy: boolean;
+  bankruptcy: DeclarationAnswer;
   bankruptcyDetails: string;
-  foreclosure: boolean;
+  foreclosure: DeclarationAnswer;
   foreclosureDetails: string;
-  judgments: boolean;
+  judgments: DeclarationAnswer;
   judgmentsDetails: string;
-  lawsuits: boolean;
+  lawsuits: DeclarationAnswer;
   lawsuitsDetails: string;
-  coSigner: boolean;
+  coSigner: DeclarationAnswer;
   coSignerDetails: string;
-  otherPropertyOwnership: boolean;
+  otherPropertyOwnership: DeclarationAnswer;
   otherPropertyDetails: string;
   occupancyIntent: boolean;
   ethnicity: string;
   sex: string;
   race: string;
+};
+
+export type ApplicationSignature = {
+  method: "drawn" | "typed" | null;
+  value: string;
+  signedAt?: string;
 };
 
 export type DocumentChecklistStatus =
@@ -232,9 +243,19 @@ export type FullMortgageApplication = {
   loanDetails: FullLoanDetails;
   declarations: FullDeclarations;
   documentChecklist: DocumentChecklistItem[];
+  signature: ApplicationSignature;
   consents: ApplicationConsents;
   progress: ApplicationProgress;
 };
+
+export const DECLARATION_QUESTION_KEYS = [
+  "bankruptcy",
+  "foreclosure",
+  "judgments",
+  "lawsuits",
+  "coSigner",
+  "otherPropertyOwnership",
+] as const satisfies readonly (keyof FullDeclarations)[];
 
 export const MORTGAGE_APPLICATION_ROUTES = {
   intro: (applicationId: string) =>
@@ -348,17 +369,17 @@ export function createEmptyFullMortgageApplication(
       ...seed?.loanDetails,
     },
     declarations: {
-      bankruptcy: false,
+      bankruptcy: null,
       bankruptcyDetails: "",
-      foreclosure: false,
+      foreclosure: null,
       foreclosureDetails: "",
-      judgments: false,
+      judgments: null,
       judgmentsDetails: "",
-      lawsuits: false,
+      lawsuits: null,
       lawsuitsDetails: "",
-      coSigner: false,
+      coSigner: null,
       coSignerDetails: "",
-      otherPropertyOwnership: false,
+      otherPropertyOwnership: null,
       otherPropertyDetails: "",
       occupancyIntent: true,
       ethnicity: "",
@@ -367,6 +388,11 @@ export function createEmptyFullMortgageApplication(
       ...seed?.declarations,
     },
     documentChecklist: seed?.documentChecklist ?? [],
+    signature: {
+      method: null,
+      value: "",
+      ...seed?.signature,
+    },
     consents: {
       identityVerification: false,
       creditAuthorization: false,

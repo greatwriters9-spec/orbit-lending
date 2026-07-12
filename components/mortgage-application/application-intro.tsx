@@ -13,6 +13,7 @@ const OUTLINE_ITEMS = [
   "Property Information",
   "Loan Preferences",
   "Review",
+  "E-Signature",
   "Consent",
 ] as const;
 

@@ -6,12 +6,14 @@ import { cn } from "@/lib/utils";
 import {
   calculateApplicationProgress,
   formatEstimatedTime,
+  resolveApplicationSections,
 } from "@/lib/mortgage-application/progress";
-import type { ApplicationProgress } from "@/types/mortgage-full-application";
+import type { ApplicationSectionKey, ApplicationProgress } from "@/types/mortgage-full-application";
 
 type ApplicationShellProps = {
   children: ReactNode;
   progress: ApplicationProgress;
+  activeSections?: ApplicationSectionKey[];
   onBack?: () => void;
   showBack?: boolean;
   saveState?: "idle" | "saving" | "saved" | "error";
@@ -21,13 +23,17 @@ type ApplicationShellProps = {
 export function ApplicationShell({
   children,
   progress,
+  activeSections,
   onBack,
   showBack = true,
   saveState = "idle",
   className,
 }: ApplicationShellProps) {
-  const { percent, estimatedMinutesRemaining } =
-    calculateApplicationProgress(progress);
+  const sections = activeSections ?? resolveApplicationSections();
+  const { percent, estimatedMinutesRemaining } = calculateApplicationProgress(
+    progress,
+    sections,
+  );
 
   return (
     <div className={cn("flex min-h-screen flex-col bg-white", className)}>

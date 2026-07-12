@@ -4,6 +4,12 @@ import { redirect } from "next/navigation";
 import { MortgageApplicationWizard } from "@/components/mortgage-application/mortgage-application-wizard";
 import { assertMortgageApplicationAccess } from "@/lib/mortgage-application/actions";
 import { mapApplicationToFullMortgageApplication } from "@/lib/mortgage-application/map-from-application";
+import {
+  enrichApplicationFromProfile,
+  prepareApplicationForWizard,
+} from "@/lib/mortgage-application/prepare-application";
+import { fetchMortgageConfig } from "@/lib/admin/mortgage/config";
+import { getProfile, isProfileComplete } from "@/lib/auth/profile";
 import { getCompanyContext } from "@/lib/company/server";
 import { MORTGAGE_APPLICATION_ROUTES } from "@/types/mortgage-full-application";
 import type { ApplicationStatus } from "@/types/application-details";
@@ -23,7 +29,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function MortgageApplicationApplyPage({ params }: PageProps) {
   const { applicationId } = await params;
-  const { application } = await assertMortgageApplicationAccess(applicationId);
+  const { user, application } = await assertMortgageApplicationAccess(applicationId);
   const status = application.status as ApplicationStatus;
 
   if (status !== "pre_qualified") {
@@ -43,16 +49,36 @@ export default async function MortgageApplicationApplyPage({ params }: PageProps
     redirect("/dashboard");
   }
 
-  const initialApplication = mapApplicationToFullMortgageApplication({
+  const profile = await getProfile(user.id);
+  const skipPersonalSection = isProfileComplete(profile);
+
+  let initialApplication = mapApplicationToFullMortgageApplication({
     personalInfo,
     financialInfo: (application.financial_info ?? {}) as Record<string, unknown>,
     requestedAmount: application.requested_amount,
   });
 
+  if (profile) {
+    initialApplication = enrichApplicationFromProfile(
+      initialApplication,
+      profile,
+      user.email ?? "",
+    );
+  }
+
+  initialApplication = prepareApplicationForWizard({
+    application: initialApplication,
+    skipPersonalSection,
+  });
+
+  const mortgageConfig = await fetchMortgageConfig();
+
   return (
     <MortgageApplicationWizard
       applicationId={applicationId}
       initialApplication={initialApplication}
+      mortgageConfig={mortgageConfig}
+      skipPersonalSection={skipPersonalSection}
     />
   );
 }

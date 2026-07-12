@@ -21,7 +21,7 @@ export function StepPersonalInformation() {
   return (
     <WizardShell
       title="Personal Information"
-      description="Confirm your contact and identity details. Information is pre-filled from your profile where available."
+      description="Provide your contact and identity details. Information is pre-filled from your profile where available."
     >
       <WizardStepError message={stepErrors[currentStep]} />
 

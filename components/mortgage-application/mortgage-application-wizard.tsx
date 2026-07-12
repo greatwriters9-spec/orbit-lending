@@ -14,6 +14,7 @@ import {
 import { OptionCard } from "@/components/onboarding/onboarding-shell";
 import { useCompany } from "@/components/providers/company-provider";
 import { OnboardingStateInput } from "@/components/onboarding/onboarding-state-input";
+import { ESignStep } from "@/components/mortgage-application/e-sign-step";
 import {
   formatSSNInput,
   formatUSPhoneInput,
@@ -30,14 +31,23 @@ import {
   getNextSection,
   getPreviousSection,
   markSectionComplete,
+  resolveApplicationSections,
 } from "@/lib/mortgage-application/progress";
 import { formatCurrency } from "@/lib/loans/queries";
 import {
   APPLICATION_SECTION_LABELS,
   APPLICATION_SECTIONS,
+  DECLARATION_QUESTION_KEYS,
+  createEmptyFullMortgageApplication,
   type ApplicationSectionKey,
   type FullMortgageApplication,
 } from "@/types/mortgage-full-application";
+import {
+  DEFAULT_MORTGAGE_CONFIG,
+  normalizeMortgageConfig,
+  type MortgageConfig,
+  type MortgageTermConfig,
+} from "@/types/mortgage-config";
 
 function parseCurrency(value: string): number {
   const digits = value.replace(/[^\d]/g, "");
@@ -130,21 +140,69 @@ type MortgageApplicationWizardProps = {
   applicationId: string;
   initialApplication: FullMortgageApplication;
   initialSection?: ApplicationSectionKey;
+  mortgageConfig?: MortgageConfig;
+  skipPersonalSection?: boolean;
 };
 
 export function MortgageApplicationWizard({
   applicationId,
   initialApplication,
   initialSection,
+  mortgageConfig = DEFAULT_MORTGAGE_CONFIG,
+  skipPersonalSection = false,
 }: MortgageApplicationWizardProps) {
   const { company } = useCompany();
-  const [application, setApplication] = useState(initialApplication);
-  const [section, setSection] = useState<ApplicationSectionKey>(
-    initialSection ?? initialApplication.progress.currentSection ?? "personal",
+  const activeSections = useMemo(
+    () => resolveApplicationSections({ skipPersonal: skipPersonalSection }),
+    [skipPersonalSection],
   );
+  const [application, setApplication] = useState(() =>
+    createEmptyFullMortgageApplication(initialApplication),
+  );
+  const [section, setSection] = useState<ApplicationSectionKey>(() => {
+    const requested =
+      initialSection ?? initialApplication.progress.currentSection ?? activeSections[0];
+    return activeSections.includes(requested) ? requested : activeSections[0];
+  });
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  const loanTermOptions = useMemo(() => {
+    const terms = [...normalizeMortgageConfig(mortgageConfig).terms].sort(
+      (left, right) => left.termMonths - right.termMonths,
+    );
+    const currentTerm = application.loanDetails.loanTermMonths;
+
+    if (
+      currentTerm > 0 &&
+      !terms.some((term) => term.termMonths === currentTerm)
+    ) {
+      return [
+        ...terms,
+        {
+          id: `term-${currentTerm}`,
+          label: `${Math.round(currentTerm / 12)} Years`,
+          termMonths: currentTerm,
+          interestRate: 0,
+        } satisfies MortgageTermConfig,
+      ];
+    }
+
+    return terms;
+  }, [application.loanDetails.loanTermMonths, mortgageConfig]);
+
+  const signerName = useMemo(
+    () =>
+      [
+        application.personal.firstName,
+        application.personal.middleName,
+        application.personal.lastName,
+      ]
+        .filter(Boolean)
+        .join(" "),
+    [application.personal],
+  );
 
   const patch = useCallback(
     (patchFn: (current: FullMortgageApplication) => FullMortgageApplication) => {
@@ -159,7 +217,7 @@ export function MortgageApplicationWizard({
       setError(null);
 
       const updatedProgress = markComplete
-        ? markSectionComplete(application.progress, section)
+        ? markSectionComplete(application.progress, section, activeSections)
         : application.progress;
 
       const payload: FullMortgageApplication = {
@@ -191,7 +249,7 @@ export function MortgageApplicationWizard({
       setSaveState("saved");
       return true;
     },
-    [application, applicationId, section],
+    [application, applicationId, section, activeSections],
   );
 
   const goToSection = (target: ApplicationSectionKey) => {
@@ -206,7 +264,7 @@ export function MortgageApplicationWizard({
     if (!canContinue) return;
 
     startTransition(async () => {
-      const next = getNextSection(section);
+      const next = getNextSection(section, activeSections);
 
       if (section === "consent") {
         setSaveState("saving");
@@ -243,11 +301,13 @@ export function MortgageApplicationWizard({
   };
 
   const handlePrevious = () => {
-    const prev = getPreviousSection(section);
+    const prev = getPreviousSection(section, activeSections);
     if (prev) {
       goToSection(prev);
     }
   };
+
+  const firstSection = activeSections[0];
 
   const canContinue = useMemo(() => {
     switch (section) {
@@ -302,11 +362,19 @@ export function MortgageApplicationWizard({
           application.loanDetails.desiredDownPayment >= 0
         );
       case "declarations":
-        return true;
+        return DECLARATION_QUESTION_KEYS.every(
+          (key) => application.declarations[key] !== null,
+        );
       case "documents":
         return true;
       case "review":
         return true;
+      case "e-sign":
+        return (
+          Boolean(application.signature.method) &&
+          Boolean(application.signature.value.trim()) &&
+          Boolean(application.signature.signedAt)
+        );
       case "consent":
         return Object.entries(application.consents)
           .filter(([key]) => key !== "acknowledgedAt")
@@ -319,15 +387,18 @@ export function MortgageApplicationWizard({
   const continueLabel =
     section === "consent"
       ? "Submit Application"
-      : section === "review"
+      : section === "e-sign"
         ? "Continue to Consent"
-        : "Continue";
+        : section === "review"
+          ? "Continue to E-Signature"
+          : "Continue";
 
   return (
     <ApplicationShell
       progress={application.progress}
-      onBack={section !== "personal" ? handlePrevious : undefined}
-      showBack={section !== "personal"}
+      activeSections={activeSections}
+      onBack={section !== firstSection ? handlePrevious : undefined}
+      showBack={section !== firstSection}
       saveState={saveState}
     >
       {error ? (
@@ -340,7 +411,7 @@ export function MortgageApplicationWizard({
         <ApplicationSection
           subtitle="Section 1"
           title="Personal Information"
-          explanation="We use this information to verify your identity and prepare your mortgage application."
+          explanation="We need a few additional details to verify your identity and prepare your mortgage application."
         >
           <div className="grid gap-5 md:grid-cols-2">
             <ApplicationField label="Legal First Name">
@@ -1346,8 +1417,11 @@ export function MortgageApplicationWizard({
                   }))
                 }
               >
-                <option value={180}>15 Years</option>
-                <option value={360}>30 Years</option>
+                {loanTermOptions.map((term) => (
+                  <option key={term.id} value={term.termMonths}>
+                    {term.label}
+                  </option>
+                ))}
               </select>
             </ApplicationField>
             <ApplicationField label="Interest Preference">
@@ -1449,8 +1523,9 @@ export function MortgageApplicationWizard({
       {section === "review" ? (
         <ApplicationSection subtitle="Section 11" title="Review Your Application">
           <div className="space-y-4">
-            {APPLICATION_SECTIONS.filter((s) => s !== "review" && s !== "consent").map(
-              (sectionKey) => (
+            {activeSections
+              .filter((s) => s !== "review" && s !== "consent" && s !== "e-sign")
+              .map((sectionKey) => (
                 <div
                   key={sectionKey}
                   className="flex items-center justify-between rounded-xl border border-brand-border px-4 py-3"
@@ -1472,14 +1547,26 @@ export function MortgageApplicationWizard({
                     Edit
                   </button>
                 </div>
-              ),
-            )}
+              ))}
           </div>
         </ApplicationSection>
       ) : null}
 
+      {section === "e-sign" ? (
+        <ESignStep
+          signature={application.signature}
+          signerName={signerName}
+          onChange={(signature) =>
+            patch((current) => ({
+              ...current,
+              signature,
+            }))
+          }
+        />
+      ) : null}
+
       {section === "consent" ? (
-        <ApplicationSection subtitle="Section 12" title="Consent & Authorization">
+        <ApplicationSection subtitle="Section 13" title="Consent & Authorization">
           <div className="space-y-4">
             {(
               [
@@ -1542,7 +1629,7 @@ export function MortgageApplicationWizard({
 
       <ApplicationNavButtons
         onContinue={handleContinue}
-        onPrevious={section !== "personal" ? handlePrevious : undefined}
+        onPrevious={section !== firstSection ? handlePrevious : undefined}
         continueLabel={continueLabel}
         continueDisabled={!canContinue}
         isSaving={isPending}

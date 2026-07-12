@@ -131,6 +131,7 @@ export function mapFullApplicationToDbPayload(input: {
     loanDetails: application.loanDetails,
     declarations: application.declarations,
     consents: application.consents,
+    signature: application.signature,
   };
 
   return {

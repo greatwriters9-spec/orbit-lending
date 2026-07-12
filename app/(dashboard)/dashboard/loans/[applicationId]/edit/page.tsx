@@ -7,6 +7,9 @@ import { OnboardingWizard } from "@/components/onboarding/onboarding-wizard";
 import { canClientEditApplication } from "@/lib/applications/client-edit";
 import { fetchApplicationDetail } from "@/lib/applications/queries";
 import { fetchMortgageConfig } from "@/lib/admin/mortgage/config";
+import { getSessionUser } from "@/lib/auth/actions";
+import { getProfile, isProfileComplete } from "@/lib/auth/profile";
+import { mapProfileToOnboardingDraft } from "@/lib/onboarding/map-profile-to-draft";
 import { mapApplicationToMortgageDraft } from "@/lib/onboarding/map-application-to-draft";
 import type { ApplicationStatus } from "@/types/application-details";
 
@@ -44,6 +47,13 @@ export default async function EditApplicationPage({
     financialInfo: application.financialInfo,
   });
   const mortgageConfig = await fetchMortgageConfig();
+  const user = await getSessionUser();
+  const profile = user ? await getProfile(user.id) : null;
+  const confirmProfileDetails = isProfileComplete(profile);
+  const profileDraft =
+    user && profile
+      ? mapProfileToOnboardingDraft(profile, user.email)
+      : undefined;
 
   return (
     <div className="space-y-6">
@@ -75,6 +85,8 @@ export default async function EditApplicationPage({
           applicationId={applicationId}
           initialDraft={initialDraft}
           mortgageConfig={mortgageConfig}
+          confirmProfileDetails={confirmProfileDetails}
+          profileDraft={profileDraft}
         />
       </Suspense>
     </div>

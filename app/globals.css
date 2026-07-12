@@ -1291,3 +1291,34 @@
   outline-color: var(--oak-bronze, var(--brand-blue));
   border-color: var(--oak-bronze, var(--brand-blue));
 }
+
+[data-company="oakstone"] .dashboard-premium-card--mortgage {
+  background: linear-gradient(165deg, #0f5b47 0%, #0c4a3a 55%, #082f26 100%);
+}
+
+[data-company="oakstone"] .dashboard-premium-card--funding {
+  background: linear-gradient(165deg, #c58a2b 0%, #a87424 55%, #8a5f1e 100%);
+}
+
+[data-company="oakstone"] .dashboard-premium-card--closing {
+  background: linear-gradient(165deg, #1d6a54 0%, #0f5b47 55%, #0a3d32 100%);
+}
+
+[data-company="oakstone"] .dashboard-premium-badge--success {
+  background: rgba(197, 138, 43, 0.22);
+  color: #f8f7f3;
+}
+
+[data-company="oakstone"] .dashboard-premium-badge--prequalified {
+  background: rgba(248, 247, 243, 0.18);
+  color: #f8f7f3;
+}
+
+[data-company="oakstone"] .dashboard-premium-badge--closing {
+  background: rgba(197, 138, 43, 0.24);
+  color: #f8f7f3;
+}
+
+[data-company="oakstone"] .dashboard-premium-progress-fill {
+  background: linear-gradient(90deg, #c58a2b 0%, #e7c68a 100%);
+}

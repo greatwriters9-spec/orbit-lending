@@ -16,19 +16,34 @@ const SECTION_MINUTES: Record<ApplicationSectionKey, number> = {
   declarations: 2,
   documents: 1,
   review: 2,
+  "e-sign": 2,
   consent: 2,
 };
 
-export function calculateApplicationProgress(progress: ApplicationProgress): {
+export function resolveApplicationSections(options?: {
+  skipPersonal?: boolean;
+}): ApplicationSectionKey[] {
+  if (options?.skipPersonal) {
+    return APPLICATION_SECTIONS.filter((section) => section !== "personal");
+  }
+
+  return APPLICATION_SECTIONS;
+}
+
+export function calculateApplicationProgress(
+  progress: ApplicationProgress,
+  sections: ApplicationSectionKey[] = APPLICATION_SECTIONS,
+): {
   percent: number;
   estimatedMinutesRemaining: number;
 } {
   const completed = new Set(progress.completedSections);
-  const totalSections = APPLICATION_SECTIONS.length;
-  const percent = Math.round((completed.size / totalSections) * 100);
+  const totalSections = sections.length;
+  const percent =
+    totalSections === 0 ? 0 : Math.round((completed.size / totalSections) * 100);
 
   let remaining = 0;
-  for (const section of APPLICATION_SECTIONS) {
+  for (const section of sections) {
     if (!completed.has(section)) {
       remaining += SECTION_MINUTES[section];
     }
@@ -39,33 +54,36 @@ export function calculateApplicationProgress(progress: ApplicationProgress): {
 
 export function getNextSection(
   current: ApplicationSectionKey,
+  sections: ApplicationSectionKey[] = APPLICATION_SECTIONS,
 ): ApplicationSectionKey | null {
-  const index = APPLICATION_SECTIONS.indexOf(current);
-  if (index < 0 || index >= APPLICATION_SECTIONS.length - 1) {
+  const index = sections.indexOf(current);
+  if (index < 0 || index >= sections.length - 1) {
     return null;
   }
-  return APPLICATION_SECTIONS[index + 1];
+  return sections[index + 1];
 }
 
 export function getPreviousSection(
   current: ApplicationSectionKey,
+  sections: ApplicationSectionKey[] = APPLICATION_SECTIONS,
 ): ApplicationSectionKey | null {
-  const index = APPLICATION_SECTIONS.indexOf(current);
+  const index = sections.indexOf(current);
   if (index <= 0) {
     return null;
   }
-  return APPLICATION_SECTIONS[index - 1];
+  return sections[index - 1];
 }
 
 export function markSectionComplete(
   progress: ApplicationProgress,
   section: ApplicationSectionKey,
+  sections: ApplicationSectionKey[] = APPLICATION_SECTIONS,
 ): ApplicationProgress {
   const completedSections = progress.completedSections.includes(section)
     ? progress.completedSections
     : [...progress.completedSections, section];
 
-  const next = getNextSection(section);
+  const next = getNextSection(section, sections);
 
   return {
     ...progress,

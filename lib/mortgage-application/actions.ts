@@ -186,6 +186,27 @@ export async function submitMortgageApplicationAction(
     return { error: "Complete your personal information before submitting." };
   }
 
+  if (
+    !application.signature.value.trim() ||
+    !application.signature.method ||
+    !application.signature.signedAt
+  ) {
+    return { error: "Please provide your electronic signature before submitting." };
+  }
+
+  for (const key of [
+    "bankruptcy",
+    "foreclosure",
+    "judgments",
+    "lawsuits",
+    "coSigner",
+    "otherPropertyOwnership",
+  ] as const) {
+    if (application.declarations[key] === null) {
+      return { error: "Please answer all declaration questions before submitting." };
+    }
+  }
+
   const personalInfo = (existing.personal_info ?? {}) as Record<string, unknown>;
   const preQualification = extractPreQualification(personalInfo);
   const submittedAt = new Date().toISOString();
@@ -212,6 +233,7 @@ export async function submitMortgageApplicationAction(
         "declarations",
         "documents",
         "review",
+        "e-sign",
         "consent",
       ],
       lastSavedAt: submittedAt,
