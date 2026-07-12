@@ -4,7 +4,7 @@ import { fetchAdminUsers } from "@/lib/admin/users/queries";
 import { requireSuperAdmin } from "@/lib/auth/guards";
 
 export const metadata = {
-  title: "Users | Orbit Mortgage",
+  title: "Users",
 };
 
 type PageProps = {

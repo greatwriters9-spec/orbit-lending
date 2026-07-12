@@ -1,15 +1,21 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { QualificationResultScreen } from "@/components/dashboard/qualification-result-screen";
 import { ClearOnboardingDraft } from "@/components/dashboard/clear-onboarding-draft";
 import { getSessionUser } from "@/lib/auth/actions";
 import { AUTH_ROUTES } from "@/lib/auth/routes";
+import { getCompanyContext } from "@/lib/company/server";
 import { fetchClientDashboardData } from "@/lib/dashboard/queries";
 
-export const metadata = {
-  title: "Pre-Qualification Result | Orbit Mortgage",
-  description: "Your Orbit Mortgage pre-qualification result.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { branding } = await getCompanyContext();
+
+  return {
+    title: "Pre-Qualification Result",
+    description: `Your ${branding.institutionName} pre-qualification result.`,
+  };
+}
 
 export default async function QualificationResultPage() {
   const user = await getSessionUser();

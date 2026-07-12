@@ -30,6 +30,7 @@ export type UserProfile = {
   account_status_changed_at: string | null;
   account_status_changed_by: string | null;
   avatar_url: string | null;
+  company_id: string | null;
   created_at: string;
   updated_at: string;
 };

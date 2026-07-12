@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { resolveInstitutionNameForUserId } from "@/lib/company/resolve-branding";
 import { mapDocumentRequestRow } from "@/lib/applications/document-request-status";
 import { enrichApplicationDetail } from "@/lib/applications/mock-enrichment";
 import { getLoanProductBySlug } from "@/lib/loans/mock-data";
@@ -190,6 +191,15 @@ export async function seedApplicationDetailsOnSubmit(
   status: ApplicationStatus = "submitted",
 ): Promise<void> {
   const supabase = await createClient();
+  const { data: application } = await supabase
+    .from("loan_applications")
+    .select("user_id")
+    .eq("id", applicationId)
+    .maybeSingle();
+
+  const senderName = application?.user_id
+    ? await resolveInstitutionNameForUserId(application.user_id)
+    : "System";
 
   await supabase.from("application_status_history").insert({
     application_id: applicationId,
@@ -200,7 +210,7 @@ export async function seedApplicationDetailsOnSubmit(
   await supabase.from("application_messages").insert({
     application_id: applicationId,
     sender_role: "system",
-    sender_name: "Orbit Mortgage",
+    sender_name: senderName,
     message:
       "Your application has been received. A loan officer will review your submission within 24 hours.",
   });

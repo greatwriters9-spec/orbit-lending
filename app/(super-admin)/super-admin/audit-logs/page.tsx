@@ -6,7 +6,7 @@ import { requireSuperAdmin } from "@/lib/auth/guards";
 import { redirect } from "next/navigation";
 
 export const metadata = {
-  title: "Audit Logs | Orbit Mortgage",
+  title: "Audit Logs",
 };
 
 export default async function SuperAdminAuditLogsPage() {

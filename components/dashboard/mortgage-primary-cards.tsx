@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 
 import { submitDownPaymentVerificationAction } from "@/lib/dashboard/down-payment-actions";
+import { useCompany } from "@/components/providers/company-provider";
 import { initiateEscrowTransferAction } from "@/lib/wallet/escrow-transfer";
 import { formatCurrency } from "@/lib/loans/queries";
 import {
@@ -447,6 +448,7 @@ export function PathwardDepositInstructionsModal({
   onMarkPaid: () => void;
   error?: string | null;
 }) {
+  const { company } = useCompany();
   useEffect(() => {
     if (!open) return;
 
@@ -512,7 +514,7 @@ export function PathwardDepositInstructionsModal({
         </div>
 
         <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
-          After you send your deposit, press Paid. Orbit Mortgage will verify your transfer
+          After you send your deposit, press Paid. {company.companyName} will verify your transfer
           and update your funding status.
         </p>
 
@@ -562,6 +564,7 @@ export function PathwardEscrowTransferModal({
   onConfirm: (seller: SellerDestinationDetails) => void;
   error?: string | null;
 }) {
+  const { branding } = useCompany();
   const [accountName, setAccountName] = useState("");
   const [bankName, setBankName] = useState("");
   const [routingNumber, setRoutingNumber] = useState("");
@@ -619,8 +622,8 @@ export function PathwardEscrowTransferModal({
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           Enter the seller&apos;s bank account details for your escrow transfer of{" "}
           <span className="font-semibold text-brand-navy">{amount}</span>. Once
-          confirmed, your funding and closing balances will show $0.00 while Orbit
-          Mortgage reviews the transfer.
+          confirmed, your funding and closing balances will show $0.00 while{" "}
+          {branding.institutionName} reviews the transfer.
         </p>
 
         <div className="mt-5 space-y-4">
@@ -1289,6 +1292,7 @@ export function ApplicationDetailsCard({ view }: { view: MortgageDashboardView }
 export const MortgageDetailsCard = ApplicationDetailsCard;
 
 export function RequiredDownPaymentCard({ view }: { view: MortgageDashboardView }) {
+  const { company } = useCompany();
   const dp = view.downPayment;
   const linked = view.linkedAccount;
   const funding = view.pathwardFunding;
@@ -1313,8 +1317,8 @@ export function RequiredDownPaymentCard({ view }: { view: MortgageDashboardView 
             <h2 className="text-xl font-bold text-brand-navy">{sectionTitle}</h2>
             <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">
               {isAdminRequest
-                ? `Orbit Mortgage has requested an additional deposit of ${formatCurrency(dp.requiredAmount)} for ${dp.requestLabel}. This is the only amount due right now.`
-                : "Deposit your down payment to your Pathward account after your application is approved. Orbit Mortgage will verify your deposit before closing funds are released."}
+                ? `${company.companyName} has requested an additional deposit of ${formatCurrency(dp.requiredAmount)} for ${dp.requestLabel}. This is the only amount due right now.`
+                : `Deposit your down payment to your Pathward account after your application is approved. ${company.companyName} will verify your deposit before closing funds are released.`}
             </p>
           </div>
         </div>
@@ -1402,7 +1406,7 @@ export function RequiredDownPaymentCard({ view }: { view: MortgageDashboardView 
           <div className="dashboard-info-panel">
             <p className="text-sm font-semibold text-brand-navy">Funding Account Details</p>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              Your Pathward account will appear here once linked by Orbit Mortgage after
+              Your Pathward account will appear here once linked by {company.companyName} after
               application approval.
             </p>
           </div>

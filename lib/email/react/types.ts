@@ -28,6 +28,8 @@ export type EmailBrandingContext = {
   addressLine: string;
   websiteDomain: string;
   bankPartnerName: string;
+  logoUrl?: string | null;
+  primaryColor?: string;
 };
 
 export type EmailTemplateContent = {

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Headphones } from "lucide-react";
 
-import { OrbitLogo } from "@/components/brand/orbit-logo";
+import { CompanyLogo } from "@/components/company/company-logo";
 import { getPortalNav } from "@/components/navigation/portal-nav";
 import type { PortalKey } from "@/types/portal";
 import { Badge } from "@/components/ui-kit/badge";
@@ -58,12 +58,11 @@ export function Sidebar({
       )}
     >
       <div className="border-b border-white/10 px-5 py-5">
-        <OrbitLogo
+        <CompanyLogo
           href={logoHref}
           size="sm"
           variant="onDark"
           className="gap-2.5"
-          aria-label="Orbit Mortgage home"
         />
       </div>
 

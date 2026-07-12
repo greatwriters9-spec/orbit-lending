@@ -15,7 +15,7 @@ import {
 } from "@react-email/components";
 import * as React from "react";
 
-import { BRAND_DISPLAY_NAME, getSupportEmailAddress, getWebsiteDomain, getWebsiteUrl, ORBIT_MORTGAGE_TAGLINE } from "@/lib/email/config";
+import { BRAND_DISPLAY_NAME, getAppOrigin, getSupportEmailAddress, getWebsiteDomain, getWebsiteUrl, ORBIT_MORTGAGE_TAGLINE } from "@/lib/email/config";
 import { isHtmlContent, sanitizeEmailCompositionHtml } from "@/lib/email/sanitize-html";
 import type { EmailStatusTone } from "@/lib/email/types";
 import { emailColors, emailFonts } from "@/lib/email/react/tokens";
@@ -39,7 +39,45 @@ function toneStyles(tone: EmailStatusTone = "neutral") {
   }
 }
 
-export function OrbitLogoMark() {
+function resolveLogoOrigin(branding?: EmailBrandingContext): string {
+  const domain = branding?.websiteDomain?.trim();
+  if (!domain) {
+    return getAppOrigin();
+  }
+  if (domain.startsWith("http://") || domain.startsWith("https://")) {
+    return domain.replace(/\/$/, "");
+  }
+  return `https://${domain}`;
+}
+
+export function EmailLogoMark({ branding }: { branding?: EmailBrandingContext }) {
+  if (branding?.logoUrl) {
+    const logoSrc = branding.logoUrl.startsWith("http")
+      ? branding.logoUrl
+      : `${resolveLogoOrigin(branding)}${branding.logoUrl.startsWith("/") ? branding.logoUrl : `/${branding.logoUrl}`}`;
+
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={logoSrc}
+        alt=""
+        width={44}
+        height={44}
+        style={{
+          display: "block",
+          width: 44,
+          height: 44,
+          objectFit: "contain",
+        }}
+      />
+    );
+  }
+
+  const markColor = branding?.primaryColor ?? emailColors.markDark;
+  const markLight = branding?.primaryColor
+    ? `${branding.primaryColor}99`
+    : emailColors.markLight;
+
   return (
     <table
       role="presentation"
@@ -57,7 +95,7 @@ export function OrbitLogoMark() {
             style={{
               width: 26,
               height: 26,
-              backgroundColor: emailColors.markDark,
+              backgroundColor: markColor,
               borderRadius: 3,
               fontSize: 0,
               lineHeight: 0,
@@ -79,7 +117,7 @@ export function OrbitLogoMark() {
             style={{
               width: 26,
               height: 26,
-              backgroundColor: emailColors.markLight,
+              backgroundColor: markLight,
               borderRadius: 3,
               fontSize: 0,
               lineHeight: 0,
@@ -92,6 +130,9 @@ export function OrbitLogoMark() {
     </table>
   );
 }
+
+/** @deprecated Use EmailLogoMark */
+export const OrbitLogoMark = EmailLogoMark;
 
 export function EmailBrandHeader({
   showPathward = true,
@@ -114,7 +155,7 @@ export function EmailBrandHeader({
             <tbody>
               <tr>
                 <td style={{ paddingRight: 12, verticalAlign: "middle" }}>
-                  <OrbitLogoMark />
+                  <EmailLogoMark branding={branding} />
                 </td>
                 <td style={{ verticalAlign: "middle" }}>
                   <Text
@@ -483,7 +524,7 @@ export function EmailFooter({ branding }: { branding?: EmailBrandingContext }) {
         <tbody>
           <tr>
             <td style={{ paddingRight: 10, verticalAlign: "middle" }}>
-              <OrbitLogoMark />
+              <EmailLogoMark branding={branding} />
             </td>
             <td style={{ verticalAlign: "middle" }}>
               <Text style={{ margin: 0, fontFamily: emailFonts.sans, fontSize: 14, fontWeight: 700, color: emailColors.text }}>

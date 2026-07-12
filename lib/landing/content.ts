@@ -176,6 +176,29 @@ export const LANDING_WHY_FEATURES: LandingWhyFeature[] = [
   },
 ];
 
+export const OAKSTONE_WHY_FEATURES: LandingWhyFeature[] = [
+  {
+    title: "Rooted in Strength",
+    description:
+      "Backed by trusted banking infrastructure and a commitment to long-term financial stability.",
+  },
+  {
+    title: "Personalized Service",
+    description:
+      "Dedicated mortgage professionals who guide you through every step of your home journey.",
+  },
+  {
+    title: "Competitive Rates",
+    description:
+      "Transparent pricing and competitive mortgage rates designed to fit your financial goals.",
+  },
+  {
+    title: "Smooth Process",
+    description:
+      "A streamlined digital application with clear milestones from pre-qualification to closing.",
+  },
+];
+
 export const LANDING_PROCESS_STEPS: LandingProcessStep[] = [
   {
     id: "account",

@@ -1,16 +1,24 @@
 import { getAppOrigin } from "@/lib/email/config";
-import { SITE_NAME } from "@/lib/site/metadata";
 
-export function OrganizationJsonLd() {
+type OrganizationJsonLdProps = {
+  companyName: string;
+  logoUrl?: string | null;
+};
+
+export function OrganizationJsonLd({
+  companyName,
+  logoUrl,
+}: OrganizationJsonLdProps) {
   const siteUrl = getAppOrigin();
+  const logo = logoUrl ?? `${siteUrl}/icon`;
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: SITE_NAME,
+    name: companyName,
     url: siteUrl,
-    logo: `${siteUrl}/icon`,
-    image: `${siteUrl}/orbit-mortgage-logo.png`,
+    logo,
+    image: logo,
   };
 
   return (

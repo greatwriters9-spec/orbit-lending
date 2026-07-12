@@ -1,9 +1,10 @@
 import type { EmailTemplateContent, EmailBrandingContext } from "@/lib/email/react/types";
+import { formatBrandingAddress } from "@/lib/admin/branding/config";
 import {
   fetchBrandingConfig,
-  formatBrandingAddress,
-} from "@/lib/admin/branding/config";
-import type { BrandingConfig } from "@/types/branding-config";
+} from "@/lib/admin/branding/fetch-config.server";
+import { fetchCompanyById } from "@/lib/company/queries";
+import { DEFAULT_BRANDING_CONFIG, type BrandingConfig } from "@/types/branding-config";
 import { renderReactEmailTemplate } from "@/lib/email/react/render";
 import { getAppOrigin } from "@/lib/email/config";
 import {
@@ -53,7 +54,10 @@ function formatEmailDate(value?: string): string {
   });
 }
 
-function brandingToEmailContext(config: BrandingConfig): EmailBrandingContext {
+function brandingToEmailContext(
+  config: BrandingConfig,
+  extras?: { logoUrl?: string | null; primaryColor?: string },
+): EmailBrandingContext {
   return {
     institutionName: config.institutionName,
     tagline: config.tagline,
@@ -63,6 +67,8 @@ function brandingToEmailContext(config: BrandingConfig): EmailBrandingContext {
     addressLine: formatBrandingAddress(config),
     websiteDomain: config.websiteDomain,
     bankPartnerName: config.bankPartnerName,
+    logoUrl: extras?.logoUrl ?? null,
+    primaryColor: extras?.primaryColor,
   };
 }
 
@@ -114,7 +120,7 @@ function staffForDepartment(
     name: str(
       data,
       "staffName",
-      brandingDefaults?.staffName ?? registryDefaults?.name ?? "Orbit Mortgage Team",
+      brandingDefaults?.staffName ?? registryDefaults?.name ?? `${DEFAULT_BRANDING_CONFIG.institutionName} Team`,
     ),
     title: str(
       data,
@@ -139,7 +145,7 @@ function closedMortgageProgress() {
   ];
 }
 
-export { resolveTemplateDepartment, TEMPLATE_DEPARTMENTS };
+export { TEMPLATE_DEPARTMENTS };
 
 export function resolveEmailTemplate(
   template: EmailTemplateKey,
@@ -155,25 +161,26 @@ export function resolveEmailTemplate(
   const loginUrl = `${origin}/login`;
   const meta = baseMeta(department, data, branding);
   const emailBranding = branding ? brandingToEmailContext(branding) : undefined;
+  const brand = branding?.institutionName ?? DEFAULT_BRANDING_CONFIG.institutionName;
 
   const builders: Record<
     EmailTemplateKey,
     () => { subject: string; content: EmailTemplateContent }
   > = {
     welcome: () => ({
-      subject: "Welcome to Orbit Mortgage",
+      subject: `Welcome to ${brand}`,
       content: {
         ...meta,
         communicationClass,
         headline: `Welcome, ${firstName}`,
-        body: "Thank you for choosing Orbit Mortgage. Your account is ready. Complete your profile, explore your pre-qualification, and track every step of your home purchase with clear updates along the way.",
+        body: `Thank you for choosing ${brand}. Your account is ready. Complete your profile, explore your pre-qualification, and track every step of your home purchase with clear updates along the way.`,
         ctaLabel: "Open Your Dashboard",
         ctaUrl: dashboardUrl,
         showProgress: false,
       },
     }),
     verify_email: () => ({
-      subject: "Verify Your Orbitt Mortgage Email Address",
+      subject: `Verify Your ${brand} Email Address`,
       content: {
         ...meta,
         communicationClass,
@@ -181,7 +188,7 @@ export function resolveEmailTemplate(
         body: str(
           data,
           "message",
-          "Please verify your email address to activate secure access to your Orbitt Mortgage account.",
+          `Please verify your email address to activate secure access to your ${brand} account.`,
         ),
         tone: "pending",
         badge: "Action Required",
@@ -191,12 +198,12 @@ export function resolveEmailTemplate(
       },
     }),
     verification_success: () => ({
-      subject: "Email Verified — Orbit Mortgage",
+      subject: `Email Verified — ${brand}`,
       content: {
         ...meta,
         communicationClass,
         headline: "Your email is verified",
-        body: "Your Orbit Mortgage account email has been confirmed. You can now receive application updates, funding notices, and closing communications.",
+        body: `Your ${brand} account email has been confirmed. You can now receive application updates, funding notices, and closing communications.`,
         tone: "approved",
         badge: "Verified",
         ctaLabel: "Continue to Dashboard",
@@ -205,14 +212,14 @@ export function resolveEmailTemplate(
       },
     }),
     password_reset: () => ({
-      subject: "Orbitt Mortgage Password Reset Request",
+      subject: `${brand} Password Reset Request`,
       content: {
         ...meta,
         departmentName: DEPARTMENT_DISPLAY_NAMES.support,
         contactEmail: DEPARTMENT_CONTACT_EMAILS.support,
         communicationClass,
         headline: "Password reset requested",
-        body: "We received a request to reset your Orbitt Mortgage portal password. If you did not make this request, contact our support team immediately.",
+        body: `We received a request to reset your ${brand} portal password. If you did not make this request, contact our support team immediately.`,
         tone: "pending",
         badge: "Security Notice",
         ctaLabel: "Reset Password",
@@ -222,21 +229,21 @@ export function resolveEmailTemplate(
       },
     }),
     magic_link: () => ({
-      subject: "Your Orbitt Mortgage Sign-In Link",
+      subject: `Your ${brand} Sign-In Link`,
       content: {
         ...meta,
         communicationClass,
         headline: "Sign in securely",
-        body: "Use the secure link below to sign in to your Orbitt Mortgage account. This link expires shortly and can only be used once.",
+        body: `Use the secure link below to sign in to your ${brand} account. This link expires shortly and can only be used once.`,
         tone: "pending",
         badge: "Secure Sign-In",
-        ctaLabel: "Sign In to Orbitt Mortgage",
+        ctaLabel: `Sign In to ${brand}`,
         ctaUrl: str(data, "magicLinkUrl", loginUrl),
         showProgress: false,
       },
     }),
     auth_verification_code: () => ({
-      subject: "Your Orbitt Mortgage Verification Code",
+      subject: `Your ${brand} Verification Code`,
       content: {
         ...meta,
         communicationClass,
@@ -248,14 +255,14 @@ export function resolveEmailTemplate(
         ),
         tone: "pending",
         badge: "Verification Code",
-        ctaLabel: "Continue to Orbitt Mortgage",
+        ctaLabel: `Continue to ${brand}`,
         ctaUrl: loginUrl,
         showProgress: false,
         showContact: true,
       },
     }),
     account_notification: () => ({
-      subject: str(data, "headline", str(data, "subject", "Update from Orbitt Mortgage")),
+      subject: str(data, "headline", str(data, "subject", `Update from ${brand}`)),
       content: {
         ...meta,
         communicationClass,
@@ -263,15 +270,15 @@ export function resolveEmailTemplate(
         body: str(
           data,
           "message",
-          "You have a new update in your Orbitt Mortgage account.",
+          `You have a new update in your ${brand} account.`,
         ),
-        ctaLabel: str(data, "ctaLabel", "View in Orbitt Mortgage"),
+        ctaLabel: str(data, "ctaLabel", `View in ${brand}`),
         ctaUrl: str(data, "actionUrl", dashboardUrl),
         showProgress: false,
       },
     }),
     security_alert: () => ({
-      subject: "Orbitt Mortgage Security Alert",
+      subject: `${brand} Security Alert`,
       content: {
         ...meta,
         communicationClass,
@@ -279,7 +286,7 @@ export function resolveEmailTemplate(
         body: str(
           data,
           "message",
-          "Your Orbit Mortgage account was accessed. If this was not you, contact support immediately.",
+          `Your ${brand} account was accessed. If this was not you, contact support immediately.`,
         ),
         tone: "rejected",
         badge: "Security Alert",
@@ -289,12 +296,12 @@ export function resolveEmailTemplate(
       },
     }),
     application_submitted: () => ({
-      subject: "Mortgage Application Received — Orbit Mortgage",
+      subject: `Mortgage Application Received — ${brand}`,
       content: {
         ...meta,
         communicationClass,
         headline: "Application received",
-        body: "Your mortgage application has been submitted to Orbit Mortgage. Our lending team will review your file and contact you if additional information is required.",
+        body: `Your mortgage application has been submitted to ${brand}. Our lending team will review your file and contact you if additional information is required.`,
         tone: "pending",
         badge: "Submitted",
         detailRows: [
@@ -323,7 +330,7 @@ export function resolveEmailTemplate(
       },
     }),
     additional_documents_required: () => ({
-      subject: "Additional Documents Required — Orbit Mortgage",
+      subject: `Additional Documents Required — ${brand}`,
       content: {
         ...meta,
         communicationClass,
@@ -345,7 +352,7 @@ export function resolveEmailTemplate(
       },
     }),
     documents_received_for_review: () => ({
-      subject: "Documents Received — Orbit Mortgage",
+      subject: `Documents Received — ${brand}`,
       content: {
         ...meta,
         communicationClass,
@@ -368,7 +375,7 @@ export function resolveEmailTemplate(
         ...meta,
         communicationClass,
         headline: "Your mortgage is approved",
-        body: "Congratulations. Your mortgage application has been approved by Orbit Mortgage.",
+        body: `Congratulations. Your mortgage application has been approved by ${brand}.`,
         tone: "approved",
         badge: "Approved",
         detailRows: [
@@ -380,7 +387,7 @@ export function resolveEmailTemplate(
       },
     }),
     application_rejected: () => ({
-      subject: "Mortgage Application Update — Orbit Mortgage",
+      subject: `Mortgage Application Update — ${brand}`,
       content: {
         ...meta,
         communicationClass,
@@ -398,7 +405,7 @@ export function resolveEmailTemplate(
       },
     }),
     application_on_hold: () => ({
-      subject: "Mortgage Application On Hold — Orbit Mortgage",
+      subject: `Mortgage Application On Hold — ${brand}`,
       content: {
         ...meta,
         communicationClass,
@@ -418,12 +425,12 @@ export function resolveEmailTemplate(
       },
     }),
     pre_qualified_notice: () => ({
-      subject: "Pre-Qualification Results — Orbit Mortgage",
+      subject: `Pre-Qualification Results — ${brand}`,
       content: {
         ...meta,
         communicationClass,
         headline: "You are pre-qualified",
-        body: "Based on your information, Orbit Mortgage has calculated your preliminary buying power.",
+        body: `Based on your information, ${brand} has calculated your preliminary buying power.`,
         tone: "approved",
         badge: "Pre-Qualified",
         detailRows: [
@@ -456,12 +463,12 @@ export function resolveEmailTemplate(
       },
     }),
     funding_account_created: () => ({
-      subject: "Funding Account Linked — Orbit Mortgage",
+      subject: `Funding Account Linked — ${brand}`,
       content: {
         ...meta,
         communicationClass,
         headline: "Your funding account has been linked",
-        body: "Orbit Mortgage has linked your Pathward funding account. View wire instructions in your dashboard. Your balance will update once mortgage funding is processed or your down payment is confirmed.",
+        body: `${brand} has linked your Pathward funding account. View wire instructions in your dashboard. Your balance will update once mortgage funding is processed or your down payment is confirmed.`,
         tone: "approved",
         badge: "Account Linked",
         ctaLabel: "View Dashboard",
@@ -469,12 +476,12 @@ export function resolveEmailTemplate(
       },
     }),
     funding_account_activated: () => ({
-      subject: "Funding Account Activated — Orbit Mortgage",
+      subject: `Funding Account Activated — ${brand}`,
       content: {
         ...meta,
         communicationClass,
         headline: "Funding account activated",
-        body: "Your Orbit Mortgage funding account is now active.",
+        body: `Your ${brand} funding account is now active.`,
         tone: "approved",
         badge: "Activated",
         ctaLabel: "Open Funding Dashboard",
@@ -496,7 +503,7 @@ export function resolveEmailTemplate(
       },
     }),
     deposit_verified: () => ({
-      subject: "Deposit Verified — Orbit Mortgage",
+      subject: `Deposit Verified — ${brand}`,
       content: {
         ...meta,
         communicationClass,
@@ -510,7 +517,7 @@ export function resolveEmailTemplate(
       },
     }),
     deposit_rejected: () => ({
-      subject: "Deposit Verification Update — Orbit Mortgage",
+      subject: `Deposit Verification Update — ${brand}`,
       content: {
         ...meta,
         communicationClass,
@@ -534,7 +541,7 @@ export function resolveEmailTemplate(
         ...meta,
         communicationClass,
         headline: "Your funding balance changed",
-        body: "Your Orbit Mortgage funding account balance has been updated.",
+        body: `Your ${brand} funding account balance has been updated.`,
         staff: staffForDepartment(department, data, branding),
         detailRows: [{ label: "Current Balance", value: currency(data, "balance") || "—" }],
         ctaLabel: "View Account",
@@ -557,11 +564,11 @@ export function resolveEmailTemplate(
       },
     }),
     escrow_transfer_pending_approval: () => ({
-      subject: "Escrow Transfer Pending Orbit Approval",
+      subject: `Escrow Transfer Pending ${brand} Approval`,
       content: {
         ...meta,
         communicationClass,
-        headline: "Pending Orbit Mortgage approval",
+        headline: `Pending ${brand} approval`,
         body: "Your escrow transfer request is being reviewed by our closing team.",
         tone: "pending",
         badge: "Pending Approval",
@@ -570,12 +577,12 @@ export function resolveEmailTemplate(
       },
     }),
     escrow_transfer_approved: () => ({
-      subject: "Escrow Transfer Approved — Orbit Mortgage",
+      subject: `Escrow Transfer Approved — ${brand}`,
       content: {
         ...meta,
         communicationClass,
         headline: "Escrow transfer approved",
-        body: "Your escrow transfer has been approved by Orbit Mortgage.",
+        body: `Your escrow transfer has been approved by ${brand}.`,
         tone: "approved",
         badge: "Approved",
         detailRows: [{ label: "Transfer Amount", value: currency(data, "amount") || "—" }],
@@ -584,7 +591,7 @@ export function resolveEmailTemplate(
       },
     }),
     additional_funding_required: () => ({
-      subject: "Additional Funding Required — Orbit Mortgage",
+      subject: `Additional Funding Required — ${brand}`,
       content: {
         ...meta,
         communicationClass,
@@ -612,7 +619,7 @@ export function resolveEmailTemplate(
         ...meta,
         communicationClass,
         headline: "Funds released to seller",
-        body: "Orbit Mortgage has released your closing funds to the seller via escrow.",
+        body: `${brand} has released your closing funds to the seller via escrow.`,
         tone: "approved",
         badge: "Funds Released",
         detailRows: [{ label: "Amount Released", value: currency(data, "amount") || "—" }],
@@ -631,7 +638,7 @@ export function resolveEmailTemplate(
           str(
             data,
             "message",
-            "Congratulations on completing your home purchase with Orbit Mortgage. The funds have been released to the seller.",
+            `Congratulations on completing your home purchase with ${brand}. The funds have been released to the seller.`,
           ),
         tone: "approved",
         badge: "Closed",
@@ -674,7 +681,7 @@ export function resolveEmailTemplate(
       },
     }),
     custom_chief_lending_officer: () => ({
-      subject: str(data, "subject", "Important update from Orbit Mortgage"),
+      subject: str(data, "subject", `Important update from ${brand}`),
       content: {
         ...meta,
         departmentName: DEPARTMENT_DISPLAY_NAMES.executive,
@@ -709,11 +716,11 @@ export function resolveEmailTemplate(
       },
     }),
     custom_message: () => ({
-      subject: str(data, "subject", "Message from Orbit Mortgage"),
+      subject: str(data, "subject", `Message from ${brand}`),
       content: {
         ...meta,
         communicationClass: "department",
-        headline: str(data, "headline", str(data, "subject", "Message from Orbit Mortgage")),
+        headline: str(data, "headline", str(data, "subject", `Message from ${brand}`)),
         body: overrides?.customMessage ?? str(data, "message", ""),
         staff: staffForDepartment(
           (str(data, "department", "system") as EmailDepartment) || "system",
@@ -748,9 +755,24 @@ export async function renderEmailFromTemplate(
   template: EmailTemplateKey,
   data?: EmailTemplateData,
   overrides?: { subject?: string; customMessage?: string },
+  companyId?: string,
 ) {
-  const branding = await fetchBrandingConfig();
+  const branding = await fetchBrandingConfig(companyId);
+  let company = companyId ? await fetchCompanyById(companyId) : null;
+  if (!company) {
+    try {
+      const { getCompanyContext } = await import("@/lib/company/server");
+      company = (await getCompanyContext()).company;
+    } catch {
+      // Host context unavailable outside a request.
+    }
+  }
+  const emailBranding = brandingToEmailContext(branding, {
+    logoUrl: company?.logo ?? null,
+    primaryColor: company?.primaryColor,
+  });
   const resolved = resolveEmailTemplate(template, data, overrides, branding);
+  resolved.content.branding = emailBranding;
   const rendered = await renderReactEmailTemplate({
     template,
     preview: resolved.subject,
@@ -761,131 +783,4 @@ export async function renderEmailFromTemplate(
     ...resolved,
     ...rendered,
   };
-}
-
-export const EMAIL_TEMPLATE_LABELS: Record<EmailTemplateKey, string> = {
-  welcome: "Welcome",
-  verify_email: "Verify Email",
-  verification_success: "Verification Success",
-  password_reset: "Password Reset",
-  magic_link: "Magic Link Sign-In",
-  auth_verification_code: "Verification Code",
-  account_notification: "Account Notification",
-  security_alert: "Security Alert",
-  application_submitted: "Application Submitted",
-  application_under_review: "Application Under Review",
-  additional_documents_required: "Additional Documents Required",
-  documents_received_for_review: "Documents Received For Review",
-  application_approved: "Application Approved",
-  application_rejected: "Application Rejected",
-  application_on_hold: "Application On Hold",
-  pre_qualified_notice: "Pre-Qualified Notice",
-  eligible_amount_updated: "Eligible Amount Updated",
-  funding_account_created: "Funding Account Linked",
-  funding_account_activated: "Funding Account Activated",
-  deposit_submitted: "Deposit Submitted",
-  deposit_verified: "Deposit Verified",
-  deposit_rejected: "Deposit Rejected",
-  funding_balance_updated: "Funding Balance Updated",
-  escrow_transfer_requested: "Escrow Transfer Requested",
-  escrow_transfer_pending_approval: "Escrow Transfer Pending Approval",
-  escrow_transfer_approved: "Escrow Transfer Approved",
-  additional_funding_required: "Additional Funding Required",
-  funds_released_to_seller: "Funds Released To Seller",
-  mortgage_closed_successfully: "Mortgage Closed Successfully",
-  custom_loan_officer: "Loan Officer Message",
-  custom_chief_lending_officer: "Executive Message",
-  custom_funding_department: "Funding Department Message",
-  custom_closings_department: "Closing Department Message",
-  custom_message: "Custom Message",
-};
-
-export const EMAIL_TEMPLATE_DEFAULT_SUBJECTS: Partial<Record<EmailTemplateKey, string>> = {
-  custom_loan_officer: "Message from Your Loan Officer",
-  custom_chief_lending_officer: "Important Update from Orbit Mortgage",
-  custom_funding_department: "Update on Your Funding Account",
-  custom_closings_department: "Update on Your Closing",
-  custom_message: "",
-};
-
-export const EMAIL_TEMPLATE_DEFAULT_HEADLINES: Partial<Record<EmailTemplateKey, string>> = {
-  custom_loan_officer: "Message from your loan officer",
-  custom_chief_lending_officer: "An update on your mortgage",
-  custom_funding_department: "An update on your funding account",
-  custom_closings_department: "An update on your closing",
-  custom_message: "",
-};
-
-export function getEmailTemplateLabel(templateKey: EmailTemplateKey): string {
-  return EMAIL_TEMPLATE_LABELS[templateKey] ?? templateKey;
-}
-
-/** Client-friendly labels for the profile communication history. */
-export const CLIENT_EMAIL_TEMPLATE_LABELS: Partial<Record<EmailTemplateKey, string>> = {
-  welcome: "Welcome to Orbit Mortgage",
-  verify_email: "Email verification",
-  verification_success: "Email verified",
-  password_reset: "Password reset",
-  magic_link: "Secure sign-in link",
-  auth_verification_code: "Verification code",
-  account_notification: "Account update",
-  security_alert: "Security notice",
-  application_submitted: "Application received",
-  application_under_review: "Application update",
-  additional_documents_required: "Documents needed",
-  documents_received_for_review: "Documents under review",
-  application_approved: "Application approved",
-  application_rejected: "Application update",
-  application_on_hold: "Application update",
-  pre_qualified_notice: "Pre-qualification update",
-  eligible_amount_updated: "Mortgage amount update",
-  funding_account_created: "Funding account",
-  funding_account_activated: "Funding account ready",
-  deposit_submitted: "Deposit received",
-  deposit_verified: "Deposit verified",
-  deposit_rejected: "Deposit update",
-  funding_balance_updated: "Balance update",
-  escrow_transfer_requested: "Closing transfer",
-  escrow_transfer_pending_approval: "Closing transfer in review",
-  escrow_transfer_approved: "Closing transfer approved",
-  additional_funding_required: "Additional funds needed",
-  funds_released_to_seller: "Closing complete",
-  mortgage_closed_successfully: "Mortgage closed",
-  custom_loan_officer: "Message from your loan team",
-  custom_chief_lending_officer: "Important update",
-  custom_funding_department: "Funding update",
-  custom_closings_department: "Closing update",
-  custom_message: "Custom message",
-};
-
-export function getClientEmailTemplateLabel(templateKey: EmailTemplateKey): string {
-  return (
-    CLIENT_EMAIL_TEMPLATE_LABELS[templateKey] ??
-    getEmailTemplateLabel(templateKey)
-  );
-}
-
-export const ADMIN_CUSTOM_TEMPLATES: EmailTemplateKey[] = [
-  "custom_message",
-  "custom_loan_officer",
-  "custom_chief_lending_officer",
-  "custom_funding_department",
-  "custom_closings_department",
-];
-
-export const ADMIN_SENDABLE_TEMPLATES = [
-  "custom_message",
-  ...Object.keys(EMAIL_TEMPLATE_LABELS).filter(
-    (key) => key !== "custom_message",
-  ),
-] as EmailTemplateKey[];
-
-export const COMMUNICATION_CLASS_LABELS = {
-  automated: "Automated System",
-  department: "Department Communication",
-  executive: "Executive Communication",
-} as const;
-
-export function getTemplateCommunicationClassLabel(template: EmailTemplateKey) {
-  return COMMUNICATION_CLASS_LABELS[resolveTemplateCommunicationClass(template)];
 }

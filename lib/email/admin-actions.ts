@@ -8,7 +8,7 @@ import {
   ADMIN_SENDABLE_TEMPLATES,
   EMAIL_TEMPLATE_LABELS,
   resolveTemplateDepartment,
-} from "@/lib/email/templates/catalog";
+} from "@/lib/email/templates/catalog-labels";
 import { fetchAllEmailCommunicationLogs, fetchEmailCommunicationLogById } from "@/lib/email/queries";
 import {
   buildCommunicationLogMetadata,

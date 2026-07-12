@@ -1,15 +1,5 @@
-import { PortalPlaceholder } from "@/components/layout/portal-placeholder";
+import { redirect } from "next/navigation";
 
-export const metadata = {
-  title: "Platform Management | Orbit Mortgage",
-};
-
-export default function Page() {
-  return (
-    <PortalPlaceholder
-      title="Platform Management"
-      description="Core platform administration and controls."
-    />
-  );
+export default function PlatformManagementRedirectPage() {
+  redirect("/super-admin/companies");
 }
-

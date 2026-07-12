@@ -8,7 +8,7 @@ import {
   fetchEmailCommunicationLogDetailAction,
   type EmailCommunicationLogDetail,
 } from "@/lib/email/admin-actions";
-import { getEmailTemplateLabel } from "@/lib/email/templates/catalog";
+import { getEmailTemplateLabel } from "@/lib/email/templates/catalog-labels";
 import type { EmailCommunicationLog } from "@/lib/email/types";
 import { Button } from "@/components/ui-kit/button";
 import {

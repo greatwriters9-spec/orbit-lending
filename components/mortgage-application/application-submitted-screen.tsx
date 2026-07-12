@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 
-import { OrbitLogo } from "@/components/brand/orbit-logo";
+import { CompanyLogo } from "@/components/company/company-logo";
 import { formatApplicationDate } from "@/lib/applications/status-utils";
 
 type ApplicationSubmittedScreenProps = {
@@ -19,7 +19,7 @@ export function ApplicationSubmittedScreen({
     <div className="flex min-h-screen flex-col bg-white">
       <header className="border-b border-[#E5E7EB] bg-white">
         <div className="mx-auto flex h-[72px] max-w-3xl items-center px-4 md:px-6">
-          <OrbitLogo href="/dashboard" size="sm" aria-label="Orbit Mortgage dashboard" />
+          <CompanyLogo href="/dashboard" size="sm" />
         </div>
       </header>
 

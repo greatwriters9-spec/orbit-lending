@@ -1,9 +1,15 @@
+import { isOakstoneCompany } from "@/lib/design-system/oakstone/theme";
+
+import type { CompanyRecord } from "@/types/company";
+
 export type LandingImage = {
   src: string;
   alt: string;
   objectPosition?: string;
   /** Optional retina asset — use 2× the display width (e.g. 2560px for 1280px layouts). */
   src2x?: string;
+  /** Pre-built responsive srcSet (e.g. multiple WebP widths). */
+  srcSet?: string;
   width?: number;
   height?: number;
 };
@@ -20,6 +26,31 @@ export const LANDING_HERO_IMAGES: LandingImage[] = [
     height: 576,
   },
 ];
+
+/** Premium OakStone hero — luxury home at dusk with warm interior glow. */
+export const OAKSTONE_HERO_IMAGE: LandingImage = {
+  src: "/assets/oakstone/hero-home.webp",
+  srcSet:
+    "/assets/oakstone/hero-home-768.webp 768w, /assets/oakstone/hero-home-1280.webp 1280w, /assets/oakstone/hero-home.webp 1920w",
+  alt: "Luxury home at dusk with warm interior lighting and manicured landscaping",
+  objectPosition: "58% 42%",
+  width: 1024,
+  height: 775,
+};
+
+export function resolveLandingHeroImage(
+  company: Pick<CompanyRecord, "slug" | "heroBackground">,
+): LandingImage {
+  if (isOakstoneCompany(company.slug)) {
+    return OAKSTONE_HERO_IMAGE;
+  }
+
+  if (company.heroBackground) {
+    return { ...LANDING_HERO_IMAGES[0], src: company.heroBackground, src2x: undefined, srcSet: undefined };
+  }
+
+  return LANDING_HERO_IMAGES[0];
+}
 
 export const LANDING_SECTION_IMAGES = {
   whyOrbit: {

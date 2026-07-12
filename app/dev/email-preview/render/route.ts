@@ -1,9 +1,7 @@
 import { notFound } from "next/navigation";
 
-import {
-  EMAIL_TEMPLATE_LABELS,
-  renderEmailFromTemplate,
-} from "@/lib/email/templates/catalog";
+import { EMAIL_TEMPLATE_LABELS } from "@/lib/email/templates/catalog-labels";
+import { renderEmailFromTemplate } from "@/lib/email/templates/catalog";
 import type { EmailTemplateKey } from "@/lib/email/types";
 
 const SAMPLE_DATA = {
@@ -51,7 +49,7 @@ export async function GET(request: Request) {
   const rendered = await renderEmailFromTemplate(template, data, {
     customMessage:
       searchParams.get("message") ??
-      "Congratulations on completing your home purchase with Orbit Mortgage. The funds have been released to the seller.",
+      "Congratulations on completing your home purchase. The funds have been released to the seller.",
   });
 
   return new Response(rendered.html, {

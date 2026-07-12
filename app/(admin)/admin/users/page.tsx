@@ -6,7 +6,7 @@ import { requireAdmin } from "@/lib/auth/guards";
 import { redirect } from "next/navigation";
 
 export const metadata = {
-  title: "User Management | Orbit Mortgage",
+  title: "User Management",
 };
 
 type PageProps = {

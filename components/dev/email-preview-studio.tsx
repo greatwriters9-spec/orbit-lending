@@ -6,7 +6,7 @@ import {
   COMMUNICATION_CLASS_LABELS,
   EMAIL_TEMPLATE_LABELS,
   getTemplateCommunicationClassLabel,
-} from "@/lib/email/templates/catalog";
+} from "@/lib/email/templates/catalog-labels";
 import { resolveTemplateCommunicationClass } from "@/lib/email/registry";
 import type { EmailCommunicationClass, EmailTemplateKey } from "@/lib/email/types";
 
@@ -27,7 +27,7 @@ export function EmailPreviewStudio({ templates }: EmailPreviewStudioProps) {
   );
   const [classFilter, setClassFilter] = useState<"all" | EmailCommunicationClass>("all");
   const [message, setMessage] = useState(
-    "Congratulations on completing your home purchase with Orbit Mortgage. The funds have been released to the seller.",
+    "Congratulations on completing your home purchase. The funds have been released to the seller.",
   );
 
   const filteredTemplates = useMemo(() => {

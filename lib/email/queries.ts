@@ -1,5 +1,5 @@
 import type { EmailCommunicationLog, EmailTemplateKey } from "@/lib/email/types";
-import { getEmailTemplateLabel } from "@/lib/email/templates/catalog";
+import { getEmailTemplateLabel } from "@/lib/email/templates/catalog-labels";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
 
@@ -39,7 +39,7 @@ function mapEmailLog(row: EmailLogRow): EmailCommunicationLog {
   };
 }
 
-export { getEmailTemplateLabel } from "@/lib/email/templates/catalog";
+export { getEmailTemplateLabel } from "@/lib/email/templates/catalog-labels";
 
 export async function fetchUserEmailCommunicationLogs(
   userId: string,

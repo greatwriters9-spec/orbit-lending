@@ -1,6 +1,6 @@
 import { cleanEnv } from "@/lib/env";
 import { sendEmail } from "@/lib/email/service";
-import { resolveTemplateDepartment } from "@/lib/email/templates/catalog";
+import { resolveTemplateDepartment } from "@/lib/email/registry";
 import type { EmailTemplateKey } from "@/lib/email/types";
 
 export type SupabaseAuthEmailActionType =
@@ -113,48 +113,48 @@ function resolveNotificationCopy(actionType: string): {
       return {
         headline: "Your password was changed",
         message:
-          "Your Orbitt Mortgage account password was updated. If you did not make this change, contact support immediately.",
+          "Your account password was updated. If you did not make this change, contact support immediately.",
       };
     case "email_changed_notification":
       return {
         headline: "Your email address was changed",
         message:
-          "The email address on your Orbitt Mortgage account was updated. If you did not authorize this change, contact support immediately.",
+          "The email address on your account was updated. If you did not authorize this change, contact support immediately.",
       };
     case "phone_changed_notification":
       return {
         headline: "Your phone number was changed",
         message:
-          "The phone number on your Orbitt Mortgage account was updated. If you did not authorize this change, contact support immediately.",
+          "The phone number on your account was updated. If you did not authorize this change, contact support immediately.",
       };
     case "identity_linked_notification":
       return {
         headline: "A sign-in method was linked",
         message:
-          "A new sign-in method was linked to your Orbitt Mortgage account. If this wasn't you, contact support immediately.",
+          "A new sign-in method was linked to your account. If this wasn't you, contact support immediately.",
       };
     case "identity_unlinked_notification":
       return {
         headline: "A sign-in method was removed",
         message:
-          "A sign-in method was removed from your Orbitt Mortgage account. If this wasn't you, contact support immediately.",
+          "A sign-in method was removed from your account. If this wasn't you, contact support immediately.",
       };
     case "mfa_factor_enrolled_notification":
       return {
         headline: "Multi-factor authentication enabled",
         message:
-          "A new multi-factor authentication method was added to your Orbitt Mortgage account.",
+          "A new multi-factor authentication method was added to your account.",
       };
     case "mfa_factor_unenrolled_notification":
       return {
         headline: "Multi-factor authentication removed",
         message:
-          "A multi-factor authentication method was removed from your Orbitt Mortgage account.",
+          "A multi-factor authentication method was removed from your account.",
       };
     default:
       return {
         headline: "Account update",
-        message: "You have a new security update on your Orbitt Mortgage account.",
+        message: "You have a new security update on your account.",
       };
   }
 }
@@ -175,15 +175,15 @@ function resolveAuthEmailData(input: {
         firstName,
         headline:
           actionType === "invite"
-            ? "You've been invited to Orbitt Mortgage"
+            ? "You've been invited"
             : actionType === "email_change"
               ? "Confirm your new email address"
               : undefined,
         message:
           actionType === "invite"
-            ? "You've been invited to join Orbitt Mortgage. Confirm your email address to activate your account."
+            ? "You've been invited to join us. Confirm your email address to activate your account."
             : actionType === "email_change"
-              ? "Please confirm this email change to keep your Orbitt Mortgage account secure."
+              ? "Please confirm this email change to keep your account secure."
               : undefined,
       };
     case "password_reset":
@@ -443,6 +443,7 @@ export async function sendSupabaseAuthEmailFromHook(
       metadata: {
         source: "supabase_auth_hook",
         emailActionType: payload.email_data.email_action_type,
+        company_id: payload.user.user_metadata?.company_id,
       },
     });
 

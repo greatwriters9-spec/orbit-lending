@@ -8,6 +8,7 @@ import { requireFinanceStaff } from "@/lib/auth/guards";
 import { resolveRole } from "@/lib/auth/navigation";
 import { logAuditEntry } from "@/lib/finance/audit";
 import { notifyRepaymentEvent } from "@/lib/notifications/service";
+import { resolveInstitutionNameForUserId } from "@/lib/company/resolve-branding";
 import { logRepaymentActivity } from "@/lib/repayments/activity-log";
 import {
   REPAYMENT_GRACE_PERIOD_DAYS,
@@ -129,10 +130,11 @@ async function completeLoanIfPaidOff(loanId: string, actorId?: string, actorRole
     details: { remainingBalance: 0 },
   });
 
+  const institutionName = await resolveInstitutionNameForUserId(loan.user_id);
   await notifyRepaymentEvent(
     loan.user_id,
     "Congratulations! Mortgage Fully Repaid",
-    `Your Orbit Mortgage mortgage ${loan.loan_number ?? ""} has been fully repaid. Thank you for banking with us.`,
+    `Your ${institutionName} mortgage ${loan.loan_number ?? ""} has been fully repaid. Thank you for banking with us.`,
     "critical",
     { showModal: false, sendEmail: true },
   );

@@ -2,8 +2,7 @@
 
 import { ArrowRight, Clock3 } from "lucide-react";
 
-import { Button } from "@/components/ui-kit/button";
-import { OrbitLogo } from "@/components/brand/orbit-logo";
+import { CompanyLogo } from "@/components/company/company-logo";
 
 type AssessmentIntroProps = {
   onStart: () => void;
@@ -14,7 +13,7 @@ export function AssessmentIntro({ onStart }: AssessmentIntroProps) {
     <div className="flex min-h-screen flex-col bg-[#F8FAFC]">
       <header className="border-b border-[#E5E7EB] bg-white">
         <div className="mx-auto flex h-[72px] max-w-3xl items-center px-4 md:px-6">
-          <OrbitLogo href="/" size="sm" aria-label="Orbit Mortgage home" />
+          <CompanyLogo href="/" size="sm" />
         </div>
       </header>
 
@@ -42,14 +41,14 @@ export function AssessmentIntro({ onStart }: AssessmentIntroProps) {
             </div>
           </div>
 
-          <Button
+          <button
             type="button"
             onClick={onStart}
-            className="mt-10 h-14 w-full rounded-xl bg-brand-blue text-base font-semibold text-white hover:bg-brand-blue/90 md:w-auto md:px-10"
+            className="mt-10 inline-flex h-14 w-full items-center justify-center rounded-xl bg-brand-blue px-10 text-base font-semibold text-white transition-colors hover:opacity-90 md:w-auto"
           >
             Start Assessment
             <ArrowRight className="ml-2 size-4" />
-          </Button>
+          </button>
         </div>
       </main>
     </div>

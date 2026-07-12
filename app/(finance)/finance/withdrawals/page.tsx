@@ -4,7 +4,7 @@ import { fetchPendingWithdrawals } from "@/lib/wallet/queries";
 import { PATHWARD_BANK } from "@/types/wallet";
 
 export const metadata = {
-  title: "Withdrawal Approvals | Orbit Mortgage",
+  title: "Withdrawal Approvals",
 };
 
 export default async function FinanceWithdrawalsPage() {

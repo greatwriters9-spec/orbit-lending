@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { MessageCircle, X } from "lucide-react";
 
 import { onboardingInputClassName } from "@/components/onboarding/onboarding-shell";
+import { useCompany } from "@/components/providers/company-provider";
 import { Button } from "@/components/ui-kit/button";
 import {
   formatUSPhoneInput,
@@ -23,6 +24,7 @@ export function AskAssistantModal({
   onClose,
   source = "onboarding",
 }: AskAssistantModalProps) {
+  const { branding } = useCompany();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -99,7 +101,7 @@ export function AskAssistantModal({
               Raise a concern
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              No account needed. An Orbit Mortgage support staff will respond to
+              No account needed. A {branding.institutionName} support staff member will respond to
               your issue shortly.
             </p>
           </div>

@@ -116,7 +116,7 @@ const EVENT_DEFAULTS: Partial<
 > = {
   NEW_USER_REGISTRATION: (payload) => ({
     title: "New User Registration",
-    message: `${str(payload, "name")} (${str(payload, "email")}) registered for an Orbit Mortgage account.`,
+    message: `${str(payload, "name")} (${str(payload, "email")}) registered for a mortgage account.`,
     severity: "critical",
     telegramBody: registrationTelegram(payload),
   }),
@@ -355,7 +355,7 @@ export function formatTelegramAlert(input: {
       ? `${input.entityType} #${input.entityId}`
       : "—";
 
-  return `🚨 Orbit Mortgage Alert
+  return `🚨 Mortgage Platform Alert
 
 Event:
 ${input.title}

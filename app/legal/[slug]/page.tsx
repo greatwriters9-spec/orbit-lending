@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { LegalDocumentView } from "@/components/legal/legal-document-view";
+import { applyCompanyBrandingToLegalDocument } from "@/lib/legal/apply-company-branding";
 import { getLegalDocument, getLegalDocumentSlugs } from "@/lib/legal/registry";
+import { getCompanyContext } from "@/lib/company/server";
 
 type LegalDocumentPageProps = {
   params: Promise<{ slug: string }>;
@@ -19,11 +21,11 @@ export async function generateMetadata({
   const document = getLegalDocument(slug);
 
   if (!document) {
-    return { title: "Legal Document | Orbit Mortgage" };
+    return { title: "Legal Document" };
   }
 
   return {
-    title: `${document.title} | Orbit Mortgage`,
+    title: `${document.title}`,
     description: document.shortDescription,
   };
 }
@@ -38,5 +40,8 @@ export default async function LegalDocumentPage({
     notFound();
   }
 
-  return <LegalDocumentView document={document} />;
+  const { branding } = await getCompanyContext();
+  const brandedDocument = applyCompanyBrandingToLegalDocument(document, branding);
+
+  return <LegalDocumentView document={brandedDocument} />;
 }

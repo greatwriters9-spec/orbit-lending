@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 
+import { useCompany } from "@/components/providers/company-provider";
+
 import { formatCurrency } from "@/lib/loans/queries";
 import {
   hasSeenQualificationResult,
@@ -25,6 +27,7 @@ export function QualificationResultScreen({
   className,
 }: QualificationResultScreenProps) {
   const router = useRouter();
+  const { company } = useCompany();
   const detailsHref = view.applicationId
     ? `/dashboard/loans/${view.applicationId}`
     : "/dashboard/loans";
@@ -61,7 +64,7 @@ export function QualificationResultScreen({
         </p>
 
         <p className="mt-4 max-w-md text-sm font-normal text-muted-foreground">
-          Continue your mortgage journey with Orbit Mortgage.
+          Continue your mortgage journey with {company.companyName}.
         </p>
 
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">

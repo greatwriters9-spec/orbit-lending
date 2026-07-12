@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
 
 import { NotificationTimeline } from "@/components/ui-kit";
+import { useCompany } from "@/components/providers/company-provider";
 import { cn } from "@/lib/utils";
 import type { MortgageMessageItem } from "@/types/mortgage-dashboard";
 
@@ -9,17 +12,18 @@ type MessagesWidgetProps = {
   className?: string;
 };
 
-const CATEGORY_LABELS = {
-  advisor: "Mortgage Advisor",
-  underwriting: "Underwriting Team",
-  support: "Support",
-  system: "Orbit Mortgage",
-} as const;
-
 export function MessagesWidget({ messages, className }: MessagesWidgetProps) {
+  const { company } = useCompany();
+  const categoryLabels = {
+    advisor: "Mortgage Advisor",
+    underwriting: "Underwriting Team",
+    support: "Support",
+    system: company.companyName,
+  } as const;
+
   const timeline = messages.map((msg) => ({
     id: msg.id,
-    title: `${CATEGORY_LABELS[msg.category]} · ${msg.senderName}`,
+    title: `${categoryLabels[msg.category]} · ${msg.senderName}`,
     message: msg.message,
     timestamp: msg.timestamp,
     priority: "default" as const,

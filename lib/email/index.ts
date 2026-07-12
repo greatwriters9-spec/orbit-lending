@@ -12,7 +12,7 @@ export {
 export {
   EMAIL_TEMPLATE_LABELS,
   ADMIN_SENDABLE_TEMPLATES,
-  resolveTemplateDepartment,
   getTemplateCommunicationClassLabel,
   COMMUNICATION_CLASS_LABELS,
-} from "@/lib/email/templates/catalog";
+} from "@/lib/email/templates/catalog-labels";
+export { resolveTemplateDepartment } from "@/lib/email/registry";

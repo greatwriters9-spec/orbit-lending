@@ -2,10 +2,16 @@ import type { Metadata } from "next";
 
 import { getAppOrigin } from "@/lib/email/config";
 
-export const SITE_NAME = "Orbit Mortgage";
-export const SITE_TAGLINE = "Digital Mortgage Platform";
-export const SITE_DESCRIPTION =
+/** Fallback defaults when company context is unavailable (e.g. build-time). */
+export const DEFAULT_SITE_NAME = "Orbit Mortgage";
+export const DEFAULT_SITE_TAGLINE = "Digital Mortgage Platform";
+export const DEFAULT_SITE_DESCRIPTION =
   "A secure digital mortgage origination platform for homebuyers and staff.";
+
+/** @deprecated Use company context from `getCompanyContext()` instead. */
+export const SITE_NAME = DEFAULT_SITE_NAME;
+export const SITE_TAGLINE = DEFAULT_SITE_TAGLINE;
+export const SITE_DESCRIPTION = DEFAULT_SITE_DESCRIPTION;
 
 export function getSiteUrl(): URL {
   return new URL(getAppOrigin());

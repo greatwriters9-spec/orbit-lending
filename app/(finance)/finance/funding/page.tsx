@@ -4,7 +4,7 @@ import { fetchFundingQueue } from "@/lib/wallet/queries";
 import { PATHWARD_BANK } from "@/types/wallet";
 
 export const metadata = {
-  title: "Funding Queue | Orbit Mortgage",
+  title: "Funding Queue",
 };
 
 export default async function FinanceFundingPage() {

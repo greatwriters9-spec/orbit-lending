@@ -1,8 +1,10 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { MortgageApplicationWizard } from "@/components/mortgage-application/mortgage-application-wizard";
 import { assertMortgageApplicationAccess } from "@/lib/mortgage-application/actions";
 import { mapApplicationToFullMortgageApplication } from "@/lib/mortgage-application/map-from-application";
+import { getCompanyContext } from "@/lib/company/server";
 import { MORTGAGE_APPLICATION_ROUTES } from "@/types/mortgage-full-application";
 import type { ApplicationStatus } from "@/types/application-details";
 
@@ -10,10 +12,14 @@ type PageProps = {
   params: Promise<{ applicationId: string }>;
 };
 
-export const metadata = {
-  title: "Complete Application | Orbit Mortgage",
-  description: "Complete your Orbit Mortgage application.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { branding } = await getCompanyContext();
+
+  return {
+    title: "Complete Application",
+    description: `Complete your ${branding.institutionName} application.`,
+  };
+}
 
 export default async function MortgageApplicationApplyPage({ params }: PageProps) {
   const { applicationId } = await params;

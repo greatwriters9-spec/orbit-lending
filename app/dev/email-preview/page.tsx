@@ -1,11 +1,11 @@
 import { notFound } from "next/navigation";
 
 import { EmailPreviewStudio } from "@/components/dev/email-preview-studio";
-import { EMAIL_TEMPLATE_LABELS } from "@/lib/email/templates/catalog";
+import { EMAIL_TEMPLATE_LABELS } from "@/lib/email/templates/catalog-labels";
 import type { EmailTemplateKey } from "@/lib/email/types";
 
 export const metadata = {
-  title: "Email Preview | Orbit Mortgage",
+  title: "Email Preview",
 };
 
 export default function EmailPreviewPage() {

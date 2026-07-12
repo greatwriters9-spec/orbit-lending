@@ -1,7 +1,7 @@
 import { PortalPlaceholder } from "@/components/layout/portal-placeholder";
 
 export const metadata = {
-  title: "Compliance | Orbit Mortgage",
+  title: "Compliance",
 };
 
 export default function Page() {

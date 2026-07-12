@@ -9,6 +9,7 @@ import {
 } from "@/lib/dashboard/funding-requirements";
 import { parseDownPaymentMeta } from "@/lib/dashboard/mortgage-journey";
 import { assertClientAccountAllows } from "@/lib/auth/account-enforcement";
+import { resolveInstitutionNameForUserId } from "@/lib/company/resolve-branding";
 import { logAuditEntry } from "@/lib/finance/audit";
 import { createClient } from "@/lib/supabase/server";
 import { getOrCreateWallet } from "@/lib/wallet/ledger";
@@ -135,9 +136,10 @@ export async function initiateEscrowTransferAction(
     .maybeSingle();
 
   if (!profile?.pathward_withdrawable_approved_at) {
+    const institutionName = await resolveInstitutionNameForUserId(user.id);
     return {
       error:
-        "Closing funds have not been released yet. Orbit Mortgage will notify you when your transfer is ready.",
+        `Closing funds have not been released yet. ${institutionName} will notify you when your transfer is ready.`,
     };
   }
 

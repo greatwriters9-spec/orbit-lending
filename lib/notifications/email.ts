@@ -158,9 +158,14 @@ export async function sendTransactionalEmail(
 }
 
 /** @deprecated Use account_notification template via sendEmail instead. */
-export function buildEmailHtml(title: string, message: string, actionUrl?: string) {
+export function buildEmailHtml(
+  title: string,
+  message: string,
+  actionUrl?: string,
+  institutionName = "your mortgage company",
+) {
   const actionBlock = actionUrl
-    ? `<p style="margin-top:24px"><a href="${actionUrl}" style="background:#2563EB;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:600">View in Orbit Mortgage</a></p>`
+    ? `<p style="margin-top:24px"><a href="${actionUrl}" style="background:#2563EB;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:600">View in ${institutionName}</a></p>`
     : "";
 
   return `
@@ -168,7 +173,7 @@ export function buildEmailHtml(title: string, message: string, actionUrl?: strin
       <h1 style="color:#0F172A;font-size:20px;margin:0 0 12px">${title}</h1>
       <p style="color:#475569;font-size:15px;line-height:1.6;margin:0">${message}</p>
       ${actionBlock}
-      <p style="color:#94A3B8;font-size:12px;margin-top:32px">Orbit Mortgage</p>
+      <p style="color:#94A3B8;font-size:12px;margin-top:32px">${institutionName}</p>
     </div>
   `;
 }

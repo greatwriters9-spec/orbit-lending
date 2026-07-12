@@ -6,7 +6,7 @@ import { SectionHeader } from "@/components/ui-kit/section-header";
 import { LayoutDashboard, Settings, Users, Wallet } from "lucide-react";
 
 export const metadata = {
-  title: "Credit Manager Dashboard | Orbit Mortgage",
+  title: "Credit Manager Dashboard",
 };
 
 export default function AdminDashboardPage() {

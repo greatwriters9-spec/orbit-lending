@@ -4,7 +4,7 @@ import { requireSuperAdmin } from "@/lib/auth/guards";
 import { fetchGuestSupportConcerns } from "@/lib/support/guest-concern-queries";
 
 export const metadata = {
-  title: "Guest Concerns | Orbit Mortgage",
+  title: "Guest Concerns",
 };
 
 export default async function SuperAdminGuestConcernsPage() {

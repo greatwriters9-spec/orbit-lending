@@ -69,6 +69,5 @@ export const adminNavSections: NavSection[] = [
 ];
 
 export const ADMIN_PORTAL = {
-  title: "Orbit Mortgage",
   subtitle: "Credit Manager Portal",
 } as const;

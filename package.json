@@ -11,7 +11,11 @@
     "typecheck": "tsc --noEmit",
     "seed:finance-officer": "node scripts/seed-finance-officer.mjs",
     "seed:dev-users": "node scripts/seed-dev-users.mjs",
-    "seed:loan-products": "node scripts/seed-loan-products.mjs"
+    "seed:loan-products": "node scripts/seed-loan-products.mjs",
+    "db:push": "node scripts/db.mjs push",
+    "db:status": "node scripts/db.mjs status",
+    "db:link": "node scripts/db.mjs link",
+    "db:sync-history": "node scripts/db.mjs sync-history"
   },
   "engines": {
     "node": "20.x"
@@ -45,6 +49,7 @@
   },
   "devDependencies": {
     "eslint": "^9",
-    "eslint-config-next": "16.2.6"
+    "eslint-config-next": "16.2.6",
+    "supabase": "^2.20.12"
   }
 }

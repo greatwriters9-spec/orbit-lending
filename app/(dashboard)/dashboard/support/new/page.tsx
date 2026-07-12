@@ -5,7 +5,7 @@ import { OpenTicketFlow } from "@/components/support/open-ticket-flow";
 import type { SupportTicketCategory } from "@/types/support";
 
 export const metadata = {
-  title: "Open Support Ticket | Orbit Mortgage",
+  title: "Open Support Ticket",
 };
 
 export default async function NewSupportTicketPage({

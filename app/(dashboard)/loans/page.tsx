@@ -9,7 +9,7 @@ import { StatCard } from "@/components/ui-kit/stat-card";
 import { fetchLoanProductsByCategoryForClient } from "@/lib/loans/server-queries";
 
 export const metadata: Metadata = {
-  title: "Mortgage Products | Orbit Mortgage",
+  title: "Mortgage Products",
   description:
     "Browse available mortgage products, compare rates, and review requirements before applying.",
 };

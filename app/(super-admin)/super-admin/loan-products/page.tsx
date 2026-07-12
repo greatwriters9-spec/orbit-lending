@@ -6,7 +6,7 @@ import { hasAdminPermission } from "@/lib/admin/permissions";
 import { requireSuperAdmin } from "@/lib/auth/guards";
 
 export const metadata = {
-  title: "Mortgage Management | Orbit Mortgage",
+  title: "Mortgage Management",
 };
 
 export default async function SuperAdminLoanProductsPage() {

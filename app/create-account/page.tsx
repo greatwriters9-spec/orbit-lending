@@ -10,10 +10,12 @@ import { ONBOARDING_ROUTES } from "@/types/mortgage-onboarding";
 import type { MortgageApplicationDraft } from "@/types/mortgage-onboarding";
 import { PasswordInput } from "@/components/auth/password-input";
 import { Button } from "@/components/ui-kit/button";
-import { OrbitLogo } from "@/components/brand/orbit-logo";
+import { CompanyLogo } from "@/components/company/company-logo";
+import { useCompany } from "@/components/providers/company-provider";
 import { onboardingInputClassName } from "@/components/onboarding/onboarding-shell";
 
 export default function CreateAccountPage() {
+  const { branding } = useCompany();
   const [draft, setDraft] = useState<MortgageApplicationDraft | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -73,14 +75,14 @@ export default function CreateAccountPage() {
     <div className="flex min-h-screen flex-col bg-[#F8FAFC]">
       <header className="border-b border-[#E5E7EB] bg-white">
         <div className="mx-auto flex h-[72px] max-w-lg items-center px-4 md:px-6">
-          <OrbitLogo href="/" size="sm" aria-label="Orbit Mortgage home" />
+          <CompanyLogo href="/" size="sm" />
         </div>
       </header>
 
       <main className="mx-auto w-full max-w-lg flex-1 px-4 py-12 pb-16 md:px-6 md:py-16">
         <div className="card-surface p-6 md:p-10">
           <h1 className="heading-primary text-3xl md:text-4xl">
-            Create Your Orbit Mortgage Account
+            Create Your {branding.institutionName} Account
           </h1>
           <p className="mt-3 text-base leading-relaxed text-muted-foreground md:text-lg">
             Your estimated buying power will be securely saved to your account so

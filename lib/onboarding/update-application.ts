@@ -1,6 +1,9 @@
 import { canClientEditApplication } from "@/lib/applications/client-edit";
 import { scoreApplication } from "@/lib/applications/engine/processor";
 import { fetchMortgageConfig } from "@/lib/admin/mortgage/config";
+import { companyToBrandingConfig } from "@/lib/company/branding";
+import { fetchCompanyById } from "@/lib/company/queries";
+import { getCurrentCompany } from "@/lib/company/server";
 import { mapMortgageDraftToLoanApplication } from "@/lib/onboarding/map-draft";
 import { computePreQualification } from "@/lib/onboarding/pre-qualification";
 import { enrichOnboardingDraft } from "@/lib/onboarding/sync-profile";
@@ -48,7 +51,22 @@ export async function updateOnboardingApplication(
     ...enrichOnboardingDraft(draft, email),
     preQualification: preQual,
   };
-  const loanDraft = mapMortgageDraftToLoanApplication(enrichedDraft, preQual);
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("company_id")
+    .eq("id", userId)
+    .maybeSingle();
+
+  const company =
+    (profile?.company_id
+      ? await fetchCompanyById(profile.company_id)
+      : null) ?? (await getCurrentCompany());
+  const institutionName = companyToBrandingConfig(company).institutionName;
+
+  const loanDraft = mapMortgageDraftToLoanApplication(enrichedDraft, preQual, {
+    institutionName,
+  });
   const existingPersonalInfo = (existing.personal_info ?? {}) as Record<
     string,
     unknown

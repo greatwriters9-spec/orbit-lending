@@ -4,7 +4,7 @@ import { CongratulationsPageClient } from "@/components/onboarding/congratulatio
 import { getSessionUser } from "@/lib/auth/actions";
 
 export const metadata = {
-  title: "Congratulations | Orbit Mortgage",
+  title: "Congratulations",
   description: "Your estimated buying power is ready.",
 };
 

@@ -3,7 +3,7 @@ import { ClientRepaymentsDashboard } from "@/components/repayments/client-repaym
 import { fetchClientRepaymentSummary } from "@/lib/repayments/queries";
 
 export const metadata = {
-  title: "Repayments | Orbit Mortgage",
+  title: "Repayments",
 };
 
 export default async function RepaymentsPage() {

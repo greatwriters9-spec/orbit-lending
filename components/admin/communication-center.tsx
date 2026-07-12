@@ -17,7 +17,7 @@ import {
   EMAIL_TEMPLATE_LABELS,
   getEmailTemplateLabel,
   resolveTemplateDepartment,
-} from "@/lib/email/templates/catalog";
+} from "@/lib/email/templates/catalog-labels";
 import type { EmailCommunicationLog, EmailDepartment, EmailTemplateKey } from "@/lib/email/types";
 import { CommunicationEmailPreviewSheet } from "@/components/admin/communication-email-preview-sheet";
 import { CommunicationLogDetailSheet } from "@/components/admin/communication-log-detail-sheet";
@@ -26,6 +26,7 @@ import { Input } from "@/components/ui-kit/input";
 import { RichEmailEditor } from "@/components/admin/rich-email-editor";
 import { formatApplicationDate } from "@/lib/applications/status-utils";
 import { stripHtmlToText } from "@/lib/email/sanitize-html";
+import { useCompany } from "@/components/providers/company-provider";
 
 type CommunicationUser = {
   id: string;
@@ -52,16 +53,18 @@ const STANDARD_TEMPLATES = ADMIN_SENDABLE_TEMPLATES.filter(
   (key) => !ADMIN_CUSTOM_TEMPLATES.includes(key),
 );
 
-const DEPARTMENT_OPTIONS: Array<{ value: EmailDepartment; label: string }> = [
-  { value: "system", label: "Orbitt Mortgage System" },
-  { value: "loan_officer", label: "Loan Officer Department" },
-  { value: "underwriting", label: "Underwriting Department" },
-  { value: "funding", label: "Funding Department" },
-  { value: "closings", label: "Closing Department" },
-  { value: "compliance", label: "Compliance Department" },
-  { value: "support", label: "Client Support" },
-  { value: "executive", label: "Chief Lending Officer" },
-];
+function getDepartmentOptions(institutionName: string) {
+  return [
+    { value: "system" as const, label: `${institutionName} System` },
+    { value: "loan_officer" as const, label: "Loan Officer Department" },
+    { value: "underwriting" as const, label: "Underwriting Department" },
+    { value: "funding" as const, label: "Funding Department" },
+    { value: "closings" as const, label: "Closing Department" },
+    { value: "compliance" as const, label: "Compliance Department" },
+    { value: "support" as const, label: "Client Support" },
+    { value: "executive" as const, label: "Chief Lending Officer" },
+  ];
+}
 
 function applyBroadcastDefaults(
   setDepartment: (value: EmailDepartment) => void,
@@ -87,6 +90,12 @@ export function CommunicationCenter({
   senderName: initialSenderName = "",
   senderTitle: initialSenderTitle = "",
 }: CommunicationCenterProps) {
+  const { branding } = useCompany();
+  const institutionName = branding.institutionName;
+  const departmentOptions = useMemo(
+    () => getDepartmentOptions(institutionName),
+    [institutionName],
+  );
   const [users] = useState(initialUsers);
   const [clientCount] = useState(initialClientCount);
   const [memberCount] = useState(initialMemberCount);
@@ -295,9 +304,9 @@ export function CommunicationCenter({
       <div className="card-surface p-6 md:p-8">
         <h2 className="heading-primary text-2xl">Communication Center</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Send institutional mortgage communications from the appropriate Orbit
-          Mortgage department. Broadcast announcements to all members or selected
-          clients. All messages are logged automatically.
+          Send institutional mortgage communications from the appropriate{" "}
+          {institutionName} department. Broadcast announcements to all members or
+          selected clients. All messages are logged automatically.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-5">
@@ -456,7 +465,7 @@ export function CommunicationCenter({
               </label>
               <p className="text-sm text-muted-foreground">
                 This will send the same announcement to every member in the
-                selected audience using the Orbit Mortgage System department.
+                selected audience using the {institutionName} System department.
               </p>
             </div>
           ) : null}
@@ -473,7 +482,7 @@ export function CommunicationCenter({
                 }
                 className="h-11 w-full rounded-xl border border-brand-border bg-white px-3 text-sm"
               >
-                {DEPARTMENT_OPTIONS.map((option) => (
+                {departmentOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>
@@ -573,7 +582,7 @@ export function CommunicationCenter({
             <p className="text-sm text-muted-foreground">
               Sending to {selectedUser.name} as{" "}
               {
-                DEPARTMENT_OPTIONS.find((option) => option.value === department)
+                departmentOptions.find((option) => option.value === department)
                   ?.label
               }
               .
@@ -585,7 +594,7 @@ export function CommunicationCenter({
               Ready to broadcast to {recipientCount} recipient
               {recipientCount === 1 ? "" : "s"} from{" "}
               {
-                DEPARTMENT_OPTIONS.find((option) => option.value === department)
+                departmentOptions.find((option) => option.value === department)
                   ?.label
               }
               .

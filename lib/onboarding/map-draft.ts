@@ -4,6 +4,7 @@ import type {
   PreQualificationResult,
 } from "@/types/mortgage-onboarding";
 import { getEmploymentStatusForScoring } from "@/lib/onboarding/pre-qualification";
+import { DEFAULT_BRANDING_CONFIG } from "@/types/branding-config";
 
 const BUYING_GOAL_LABELS: Record<string, string> = {
   first_home: "first home purchase",
@@ -12,14 +13,17 @@ const BUYING_GOAL_LABELS: Record<string, string> = {
   exploring: "home buying exploration",
 };
 
-function buildPurpose(draft: MortgageApplicationDraft): string {
+function buildPurpose(
+  draft: MortgageApplicationDraft,
+  institutionName: string,
+): string {
   const goalLabel = draft.buyingGoal
     ? BUYING_GOAL_LABELS[draft.buyingGoal]
     : undefined;
   const use = draft.propertyUse?.replace(/_/g, " ") ?? "primary residence";
 
   if (goalLabel === "refinancing") {
-    return "Refinance through Orbit Mortgage pre-qualification";
+    return `Refinance through ${institutionName} pre-qualification`;
   }
 
   if (draft.homeFound && draft.propertyAddress) {
@@ -34,14 +38,17 @@ function buildPurpose(draft: MortgageApplicationDraft): string {
       : `Purchase ${use} in ${location}`;
   }
   return goalLabel
-    ? `${goalLabel} through Orbit Mortgage pre-qualification`
-    : `Purchase ${use} through Orbit Mortgage pre-qualification`;
+    ? `${goalLabel} through ${institutionName} pre-qualification`
+    : `Purchase ${use} through ${institutionName} pre-qualification`;
 }
 
 export function mapMortgageDraftToLoanApplication(
   draft: MortgageApplicationDraft,
   preQual: PreQualificationResult,
+  options?: { institutionName?: string },
 ): LoanApplicationDraft {
+  const institutionName =
+    options?.institutionName ?? DEFAULT_BRANDING_CONFIG.institutionName;
   const monthlyIncome = (draft.employment?.annualIncome ?? 0) / 12;
   const monthlyExpenses = Math.round(monthlyIncome * 0.35);
   const liquidAssets =
@@ -56,7 +63,7 @@ export function mapMortgageDraftToLoanApplication(
       requestedAmount: preQual.estimatedMortgageAmount,
       selectedTermId: preQual.loanTermId,
       repaymentFrequency: "Monthly",
-      purpose: buildPurpose(draft),
+      purpose: buildPurpose(draft, institutionName),
     },
     personalInfo: {
       firstName: draft.firstName ?? "",

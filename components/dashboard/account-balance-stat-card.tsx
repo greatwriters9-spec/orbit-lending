@@ -1,5 +1,8 @@
+"use client";
+
 import { Building2 } from "lucide-react";
 
+import { useCompany } from "@/components/providers/company-provider";
 import { formatCurrency } from "@/lib/loans/queries";
 import { cn } from "@/lib/utils";
 import { PATHWARD_BANK, type PathwardLinkedAccount } from "@/types/wallet";
@@ -13,6 +16,8 @@ export function AccountBalanceStatCard({
   linkedAccount,
   className,
 }: AccountBalanceStatCardProps) {
+  const { branding } = useCompany();
+
   if (!linkedAccount) {
     return (
       <div
@@ -39,7 +44,7 @@ export function AccountBalanceStatCard({
           </div>
         </div>
         <p className="relative mt-4 flex-1 text-sm font-normal text-white/60">
-          Your funding account will appear here once Orbit Mortgage activates it.
+          Your funding account will appear here once {branding.institutionName} activates it.
         </p>
       </div>
     );

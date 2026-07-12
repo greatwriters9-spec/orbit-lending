@@ -1,8 +1,8 @@
 import {
   EMAIL_TEMPLATE_LABELS,
-  renderEmailFromTemplate,
   resolveTemplateDepartment,
-} from "@/lib/email/templates/catalog";
+} from "@/lib/email/templates/catalog-labels";
+import { renderEmailFromTemplate } from "@/lib/email/templates/catalog";
 import {
   sanitizeEmailCompositionHtml,
   stripHtmlToText,

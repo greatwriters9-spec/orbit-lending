@@ -81,7 +81,6 @@ export const financeNavSections: NavSection[] = [
 ];
 
 export const FINANCE_PORTAL = {
-  title: "Orbit Mortgage",
   subtitle: "Loan Officer Portal",
 } as const;
 

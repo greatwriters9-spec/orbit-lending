@@ -9,7 +9,7 @@ import { SectionHeader } from "@/components/ui-kit/section-header";
 import { fetchUserApplications } from "@/lib/applications/queries";
 
 export const metadata = {
-  title: "My Applications | Orbit Mortgage",
+  title: "My Applications",
   description: "Track your mortgage applications, messages, documents, and offers.",
 };
 

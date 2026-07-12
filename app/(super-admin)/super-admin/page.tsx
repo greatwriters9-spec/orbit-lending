@@ -5,7 +5,7 @@ import { SectionHeader } from "@/components/ui-kit/section-header";
 import { Settings, Shield, Users, Wallet } from "lucide-react";
 
 export const metadata = {
-  title: "Chief Lending Officer Dashboard | Orbit Mortgage",
+  title: "Chief Lending Officer Dashboard",
 };
 
 export default function SuperAdminDashboardPage() {

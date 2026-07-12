@@ -9,6 +9,7 @@ import {
   buildAuthCallbackUrl,
   registerUserWithResendVerification,
 } from "@/lib/auth/resend-auth-delivery";
+import { getCurrentCompanyId } from "@/lib/company/server";
 import { createClient } from "@/lib/supabase/server";
 import { ensureOnboardingApplication } from "@/lib/onboarding/finalize-application";
 import { updateOnboardingApplication } from "@/lib/onboarding/update-application";
@@ -203,13 +204,18 @@ export async function createAccountFromOnboardingAction(
   const origin = await getOrigin();
   const supabase = await createClient();
   const emailRedirectTo = buildAuthCallbackUrl(origin);
+  const companyId = await getCurrentCompanyId();
 
   const registration = await registerUserWithResendVerification({
     email: parsed.data.email,
     password: parsed.data.password,
     emailRedirectTo,
-    metadata: {},
-    firstName: parsed.data.email.split("@")[0],
+    metadata: {
+      company_id: companyId,
+      first_name: draft.firstName ?? undefined,
+      last_name: draft.lastName ?? undefined,
+    },
+    firstName: draft.firstName ?? parsed.data.email.split("@")[0],
   });
 
   if (!registration.ok) {
@@ -217,6 +223,15 @@ export async function createAccountFromOnboardingAction(
   }
 
   const { user, needsEmailConfirmation } = registration;
+
+  await supabase
+    .from("profiles")
+    .update({
+      company_id: companyId,
+      first_name: draft.firstName ?? null,
+      last_name: draft.lastName ?? null,
+    })
+    .eq("id", user.id);
 
   if (needsEmailConfirmation) {
     return {

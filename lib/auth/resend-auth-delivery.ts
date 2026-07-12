@@ -87,7 +87,10 @@ export async function registerUserWithResendVerification(
     actionType: "signup",
     actionUrl: verifyUrl,
     firstName: input.firstName,
-    metadata: { source: "register_action" },
+    metadata: {
+      source: "register_action",
+      company_id: input.metadata?.company_id,
+    },
   });
 
   if (!emailResult.ok) {
@@ -138,7 +141,7 @@ export async function sendPasswordResetViaResend(input: {
 
   const { data: profile } = await admin
     .from("profiles")
-    .select("id, first_name")
+    .select("id, first_name, company_id")
     .eq("email", input.email)
     .maybeSingle();
 
@@ -149,7 +152,11 @@ export async function sendPasswordResetViaResend(input: {
     actionUrl: resetUrl,
     firstName:
       typeof profile?.first_name === "string" ? profile.first_name : undefined,
-    metadata: { source: "forgot_password_action" },
+    metadata: {
+      source: "forgot_password_action",
+      company_id:
+        typeof profile?.company_id === "string" ? profile.company_id : undefined,
+    },
   });
 
   if (!emailResult.ok) {

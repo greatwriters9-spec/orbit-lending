@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { ArrowLeft } from "lucide-react";
 
-import { OrbitLogo } from "@/components/brand/orbit-logo";
+import { CompanyLogo } from "@/components/company/company-logo";
 import {
   AskAssistantButton,
   OnboardingFooter,
@@ -40,7 +40,7 @@ export function OnboardingShell({
     <div className={cn("flex min-h-screen flex-col bg-[#F8FAFC]", className)}>
       <header className="border-b border-[#E5E7EB] bg-white">
         <div className="mx-auto flex h-[72px] max-w-3xl items-center justify-between px-4 md:px-6">
-          <OrbitLogo href="/" size="sm" aria-label="Orbit Mortgage home" />
+          <CompanyLogo href="/" size="sm" />
           <p className="text-xs font-medium text-muted-foreground">
             Step {step} of {totalSteps}
           </p>

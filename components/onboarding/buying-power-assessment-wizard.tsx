@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 
 import { AssessmentIntro } from "@/components/onboarding/assessment-intro";
+import { useCompany } from "@/components/providers/company-provider";
 import {
   OnboardingField,
   OnboardingQuestion,
@@ -103,6 +104,7 @@ export function BuyingPowerAssessmentWizard({
   isLoggedIn = false,
 }: BuyingPowerAssessmentWizardProps) {
   const router = useRouter();
+  const { company } = useCompany();
   const [showIntro, setShowIntro] = useState(true);
   const [stepIndex, setStepIndex] = useState(0);
   const [draft, setDraft] = useState<MortgageApplicationDraft>({});
@@ -189,7 +191,7 @@ export function BuyingPowerAssessmentWizard({
     >
       {step === "buying-goal" ? (
         <OnboardingQuestion
-          title="What brings you to Orbit Mortgage today?"
+          title={`What brings you to ${company.companyName} today?`}
           subtitle="Home Buying Goal"
         >
           <div className="grid gap-3">

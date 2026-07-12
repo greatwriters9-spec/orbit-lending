@@ -1,7 +1,7 @@
 import { AdminNotificationsPage } from "@/components/notifications/admin-notifications-page";
 
 export const metadata = {
-  title: "Admin Alerts | Orbit Mortgage",
+  title: "Admin Alerts",
 };
 
 export default function Page() {

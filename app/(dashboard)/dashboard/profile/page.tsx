@@ -4,7 +4,7 @@ import { requireClient } from "@/lib/auth/guards";
 import { fetchUserEmailCommunicationLogs } from "@/lib/email/queries";
 
 export const metadata = {
-  title: "Profile | Orbit Mortgage",
+  title: "Profile",
 };
 
 export default async function ProfilePage() {

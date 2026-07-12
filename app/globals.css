@@ -148,7 +148,29 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
+
+  *::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+
+  html,
+  body {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -1053,4 +1075,219 @@
   border: 1px solid #e2e8f0;
   padding: 8px;
   vertical-align: top;
+}
+
+/* OakStone Mortgage design system utilities */
+.hero-eyebrow {
+  color: var(--hero-eyebrow-color, rgba(255, 255, 255, 0.85));
+}
+
+[data-company="oakstone"] {
+  --font-heading: var(--font-playfair), "Playfair Display", Georgia, serif;
+  --heading-letter-spacing: -0.01em;
+  background-color: var(--oak-cream);
+}
+
+[data-company="oakstone"] .section-shell[data-tone="muted"] {
+  background-color: var(--oak-cream);
+}
+
+[data-company="oakstone"] .landing-nav-oakstone {
+  border-bottom-color: rgba(229, 231, 235, 0.8);
+  box-shadow: var(--shadow-nav, 0 2px 16px rgba(15, 91, 71, 0.06));
+}
+
+[data-company="oakstone"] .landing-nav-cta {
+  background-color: var(--oak-bronze, var(--brand-blue));
+  box-shadow: var(--shadow-button);
+}
+
+[data-company="oakstone"] .landing-nav-cta:hover {
+  background-color: var(--oak-gold-hover, var(--brand-blue-dark));
+  opacity: 1;
+}
+
+[data-company="oakstone"] .hero-pathward-badge {
+  border-radius: 1rem;
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(15, 91, 71, 0.35);
+  backdrop-filter: blur(16px);
+}
+
+[data-company="oakstone"] .oak-heading {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  letter-spacing: var(--heading-letter-spacing);
+  color: var(--oak-text);
+}
+
+[data-company="oakstone"] .oak-heading-light {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  letter-spacing: var(--heading-letter-spacing);
+  color: #ffffff;
+}
+
+[data-company="oakstone"] .oak-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--oak-gold);
+}
+
+[data-company="oakstone"] .hero-overlay-left {
+  background: linear-gradient(
+    to right,
+    rgba(6, 32, 26, 0.94) 0%,
+    rgba(15, 91, 71, 0.62) 42%,
+    rgba(15, 91, 71, 0.28) 62%,
+    transparent 78%
+  ) !important;
+}
+
+[data-company="oakstone"] .hero-eyebrow {
+  color: var(--hero-eyebrow-color, var(--oak-bronze, var(--oak-gold)));
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 600;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.55);
+}
+
+[data-company="oakstone"] .hero-title {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  letter-spacing: var(--heading-letter-spacing);
+  color: #ffffff;
+  text-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.5),
+    0 12px 42px rgba(0, 0, 0, 0.4);
+}
+
+[data-company="oakstone"] .hero-subtitle {
+  color: #ffffff;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
+}
+
+[data-company="oakstone"] .hero-cta-group .oak-btn-primary {
+  box-shadow:
+    0 10px 32px rgba(0, 0, 0, 0.38),
+    0 4px 14px rgba(197, 138, 43, 0.35);
+}
+
+[data-company="oakstone"] .hero-cta-group .oak-btn-secondary {
+  background: rgba(0, 0, 0, 0.22);
+  border-color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+}
+
+[data-company="oakstone"] .hero-pathward-badge {
+  background: rgba(0, 0, 0, 0.28);
+  border-color: rgba(255, 255, 255, 0.35);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+}
+
+[data-company="oakstone"] .hero-background-image {
+  object-position: 58% 42%;
+}
+
+@media (max-width: 1023px) {
+  [data-company="oakstone"] .hero-background-image {
+    object-position: 62% 40%;
+  }
+}
+
+@media (max-width: 767px) {
+  [data-company="oakstone"] .hero-background-image {
+    object-position: 68% 38%;
+  }
+}
+
+[data-company="oakstone"] .oak-card {
+  border-radius: var(--radius-xl, 1rem);
+  border: 1px solid var(--oak-border);
+  background: #ffffff;
+  box-shadow: var(--shadow-card);
+}
+
+[data-company="oakstone"] .oak-card:hover {
+  box-shadow: var(--shadow-card-hover);
+}
+
+[data-company="oakstone"] [data-slot="button"][data-variant="default"],
+[data-company="oakstone"] .oak-btn-primary {
+  background-color: var(--brand-blue);
+}
+
+[data-company="oakstone"] [data-slot="button"][data-variant="default"]:hover,
+[data-company="oakstone"] .oak-btn-primary:hover {
+  background-color: var(--brand-blue-dark);
+  opacity: 1;
+}
+
+[data-company="oakstone"] .oak-btn-secondary {
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  background: transparent;
+  color: #ffffff;
+  transition: background-color 0.2s ease;
+}
+
+[data-company="oakstone"] .oak-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+[data-company="oakstone"] .calculator-panel {
+  box-shadow: var(--shadow-elevated);
+}
+
+[data-company="oakstone"] .calculator-result-panel {
+  background: linear-gradient(
+    145deg,
+    var(--oak-green) 0%,
+    var(--oak-green-secondary) 100%
+  );
+}
+
+[data-company="oakstone"] input[type="range"] {
+  accent-color: var(--oak-bronze, var(--oak-gold));
+}
+
+[data-company="oakstone"] .calculator-slider-card {
+  border-radius: var(--radius-xl, 1rem);
+  border: 1px solid var(--oak-border);
+  background: #ffffff;
+  padding: 1.25rem;
+  box-shadow: var(--shadow-card);
+}
+
+[data-company="oakstone"] .heading-primary,
+[data-company="oakstone"] .heading-secondary,
+[data-company="oakstone"] .heading-tertiary {
+  font-family: var(--font-heading);
+}
+
+[data-company="oakstone"] .section-eyebrow {
+  letter-spacing: 0.14em;
+}
+
+[data-company="oakstone"] .auth-premium-card {
+  box-shadow: var(--shadow-elevated);
+  border: 1px solid var(--oak-border);
+  background-color: #ffffff;
+}
+
+[data-company="oakstone"] .auth-premium-card .text-brand-blue,
+[data-company="oakstone"] .auth-premium-card a {
+  color: var(--oak-bronze, var(--brand-blue));
+}
+
+[data-company="oakstone"] .final-cta-overlay {
+  background-color: color-mix(in srgb, var(--brand-navy) 55%, transparent);
+}
+
+[data-company="oakstone"] input:focus-visible,
+[data-company="oakstone"] select:focus-visible,
+[data-company="oakstone"] textarea:focus-visible {
+  outline-color: var(--oak-bronze, var(--brand-blue));
+  border-color: var(--oak-bronze, var(--brand-blue));
 }

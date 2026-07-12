@@ -10,7 +10,7 @@ import {
 } from "@/lib/support/queries";
 
 export const metadata = {
-  title: "Live Support | Orbit Mortgage",
+  title: "Live Support",
 };
 
 export default async function SupportTicketPage({

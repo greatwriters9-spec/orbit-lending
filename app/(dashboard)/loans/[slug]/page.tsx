@@ -43,11 +43,11 @@ export async function generateMetadata({ params }: LoanDetailPageProps) {
   const product = await fetchLoanProductBySlugForClient(slug);
 
   if (!product) {
-    return { title: "Mortgage Product Not Found | Orbit Mortgage" };
+    return { title: "Mortgage Product Not Found" };
   }
 
   return {
-    title: `${product.name} | Orbit Mortgage`,
+    title: `${product.name}`,
     description: product.description,
   };
 }

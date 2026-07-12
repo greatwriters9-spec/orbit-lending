@@ -24,7 +24,11 @@ export function SectionShell({
   tone = "white",
 }: SectionShellProps) {
   return (
-    <section id={id} className={cn(LANDING_SECTION, toneStyles[tone], className)}>
+    <section
+      id={id}
+      data-tone={tone}
+      className={cn(LANDING_SECTION, "section-shell", toneStyles[tone], className)}
+    >
       <div className={cn(LANDING_CONTAINER, innerClassName)}>{children}</div>
     </section>
   );
@@ -57,7 +61,7 @@ export function SectionHeading({
       {eyebrow ? (
         <p
           className={cn(
-            "text-xs font-semibold tracking-[0.1em] uppercase",
+            "section-eyebrow text-xs font-semibold tracking-[0.1em] uppercase",
             light ? "text-white/50" : "text-brand-blue",
           )}
         >

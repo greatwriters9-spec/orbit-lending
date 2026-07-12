@@ -6,7 +6,7 @@ import {
   Wallet,
 } from "lucide-react";
 
-import { OrbitLogo } from "@/components/brand/orbit-logo";
+import { CompanyLogo } from "@/components/company/company-logo";
 import { LANDING_DASHBOARD_FEATURES } from "@/lib/landing/content";
 import { LANDING_SECTION_IMAGES } from "@/lib/landing/images";
 
@@ -34,7 +34,7 @@ export function DashboardPreview() {
         <div className="relative">
         <div className="overflow-hidden rounded-2xl border border-[#E5E7EB] bg-gradient-to-br from-[#F8FAFC] to-white shadow-[0_24px_64px_rgba(15,23,42,0.1)]">
           <div className="border-b border-[#E5E7EB] bg-brand-navy px-6 py-4">
-            <OrbitLogo href={null} size="sm" variant="onDark" className="gap-2.5" />
+            <CompanyLogo href={null} size="sm" variant="onDark" className="gap-2.5" />
           </div>
 
           <div className="relative min-h-[420px] p-6 md:min-h-[480px] md:p-8">

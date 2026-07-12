@@ -8,7 +8,7 @@ import { requireClient } from "@/lib/auth/guards";
 import { fetchWalletDashboard } from "@/lib/wallet/queries";
 
 export const metadata = {
-  title: "Funding Account | Orbit Mortgage",
+  title: "Funding Account",
 };
 
 export default async function WalletPage() {

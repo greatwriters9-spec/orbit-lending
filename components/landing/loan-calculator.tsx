@@ -6,6 +6,7 @@ import { ArrowRight } from "lucide-react";
 
 import { calculateLoanPayment } from "@/lib/loans/calculator";
 import { formatCurrency } from "@/lib/loans/queries";
+import { cn } from "@/lib/utils";
 
 import { SectionHeading, SectionShell } from "./shared/section-shell";
 
@@ -43,11 +44,16 @@ export function LoanCalculator() {
         eyebrow="Mortgage Calculator"
         title="Estimate Your Monthly Mortgage Payment"
         subtitle="Adjust mortgage amount, term, and rate to explore your estimated monthly payment before you apply."
+        align="left"
       />
 
-      <div className="mx-auto mt-10 max-w-5xl overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-[0_16px_48px_rgba(15,23,42,0.06)] md:mt-12">
+      <div
+        className={cn(
+          "calculator-panel oak-card mx-auto mt-10 max-w-5xl overflow-hidden rounded-2xl border border-brand-border bg-white md:mt-12",
+        )}
+      >
         <div className="grid lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="space-y-8 border-b border-[#E5E7EB] p-6 md:p-8 lg:border-b-0 lg:border-r">
+          <div className="space-y-8 border-b border-brand-border p-6 md:p-8 lg:border-b-0 lg:border-r">
             <SliderField
               label="Mortgage Amount"
               value={amount}
@@ -84,7 +90,7 @@ export function LoanCalculator() {
                     className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                       termMonths === term
                         ? "border-brand-blue bg-brand-blue/10 text-brand-blue"
-                        : "border-[#E5E7EB] bg-white text-[#374151] hover:border-brand-blue/30"
+                        : "border-brand-border bg-white text-brand-navy hover:border-brand-blue/30"
                     }`}
                   >
                     {term} mo
@@ -94,7 +100,7 @@ export function LoanCalculator() {
             </div>
           </div>
 
-          <div className="flex flex-col justify-between bg-gradient-to-br from-brand-navy to-[#1a3270] p-6 text-white md:p-8">
+          <div className="calculator-result-panel flex flex-col justify-between bg-gradient-to-br from-brand-navy to-brand-navy/90 p-6 text-white md:p-8">
             <div className="space-y-6">
               <div>
                 <p className="text-sm text-white/60">Estimated Monthly Mortgage Payment</p>
@@ -117,7 +123,7 @@ export function LoanCalculator() {
             <div className="mt-8 space-y-3">
               <Link
                 href="/get-started"
-                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-[10px] bg-brand-blue text-sm font-semibold text-white transition-colors hover:bg-[#1d4ed8]"
+                className="oak-btn-primary inline-flex h-11 w-full items-center justify-center gap-2 rounded-[10px] bg-brand-blue text-sm font-semibold text-white transition-colors hover:bg-brand-blue-dark"
               >
                 Get Pre-Qualified with This Estimate
                 <ArrowRight className="size-4" />
@@ -152,7 +158,7 @@ function SliderField({
   onChange: (value: number) => void;
 }) {
   return (
-    <div>
+    <div className="calculator-slider-card">
       <div className="mb-3 flex items-center justify-between">
         <span className="text-sm font-medium text-brand-navy">{label}</span>
         <span className="text-sm font-semibold tabular-nums text-brand-blue">
@@ -166,7 +172,7 @@ function SliderField({
         step={step}
         value={value}
         onChange={(event) => onChange(Number(event.target.value))}
-        className="h-2 w-full cursor-pointer appearance-none rounded-full bg-[#E5E7EB] accent-brand-blue"
+        className="h-2 w-full cursor-pointer appearance-none rounded-full bg-brand-border accent-brand-blue"
       />
       <div className="mt-2 flex justify-between text-xs text-muted-foreground">
         <span>{format(min)}</span>

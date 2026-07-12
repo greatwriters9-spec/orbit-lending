@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { ArrowLeft, CheckCircle2, Clock3 } from "lucide-react";
 
-import { OrbitLogo } from "@/components/brand/orbit-logo";
+import { CompanyLogo } from "@/components/company/company-logo";
 import { cn } from "@/lib/utils";
 import {
   calculateApplicationProgress,
@@ -33,7 +33,7 @@ export function ApplicationShell({
     <div className={cn("flex min-h-screen flex-col bg-white", className)}>
       <header className="sticky top-0 z-20 border-b border-[#E5E7EB] bg-white">
         <div className="mx-auto flex h-[72px] max-w-4xl items-center justify-between px-4 md:px-8">
-          <OrbitLogo href="/dashboard" size="sm" aria-label="Orbit Mortgage dashboard" />
+          <CompanyLogo href="/dashboard" size="sm" />
           <div className="hidden items-center gap-2 text-xs font-medium text-brand-success md:flex">
             {saveState === "saving" ? (
               <span className="text-muted-foreground">Saving...</span>

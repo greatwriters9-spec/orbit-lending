@@ -40,26 +40,24 @@ export function ProfileCompletionForm({ defaults }: ProfileCompletionFormProps) 
     completeProfileAction,
     initialState,
   );
-  const [fields, setFields] = useState<ProfileCompletionFields | null>(null);
+  const [fields, setFields] = useState(() =>
+    buildProfileCompletionFields({ existing: defaults }),
+  );
   const [onboardingDraftJson, setOnboardingDraftJson] = useState("");
 
   useEffect(() => {
     const draft = readMortgageApplicationDraft();
-    const merged = buildProfileCompletionFields({
-      existing: defaults,
-      draft,
-    });
-
-    setFields(merged);
+    setFields(
+      buildProfileCompletionFields({
+        existing: defaults,
+        draft,
+      }),
+    );
 
     if (draft) {
       setOnboardingDraftJson(JSON.stringify(draft));
     }
   }, [defaults]);
-
-  if (!fields) {
-    return null;
-  }
 
   return (
     <form action={formAction} className="space-y-5">
@@ -76,11 +74,10 @@ export function ProfileCompletionForm({ defaults }: ProfileCompletionFormProps) 
             name="firstName"
             value={fields.firstName}
             onChange={(event) =>
-              setFields((current) =>
-                current
-                  ? { ...current, firstName: event.target.value }
-                  : current,
-              )
+              setFields((current) => ({
+                ...current,
+                firstName: event.target.value,
+              }))
             }
             required
             className={inputClassName}
@@ -93,11 +90,10 @@ export function ProfileCompletionForm({ defaults }: ProfileCompletionFormProps) 
             name="lastName"
             value={fields.lastName}
             onChange={(event) =>
-              setFields((current) =>
-                current
-                  ? { ...current, lastName: event.target.value }
-                  : current,
-              )
+              setFields((current) => ({
+                ...current,
+                lastName: event.target.value,
+              }))
             }
             required
             className={inputClassName}
@@ -111,7 +107,7 @@ export function ProfileCompletionForm({ defaults }: ProfileCompletionFormProps) 
           name="phone"
           value={formatUSPhoneInput(fields.phone)}
           onValueChange={(phone) =>
-            setFields((current) => (current ? { ...current, phone } : current))
+            setFields((current) => ({ ...current, phone }))
           }
           required
           className={inputClassName}
@@ -125,11 +121,10 @@ export function ProfileCompletionForm({ defaults }: ProfileCompletionFormProps) 
           type="date"
           value={fields.dateOfBirth}
           onChange={(event) =>
-            setFields((current) =>
-              current
-                ? { ...current, dateOfBirth: event.target.value }
-                : current,
-            )
+            setFields((current) => ({
+              ...current,
+              dateOfBirth: event.target.value,
+            }))
           }
           required
           className={inputClassName}
@@ -142,9 +137,10 @@ export function ProfileCompletionForm({ defaults }: ProfileCompletionFormProps) 
           name="address"
           value={fields.address}
           onChange={(event) =>
-            setFields((current) =>
-              current ? { ...current, address: event.target.value } : current,
-            )
+            setFields((current) => ({
+              ...current,
+              address: event.target.value,
+            }))
           }
           placeholder="123 Main Street"
           required
@@ -159,11 +155,11 @@ export function ProfileCompletionForm({ defaults }: ProfileCompletionFormProps) 
             name="state"
             value={fields.state}
             onValueChange={(stateCode) =>
-              setFields((current) =>
-                current
-                  ? { ...current, state: stateCode, city: "" }
-                  : current,
-              )
+              setFields((current) => ({
+                ...current,
+                state: stateCode,
+                city: "",
+              }))
             }
             required
             className={inputClassName}
@@ -177,7 +173,7 @@ export function ProfileCompletionForm({ defaults }: ProfileCompletionFormProps) 
             stateCode={fields.state}
             value={fields.city}
             onValueChange={(city) =>
-              setFields((current) => (current ? { ...current, city } : current))
+              setFields((current) => ({ ...current, city }))
             }
             required
             disabled={!fields.state}
@@ -191,14 +187,10 @@ export function ProfileCompletionForm({ defaults }: ProfileCompletionFormProps) 
             name="zipCode"
             value={fields.zipCode}
             onChange={(event) =>
-              setFields((current) =>
-                current
-                  ? {
-                      ...current,
-                      zipCode: formatZipCodeInput(event.target.value),
-                    }
-                  : current,
-              )
+              setFields((current) => ({
+                ...current,
+                zipCode: formatZipCodeInput(event.target.value),
+              }))
             }
             placeholder="94105"
             required

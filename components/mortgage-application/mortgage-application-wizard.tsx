@@ -12,6 +12,7 @@ import {
   applicationInputClassName,
 } from "@/components/mortgage-application/application-shell";
 import { OptionCard } from "@/components/onboarding/onboarding-shell";
+import { useCompany } from "@/components/providers/company-provider";
 import { OnboardingStateInput } from "@/components/onboarding/onboarding-state-input";
 import {
   formatSSNInput,
@@ -130,6 +131,7 @@ export function MortgageApplicationWizard({
   initialApplication,
   initialSection,
 }: MortgageApplicationWizardProps) {
+  const { company } = useCompany();
   const [application, setApplication] = useState(initialApplication);
   const [section, setSection] = useState<ApplicationSectionKey>(
     initialSection ?? initialApplication.progress.currentSection ?? "personal",
@@ -1502,7 +1504,7 @@ export function MortgageApplicationWizard({
                   className="mt-1 size-4 rounded border-brand-border text-brand-blue"
                 />
                 <span className="text-sm text-brand-navy">
-                  I authorize Orbit Mortgage to perform {label.toLowerCase()} as
+                  I authorize {company.companyName} to perform {label.toLowerCase()} as
                   part of my mortgage application.
                 </span>
               </label>

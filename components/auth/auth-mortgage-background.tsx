@@ -23,9 +23,9 @@ export function AuthMortgageBackground({ className }: AuthMortgageBackgroundProp
       >
         <defs>
           <linearGradient id="auth-sky-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#061535" />
-            <stop offset="40%" stopColor="#0b2558" />
-            <stop offset="100%" stopColor="#1a4a96" />
+            <stop offset="0%" stopColor="var(--brand-navy, #061535)" />
+            <stop offset="40%" stopColor="var(--brand-blue-dark, #0b2558)" />
+            <stop offset="100%" stopColor="var(--brand-blue, #1a4a96)" />
           </linearGradient>
 
           <clipPath id="auth-blue-clip">
@@ -113,4 +113,4 @@ export const authInputClassName =
   "h-10 rounded-sm border border-[#c5cdd8] bg-white px-3 text-sm text-[#1f2937] shadow-none focus-visible:border-[#1e4db7] focus-visible:ring-0";
 
 export const authButtonClassName =
-  "h-10 w-full rounded-sm bg-[#0a2463] text-sm font-semibold text-white hover:bg-[#0c2d75]";
+  "h-10 w-full rounded-sm bg-brand-blue text-sm font-semibold text-white hover:opacity-90";

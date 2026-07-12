@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
+import { resolveInstitutionNameForUserId } from "@/lib/company/resolve-branding";
 import { parseDownPaymentMeta } from "@/lib/dashboard/mortgage-journey";
 import { parseClosingFundsMeta, parseEscrowTransferMeta, isEscrowTransferPending } from "@/lib/dashboard/closing-funds-meta";
 import {
@@ -134,11 +135,12 @@ export async function submitDownPaymentVerificationAction(
     dashboardUrl: `/finance/applications/${applicationId}`,
   });
 
+  const institutionName = await resolveInstitutionNameForUserId(user.id);
+
   await createNotification({
     userId: user.id,
     title: "Deposit Submitted for Verification",
-    message:
-      "Your down payment has been submitted for review. Orbit Mortgage will verify your deposit shortly.",
+    message: `Your down payment has been submitted for review. ${institutionName} will verify your deposit shortly.`,
     type: "application_update",
     metadata: { applicationId },
   });
@@ -191,6 +193,8 @@ export async function reviewDownPaymentVerificationAction(input: {
   if (!application) {
     return { error: "Application not found." };
   }
+
+  const institutionName = await resolveInstitutionNameForUserId(application.user_id);
 
   const personalInfo = (application.personal_info ?? {}) as Record<string, unknown>;
   const existing = parseDownPaymentMeta(personalInfo);
@@ -352,7 +356,7 @@ export async function reviewDownPaymentVerificationAction(input: {
             isCredit: true,
             notify: {
               title: "Deposit Verified",
-              message: `Your ${existing?.activeRequest?.label ?? "requested"} deposit of $${requiredAmount.toFixed(2)} has been verified and added to your funding account. Orbit Mortgage will complete your escrow transfer.`,
+              message: `Your ${existing?.activeRequest?.label ?? "requested"} deposit of $${requiredAmount.toFixed(2)} has been verified and added to your funding account. ${institutionName} will complete your escrow transfer.`,
             },
           });
         }
@@ -441,7 +445,7 @@ export async function reviewDownPaymentVerificationAction(input: {
           ? `Down payment verified. $${(downPayment.pathwardCreditApplied - alreadyCredited).toFixed(2)} added to Pathward closing funds.`
           : downPayment.pathwardCreditApplied
             ? "Down payment verified and included in Pathward closing funds."
-            : "Down payment verified by Orbit Mortgage."
+            : `Down payment verified by ${institutionName}.`
       : input.decision === "reject"
         ? `Down payment rejected: ${input.reason ?? "Could not verify deposit."}`
         : `Additional proof requested: ${input.reason ?? "Please upload supporting documents."}`;

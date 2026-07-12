@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { OrbitLogo } from "@/components/brand/orbit-logo";
+import { AuthCompanyCopyright, AuthCompanyLogo } from "@/components/auth/auth-company-branding";
 import { PoweredByPathward } from "@/components/brand/powered-by-pathward";
 import { AuthMortgageBackground } from "@/components/auth/auth-mortgage-background";
 import { cn } from "@/lib/utils";
@@ -34,12 +34,12 @@ export function AuthFormPanelShell({
 
       <div
         className={cn(
-          "relative z-10 w-full max-w-[400px] rounded-md bg-white px-9 py-9 shadow-[0_8px_32px_rgba(15,23,42,0.14)] md:px-10 md:py-10",
+          "auth-premium-card relative z-10 w-full max-w-[400px] rounded-md bg-white px-9 py-9 shadow-[0_8px_32px_rgba(15,23,42,0.14)] md:px-10 md:py-10",
           cardClassName,
         )}
       >
         <div className="mb-8 flex justify-center">
-          <OrbitLogo href="/" />
+          <AuthCompanyLogo />
         </div>
 
         {title ? (
@@ -57,9 +57,7 @@ export function AuthFormPanelShell({
           <div className="mt-6 text-center text-sm text-[#64748b]">{footer}</div>
         ) : null}
 
-        <p className="mt-8 text-center text-[11px] text-[#9aa3af]">
-          © {new Date().getFullYear()} Orbit Mortgage
-        </p>
+        <AuthCompanyCopyright />
 
         <div className="mt-4 flex justify-center border-t border-[#e2e8f0] pt-4">
           <PoweredByPathward variant="auth" />

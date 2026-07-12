@@ -73,8 +73,8 @@ export const superAdminNavSections: NavSection[] = [
         icon: Settings,
       },
       {
-        title: "Platform Management",
-        href: "/super-admin/platform",
+        title: "Company Management",
+        href: "/super-admin/companies",
         icon: LayoutDashboard,
       },
     ],
@@ -107,7 +107,6 @@ export const superAdminNavSections: NavSection[] = [
 ];
 
 export const SUPER_ADMIN_PORTAL = {
-  title: "Orbit Mortgage",
   subtitle: "Chief Lending Officer Portal",
 } as const;
 

@@ -17,6 +17,7 @@ import {
   MobileSectionTitle,
   MobileValue,
 } from "@/components/dashboard/mobile/mobile-card";
+import { useCompany } from "@/components/providers/company-provider";
 import { submitDownPaymentVerificationAction } from "@/lib/dashboard/down-payment-actions";
 import {
   MOBILE_JOURNEY_STAGES,
@@ -53,6 +54,7 @@ type MobileMortgageDashboardProps = {
 
 export function MobileMortgageDashboard({ view }: MobileMortgageDashboardProps) {
   const router = useRouter();
+  const { branding } = useCompany();
   const [isSubmitting, startTransition] = useTransition();
   const [depositModalOpen, setDepositModalOpen] = useState(false);
   const [escrowModalOpen, setEscrowModalOpen] = useState(false);
@@ -232,7 +234,7 @@ export function MobileMortgageDashboard({ view }: MobileMortgageDashboardProps) 
             ) : null}
             {transferPending ? (
               <p className="text-sm font-medium text-brand-navy/60">
-                Pending Orbit Approval
+                Pending {branding.institutionName} Approval
               </p>
             ) : null}
             {transferComplete ? (

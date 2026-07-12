@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Bell, ChevronDown, MessageSquare, Search, User } from "lucide-react";
 
 import { SignOutMenuItem } from "@/components/auth/sign-out-menu-item";
-import { OrbitLogo } from "@/components/brand/orbit-logo";
+import { CompanyLogo } from "@/components/company/company-logo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui-kit/avatar";
 import { Button } from "@/components/ui-kit/button";
 import {
@@ -70,11 +70,10 @@ export function TopNavigation({
     <header className={cn("mobile-top-nav sticky top-0 z-20 shrink-0", className)}>
       <div className="mobile-top-nav-inner flex h-[72px] items-center justify-between gap-4 px-5 lg:px-8">
         <div className="flex min-w-0 flex-1 items-center gap-4 lg:gap-6">
-          <OrbitLogo
+          <CompanyLogo
             href={homeHref}
             size="md"
             className="mobile-top-nav-logo min-w-0 shrink lg:hidden"
-            aria-label="Orbit Mortgage home"
           />
           {mobileMenu}
           <div className="hidden min-w-0 lg:block">

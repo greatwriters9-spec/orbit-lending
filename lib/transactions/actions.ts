@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 
 import { requireClient, requireFinanceStaff } from "@/lib/auth/guards";
 import { notifyWalletEvent } from "@/lib/notifications/service";
+import { resolveBrandingForUserId } from "@/lib/company/resolve-branding";
 import { fetchTransactions } from "@/lib/transactions/queries";
 import { TRANSACTION_TYPE_LABELS } from "@/lib/transactions/constants";
 import { formatCurrency } from "@/lib/loans/queries";
@@ -40,6 +41,7 @@ function buildCsv(rows: Awaited<ReturnType<typeof fetchTransactions>>): string {
 }
 
 function buildStatementHtml(input: {
+  institutionName: string;
   customerName: string;
   accountNumber: string;
   loanNumber?: string;
@@ -64,7 +66,7 @@ function buildStatementHtml(input: {
 
   return `<!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"><title>Orbit Mortgage Account Statement</title>
+<head><meta charset="utf-8"><title>${input.institutionName} Account Statement</title>
 <style>
 body{font-family:Arial,sans-serif;color:#111827;padding:40px}
 .header{border-bottom:2px solid #2563EB;padding-bottom:16px;margin-bottom:24px}
@@ -78,7 +80,7 @@ th{font-size:11px;text-transform:uppercase;color:#6B7280}
 </style></head>
 <body>
   <div class="header">
-    <div class="brand">Orbit Mortgage</div>
+    <div class="brand">${input.institutionName}</div>
     <div>Account Statement</div>
   </div>
   <div class="summary">
@@ -143,8 +145,10 @@ export async function generateAccountStatementAction(input?: {
     ? rows[rows.length - 1]?.previousBalance ?? 0
     : 0;
   const closingBalance = rows[0]?.newBalance ?? openingBalance;
+  const branding = await resolveBrandingForUserId(ctx.user.id);
 
   const html = buildStatementHtml({
+    institutionName: branding.institutionName,
     customerName: name,
     accountNumber: ctx.user.id.slice(0, 8).toUpperCase(),
     loanNumber: input?.loanNumber,
@@ -156,7 +160,7 @@ export async function generateAccountStatementAction(input?: {
 
   await notifyWalletEvent(ctx.user.id, {
     title: "Statement Generated",
-    message: "Your Orbit Mortgage account statement has been generated.",
+    message: `Your ${branding.institutionName} account statement has been generated.`,
     type: "general",
     actionUrl: "/dashboard/transactions",
   });

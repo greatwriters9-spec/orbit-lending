@@ -1,7 +1,7 @@
 import { resolveUserEmail } from "@/lib/notifications/resolve-user-email";
 
 import { sendEmail } from "@/lib/email/service";
-import { resolveTemplateDepartment } from "@/lib/email/templates/catalog";
+import { resolveTemplateDepartment } from "@/lib/email/registry";
 import type { EmailTemplateData, EmailTemplateKey } from "@/lib/email/types";
 
 type TimelineEmailInput = {

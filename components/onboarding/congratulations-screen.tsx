@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 
 import { Button } from "@/components/ui-kit/button";
-import { OrbitLogo } from "@/components/brand/orbit-logo";
+import { CompanyLogo } from "@/components/company/company-logo";
 import { formatCurrency } from "@/lib/loans/queries";
 import { ONBOARDING_ROUTES } from "@/types/mortgage-onboarding";
 import type { PreQualificationResult } from "@/types/mortgage-onboarding";
@@ -46,7 +46,7 @@ export function CongratulationsScreen({
     <div className="flex min-h-screen flex-col bg-[#F8FAFC]">
       <header className="border-b border-[#E5E7EB] bg-white">
         <div className="mx-auto flex h-[72px] max-w-3xl items-center px-4 md:px-6">
-          <OrbitLogo href="/" size="sm" aria-label="Orbit Mortgage home" />
+          <CompanyLogo href="/" size="sm" />
         </div>
       </header>
 

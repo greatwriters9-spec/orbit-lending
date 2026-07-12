@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { ArrowRight, FileText, Scale, Shield, Cookie, Mail, Landmark, Phone } from "lucide-react";
 
+import { applyCompanyBrandingToLegalCopy } from "@/lib/legal/apply-company-branding";
 import { LEGAL_DOCUMENT_META } from "@/lib/legal/registry";
 import { cn } from "@/lib/utils";
+import type { BrandingConfig } from "@/types/branding-config";
 
 const ICONS: Record<string, typeof FileText> = {
   "terms-of-use": Scale,
@@ -14,29 +16,29 @@ const ICONS: Record<string, typeof FileText> = {
   "contact-information": Phone,
 };
 
-export function LegalHubPage() {
+export function LegalHubPage({ branding }: { branding: BrandingConfig }) {
   return (
     <div className="pb-16 pt-10 md:pb-20 md:pt-14">
       <div className="mx-auto w-full max-w-6xl px-5 md:px-8">
         <header className="max-w-3xl">
           <p className="text-xs font-semibold tracking-[0.1em] text-brand-blue uppercase">
-            Orbit Mortgage
+            {branding.institutionName}
           </p>
           <h1 className="heading-primary mt-3 text-3xl md:text-4xl lg:text-[2.75rem]">
             Legal Center
           </h1>
           <p className="mt-4 text-sm leading-relaxed text-muted-foreground md:text-base">
-            Review Orbit Mortgage policies, disclosures, and contact information
-            governing use of our digital mortgage platform—including applications,
-            funding accounts, document uploads, identity verification, customer
-            support, notifications, email communications, and escrow-based closing
-            workflows.
+            {applyCompanyBrandingToLegalCopy(
+              "Review Orbit Mortgage policies, disclosures, and contact information governing use of our digital mortgage platform—including applications, funding accounts, document uploads, identity verification, customer support, notifications, email communications, and escrow-based closing workflows.",
+              branding,
+            )}
           </p>
         </header>
 
         <div className="mt-10 grid gap-4 md:grid-cols-2">
           {LEGAL_DOCUMENT_META.map((doc) => {
             const Icon = ICONS[doc.slug] ?? FileText;
+            const shortDescription = applyCompanyBrandingToLegalCopy(doc.shortDescription, branding);
 
             return (
               <Link
@@ -56,7 +58,7 @@ export function LegalHubPage() {
                       {doc.title}
                     </h2>
                     <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                      {doc.shortDescription}
+                      {shortDescription}
                     </p>
                     <p className="mt-3 text-xs font-medium text-brand-navy/55">
                       Last Updated: {doc.lastUpdated}
@@ -74,12 +76,10 @@ export function LegalHubPage() {
             Important Notice
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-brand-navy/75 md:text-[15px]">
-            These documents provide general information about Orbit Mortgage
-            policies and platform practices. They do not constitute legal,
-            tax, or financial advice, and they do not replace loan-specific
-            disclosures provided during your application or closing process.
-            For application-specific questions, contact our support team or
-            refer to your customer dashboard.
+            {applyCompanyBrandingToLegalCopy(
+              "These documents provide general information about Orbit Mortgage policies and platform practices. They do not constitute legal, tax, or financial advice, and they do not replace loan-specific disclosures provided during your application or closing process. For application-specific questions, contact our support team or refer to your customer dashboard.",
+              branding,
+            )}
           </p>
         </div>
       </div>

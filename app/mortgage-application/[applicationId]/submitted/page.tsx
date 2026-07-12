@@ -8,7 +8,7 @@ type PageProps = {
 };
 
 export const metadata = {
-  title: "Application Submitted | Orbit Mortgage",
+  title: "Application Submitted",
   description: "Your mortgage application has been submitted.",
 };
 

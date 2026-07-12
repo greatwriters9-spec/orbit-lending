@@ -78,7 +78,7 @@ export function resolveMobileActionPresentation(
     return {
       kind: "pending",
       title: "Transfer Request Submitted",
-      subtitle: "Awaiting Orbit Approval",
+      subtitle: "Awaiting approval",
       tone: "blue",
       showButton: false,
       showSticky: false,
@@ -144,7 +144,7 @@ export function resolveMobileActionPresentation(
     return {
       kind: "pending",
       title: "Deposit Submitted",
-      subtitle: "Awaiting Orbit verification",
+      subtitle: "Awaiting verification",
       tone: "blue",
       showButton: false,
       showSticky: false,

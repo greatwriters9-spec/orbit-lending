@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { US_PHONE_PATTERN } from "@/lib/auth/input-formatters";
+import { companyToBrandingConfig } from "@/lib/company/branding";
+import { getCurrentCompany } from "@/lib/company/server";
 import { requireSuperAdmin } from "@/lib/auth/guards";
 import { notifyAdmin } from "@/lib/notifications/notify";
 import { createClient } from "@/lib/supabase/server";
@@ -56,6 +58,12 @@ async function notifyAdminsOfGuestConcern(input: {
   });
 }
 
+async function guestConcernSuccessMessage(referenceNumber?: string): Promise<string> {
+  const branding = companyToBrandingConfig(await getCurrentCompany());
+  const base = `Thank you. A ${branding.institutionName} support staff member will respond to your issue shortly.`;
+  return referenceNumber ? `${base} Your reference is ${referenceNumber}.` : base;
+}
+
 export async function submitGuestConcernAction(
   input: z.infer<typeof guestConcernSchema>,
 ): Promise<GuestConcernActionState> {
@@ -66,10 +74,7 @@ export async function submitGuestConcernAction(
   }
 
   if (parsed.data.website?.trim()) {
-    return {
-      success:
-        "Thank you. An Orbit Mortgage support staff member will respond to your issue shortly.",
-    };
+    return { success: await guestConcernSuccessMessage() };
   }
 
   let supabase;
@@ -117,7 +122,7 @@ export async function submitGuestConcernAction(
   revalidatePath("/super-admin/guest-concerns");
 
   return {
-    success: `Thank you. An Orbit Mortgage support staff member will respond to your issue shortly. Your reference is ${referenceNumber}.`,
+    success: await guestConcernSuccessMessage(referenceNumber),
     referenceNumber,
   };
 }

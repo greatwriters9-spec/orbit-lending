@@ -1,9 +1,12 @@
+"use client";
+
 import type { EmailCommunicationLog } from "@/lib/email/types";
 import {
   getClientEmailTemplateLabel,
   getEmailTemplateLabel,
-} from "@/lib/email/templates/catalog";
+} from "@/lib/email/templates/catalog-labels";
 import { formatApplicationDate } from "@/lib/applications/status-utils";
+import { useCompany } from "@/components/providers/company-provider";
 
 type UserCommunicationHistoryProps = {
   logs: EmailCommunicationLog[];
@@ -32,17 +35,18 @@ export function UserCommunicationHistory({
   logs,
   variant = "admin",
 }: UserCommunicationHistoryProps) {
+  const { branding } = useCompany();
   const isClient = variant === "client";
 
   return (
     <div className="card-surface p-6 md:p-8">
       <h3 className="text-lg font-semibold text-brand-navy">
-        {isClient ? "Messages from Orbit Mortgage" : "Communication History"}
+        {isClient ? `Messages from ${branding.institutionName}` : "Communication History"}
       </h3>
       <p className="mt-1 text-sm text-muted-foreground">
         {isClient
           ? "Emails we've sent you about your mortgage and account."
-          : "Emails sent to this client from Orbit Mortgage."}
+          : `Emails sent to this client from ${branding.institutionName}.`}
       </p>
 
       <div className="mt-4 overflow-x-auto">

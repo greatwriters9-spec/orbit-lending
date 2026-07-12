@@ -1,6 +1,7 @@
 import { CheckCircle2, Clock3 } from "lucide-react";
 
 import { LANDING_ACTIVITY } from "@/lib/landing/content";
+import type { LandingContent } from "@/lib/landing/get-landing-content";
 import { LANDING_SECTION_IMAGES } from "@/lib/landing/images";
 import { cn } from "@/lib/utils";
 
@@ -13,7 +14,11 @@ const toneStyles = {
   warning: "text-brand-warning bg-brand-warning/10 border-brand-warning/20",
 };
 
-export function ActivityFeed() {
+type ActivityFeedProps = {
+  content: LandingContent;
+};
+
+export function ActivityFeed({ content }: ActivityFeedProps) {
   const image = LANDING_SECTION_IMAGES.activity;
 
   return (
@@ -24,7 +29,7 @@ export function ActivityFeed() {
             align="left"
             eyebrow="Platform Activity"
             title="Recent Platform Activity"
-            subtitle="See how homebuyers move from pre-qualification to closing with Orbit Mortgage."
+            subtitle={content.activitySubtitle}
           />
 
           <div className="mt-10 grid gap-4">

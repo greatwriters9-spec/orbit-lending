@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { ChevronDown, Printer } from "lucide-react";
 
 import { LegalSectionBlock } from "@/components/legal/legal-block-renderer";
+import { useCompany } from "@/components/providers/company-provider";
 import { getLegalTocItems } from "@/lib/legal/registry";
 import type { LegalDocument } from "@/lib/legal/types";
 import { cn } from "@/lib/utils";
@@ -117,6 +118,7 @@ type LegalDocumentViewProps = {
 };
 
 export function LegalDocumentView({ document }: LegalDocumentViewProps) {
+  const { branding } = useCompany();
   return (
     <article className="legal-document pb-16 pt-10 md:pb-20 md:pt-14">
       <div className="mx-auto w-full max-w-6xl px-5 md:px-8">
@@ -131,7 +133,7 @@ export function LegalDocumentView({ document }: LegalDocumentViewProps) {
 
         <header className="border-b border-brand-border pb-8">
           <p className="text-xs font-semibold tracking-[0.1em] text-brand-blue uppercase">
-            Orbit Mortgage Legal
+            {branding.institutionName} Legal
           </p>
           <h1 className="heading-primary mt-3 text-3xl md:text-4xl lg:text-[2.5rem]">
             {document.title}

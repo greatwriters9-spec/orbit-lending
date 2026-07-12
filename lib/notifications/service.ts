@@ -1,3 +1,4 @@
+import { resolveInstitutionNameForUserId } from "@/lib/company/resolve-branding";
 import { createClient } from "@/lib/supabase/server";
 import type {
   NotificationCategory,
@@ -210,7 +211,7 @@ const STATUS_NOTIFICATIONS: Record<
   },
   completed: {
     title: "Mortgage Fully Repaid",
-    message: "Your mortgage has been fully repaid. Thank you for banking with Orbit Mortgage.",
+    message: "Your mortgage has been fully repaid. Thank you for banking with us.",
     priority: "high",
     showModal: false,
     sendEmail: true,
@@ -229,6 +230,11 @@ export async function notifyApplicationStatusChange(
   }
 
   const email = await resolveUserEmail(userId);
+  const institutionName = await resolveInstitutionNameForUserId(userId);
+  const message =
+    status === "completed"
+      ? `Your mortgage has been fully repaid. Thank you for banking with ${institutionName}.`
+      : config.message;
   const emailTemplate =
     APPLICATION_STATUS_EMAIL_TEMPLATES[status] ??
     selectEmailTemplateForNotification({ status }) ??
@@ -237,7 +243,7 @@ export async function notifyApplicationStatusChange(
   await notifyUser({
     userId,
     title: config.title,
-    message: config.message,
+    message,
     type: "application_update",
     category: "application_update",
     priority: config.priority,
@@ -249,7 +255,7 @@ export async function notifyApplicationStatusChange(
     emailTemplate,
     emailData: {
       actionUrl: `/dashboard/loans/${applicationId}`,
-      message: config.message,
+      message,
       ...emailData,
     },
   });
@@ -257,8 +263,8 @@ export async function notifyApplicationStatusChange(
   await recordApplicationActivity(applicationId, {
     eventType: "status_change",
     title: config.title,
-    description: config.message,
-    actorName: "Orbit Mortgage",
+    description: message,
+    actorName: institutionName,
   });
 }
 
@@ -382,7 +388,7 @@ export async function notifyRepaymentEvent(
 
 const ACCOUNT_STATUS_NOTIFICATIONS: Record<
   string,
-  { title: string; message: (reason?: string) => string; reactivated?: boolean }
+  { title: string; message: (reason?: string, institutionName?: string) => string; reactivated?: boolean }
 > = {
   restricted: {
     title: "Account Restricted",
@@ -396,8 +402,8 @@ const ACCOUNT_STATUS_NOTIFICATIONS: Record<
   },
   suspended: {
     title: "Account Suspended",
-    message: (reason) =>
-      `Your account has been suspended.${reason ? ` Reason: ${reason}` : ""} Please contact Orbit Mortgage support for assistance.`,
+    message: (reason, institutionName) =>
+      `Your account has been suspended.${reason ? ` Reason: ${reason}` : ""} Please contact ${institutionName} support for assistance.`,
   },
   active: {
     title: "Account Reactivated",
@@ -424,7 +430,8 @@ export async function notifyAccountStatusChange(
   }
 
   const email = await resolveUserEmail(userId);
-  const message = config.message(reason);
+  const institutionName = await resolveInstitutionNameForUserId(userId);
+  const message = config.message(reason, institutionName);
 
   await notifyUser({
     userId,

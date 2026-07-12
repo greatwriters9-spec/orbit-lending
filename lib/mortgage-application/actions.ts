@@ -9,6 +9,7 @@ import { extractPreQualification } from "@/lib/onboarding/parse-application";
 import { syncProfileFromOnboardingDraft } from "@/lib/onboarding/sync-profile";
 import { mapFullApplicationToDbPayload } from "@/lib/mortgage-application/map-to-db";
 import { generateDocumentChecklist } from "@/lib/mortgage-application/document-checklist";
+import { resolveBrandingForUserId } from "@/lib/company/resolve-branding";
 import { createClient } from "@/lib/supabase/server";
 import { createNotification } from "@/lib/wallet/notifications";
 import { AUTH_ROUTES } from "@/lib/auth/routes";
@@ -90,10 +91,13 @@ export async function saveMortgageApplicationAction(
         : generateDocumentChecklist(application),
   };
 
+  const branding = await resolveBrandingForUserId(user.id);
+
   const payload = mapFullApplicationToDbPayload({
     application: nextApplication,
     preQualification,
     existingPersonalInfo: personalInfo,
+    institutionName: branding.institutionName,
   });
 
   const { error: updateError } = await supabase

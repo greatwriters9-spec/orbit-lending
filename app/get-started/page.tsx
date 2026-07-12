@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 
@@ -5,12 +6,17 @@ import { BuyingPowerAssessmentWizard } from "@/components/onboarding/buying-powe
 import { AUTH_ROUTES } from "@/lib/auth/routes";
 import { getSessionUser } from "@/lib/auth/actions";
 import { fetchMortgageConfig } from "@/lib/admin/mortgage/config";
+import { getCompanyContext } from "@/lib/company/server";
 import { createClient } from "@/lib/supabase/server";
-export const metadata = {
-  title: "Buying Power Assessment | Orbit Mortgage",
-  description:
-    "Answer a few quick questions to estimate your home buying power with Orbit Mortgage.",
-};
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { branding } = await getCompanyContext();
+
+  return {
+    title: "Buying Power Assessment",
+    description: `Answer a few quick questions to estimate your home buying power with ${branding.institutionName}.`,
+  };
+}
 
 export default async function GetStartedPage() {
   const user = await getSessionUser();

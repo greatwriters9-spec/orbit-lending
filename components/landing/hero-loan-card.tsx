@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Building2,
   CheckCircle2,
@@ -8,11 +10,14 @@ import {
   Wallet,
 } from "lucide-react";
 
-import { OrbitLogoMark } from "@/components/brand/orbit-logo";
+import { CompanyLogo } from "@/components/company/company-logo";
+import { useCompany } from "@/components/providers/company-provider";
 import { LANDING_HERO_BADGES } from "@/lib/landing/content";
 import { cn } from "@/lib/utils";
 
 export function HeroLoanCard({ className }: { className?: string }) {
+  const { branding } = useCompany();
+
   return (
     <div
       aria-hidden
@@ -42,10 +47,10 @@ export function HeroLoanCard({ className }: { className?: string }) {
         <div className="border-b border-[#E5E7EB] bg-gradient-to-br from-[#F8FAFC] to-white px-6 py-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <OrbitLogoMark size="sm" />
+              <CompanyLogo href={null} size="sm" showWordmark={false} />
               <div>
                 <p className="text-[10px] font-semibold tracking-[0.08em] text-muted-foreground uppercase">
-                  Orbit Mortgage
+                  {branding.institutionName}
                 </p>
                 <p className="text-base font-semibold text-brand-navy">Mortgage Overview</p>
               </div>
@@ -127,4 +132,3 @@ function MiniBadge({
     </div>
   );
 }
-

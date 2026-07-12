@@ -1,18 +1,19 @@
 import Link from "next/link";
 import { AlertTriangle } from "lucide-react";
 
-import { OrbitLogo } from "@/components/brand/orbit-logo";
+import { CompanyLogo } from "@/components/company/company-logo";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { Button } from "@/components/ui-kit/button";
 import { ACCOUNT_STATUS_LABELS } from "@/lib/auth/account-status";
 import { getSessionUser } from "@/lib/auth/actions";
 import { getProfile } from "@/lib/auth/profile";
+import { getCompanyContext } from "@/lib/company/server";
 import { AUTH_ROUTES } from "@/lib/auth/routes";
 import type { AccountStatus } from "@/types/profile";
 import { redirect } from "next/navigation";
 
 export const metadata = {
-  title: "Account Status | Orbit Mortgage",
+  title: "Account Status",
 };
 
 export default async function AccountStatusPage() {
@@ -22,7 +23,10 @@ export default async function AccountStatusPage() {
     redirect(AUTH_ROUTES.login);
   }
 
-  const profile = await getProfile(user.id);
+  const [{ branding }, profile] = await Promise.all([
+    getCompanyContext(),
+    getProfile(user.id),
+  ]);
   const status = (profile?.account_status ?? "active") as AccountStatus;
 
   if (status === "active") {
@@ -30,10 +34,11 @@ export default async function AccountStatusPage() {
   }
 
   const reason = profile?.account_status_reason;
+  const supportEmail = branding.supportEmail;
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-brand-background px-4 py-12">
-      <OrbitLogo href="/" size="sm" className="mb-8" aria-label="Orbit Mortgage home" />
+      <CompanyLogo href="/" size="sm" className="mb-8" />
       <div className="card-surface w-full max-w-lg p-8">
         <div className="mx-auto flex size-14 items-center justify-center rounded-xl bg-brand-warning/10 text-brand-warning">
           <AlertTriangle className="size-7" strokeWidth={1.75} />
@@ -43,9 +48,9 @@ export default async function AccountStatusPage() {
         </h1>
         <p className="mt-3 text-center text-sm leading-relaxed text-muted-foreground">
           {status === "suspended"
-            ? "Your Orbit Mortgage account has been suspended. Platform access is restricted until this matter is resolved."
+            ? `Your ${branding.institutionName} account has been suspended. Platform access is restricted until this matter is resolved.`
             : status === "closed"
-              ? "Your Orbit Mortgage account has been closed. No further activity is permitted on this account."
+              ? `Your ${branding.institutionName} account has been closed. No further activity is permitted on this account.`
               : "Your account access is currently limited."}
         </p>
         {reason ? (
@@ -56,13 +61,13 @@ export default async function AccountStatusPage() {
         ) : null}
         <p className="mt-6 text-center text-xs text-muted-foreground">
           Questions? Contact{" "}
-          <Link href="mailto:support@orbitlending.com" className="text-brand-blue">
-            support@orbitlending.com
+          <Link href={`mailto:${supportEmail}`} className="text-brand-blue">
+            {supportEmail}
           </Link>
         </p>
         <div className="mt-8 flex flex-col gap-3">
           <Button
-            render={<Link href="mailto:support@orbitlending.com" />}
+            render={<Link href={`mailto:${supportEmail}`} />}
             className="h-11 w-full bg-brand-navy text-white hover:bg-brand-navy/90"
           >
             Contact Support

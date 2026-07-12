@@ -55,7 +55,7 @@ export async function renderReactEmailTemplate(input: {
         ? `${input.content.ctaLabel}: ${input.content.ctaUrl}`
         : "",
       "—",
-      "Orbit Mortgage",
+      input.content.branding?.institutionName ?? "Mortgage Team",
       "Powered by Pathward National Bank",
     ]
       .filter(Boolean)

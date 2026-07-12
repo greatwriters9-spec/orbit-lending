@@ -7,7 +7,7 @@ import { fetchWalletForUser } from "@/lib/wallet/queries";
 import { PATHWARD_BANK } from "@/types/wallet";
 
 export const metadata = {
-  title: "Request Withdrawal | Orbit Mortgage",
+  title: "Request Withdrawal",
 };
 
 export default async function WithdrawPage() {

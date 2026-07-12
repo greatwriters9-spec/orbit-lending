@@ -16,6 +16,7 @@ import {
   TransactionTypeLabel,
 } from "@/components/transactions/transaction-badges";
 import { StatCard } from "@/components/ui-kit/stat-card";
+import { useCompany } from "@/components/providers/company-provider";
 import { Button } from "@/components/ui-kit/button";
 import { Input } from "@/components/ui-kit/input";
 import { formatApplicationDate } from "@/lib/applications/status-utils";
@@ -44,6 +45,7 @@ export function ClientTransactionCenter({
   transactions: initialTransactions,
   summary,
 }: ClientTransactionCenterProps) {
+  const { branding } = useCompany();
   const [transactions, setTransactions] = useState(initialTransactions);
   const [selected, setSelected] = useState<PlatformTransaction | null>(null);
   const [search, setSearch] = useState("");
@@ -95,7 +97,7 @@ export function ClientTransactionCenter({
             : undefined,
       });
       if (result.csv) {
-        downloadFile(result.csv, "orbit-transactions.csv", "text/csv");
+        downloadFile(result.csv, `${branding.institutionName.toLowerCase().replace(/\s+/g, "-")}-transactions.csv`, "text/csv");
       }
     });
   };
@@ -104,7 +106,7 @@ export function ClientTransactionCenter({
     startTransition(async () => {
       const result = await generateAccountStatementAction();
       if (result.html) {
-        downloadFile(result.html, "orbit-statement.html", "text/html");
+        downloadFile(result.html, `${branding.institutionName.toLowerCase().replace(/\s+/g, "-")}-statement.html`, "text/html");
       }
     });
   };
@@ -115,7 +117,7 @@ export function ClientTransactionCenter({
         <div>
           <h1 className="heading-primary text-3xl">Transactions</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Complete financial activity ledger for your Orbit Mortgage account.
+            Complete financial activity ledger for your {branding.institutionName} account.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">

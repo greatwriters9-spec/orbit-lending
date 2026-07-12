@@ -1,18 +1,27 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useState } from "react";
 import { MessageCircle } from "lucide-react";
 
-import { OrbitLogo } from "@/components/brand/orbit-logo";
+import { CompanyLogo } from "@/components/company/company-logo";
+import { OnboardingCompanyCopyright } from "@/components/auth/auth-company-branding";
 import { PoweredByPathward } from "@/components/brand/powered-by-pathward";
-import { AskAssistantModal } from "@/components/support/ask-assistant-modal";
 import {
   ONBOARDING_STEP_FAQS,
   type OnboardingStepKey,
 } from "@/lib/onboarding/faq-content";
 import { LANDING_TESTIMONIALS } from "@/lib/landing/content";
 import { cn } from "@/lib/utils";
+
+const AskAssistantModal = dynamic(
+  () =>
+    import("@/components/support/ask-assistant-modal").then((module) => ({
+      default: module.AskAssistantModal,
+    })),
+  { ssr: false },
+);
 
 export function AskAssistantButton({
   isLoggedIn,
@@ -122,14 +131,12 @@ export function OnboardingFooter({ className }: { className?: string }) {
       )}
     >
       <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-x-5 gap-y-2 px-5 py-4 md:px-6 md:py-5">
-        <OrbitLogo href="/" size="md" className="shrink-0" />
+        <CompanyLogo href="/" size="md" className="shrink-0" />
         <PoweredByPathward
           variant="onboarding-footer"
           className="order-3 w-full sm:order-none sm:w-auto sm:flex-1"
         />
-        <p className="shrink-0 text-xs font-medium text-brand-navy/65 sm:text-sm">
-          © {new Date().getFullYear()} Orbit Mortgage
-        </p>
+        <OnboardingCompanyCopyright />
       </div>
     </footer>
   );

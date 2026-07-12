@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
+import { useCompany } from "@/components/providers/company-provider";
 import { formatCurrency } from "@/lib/loans/queries";
 import { cn } from "@/lib/utils";
 import type { MortgageDashboardView } from "@/types/mortgage-dashboard";
@@ -18,6 +21,7 @@ export function MortgageCommandHero({
   view,
   className,
 }: MortgageCommandHeroProps) {
+  const { branding } = useCompany();
   const detailsHref = view.applicationId
     ? `/dashboard/loans/${view.applicationId}`
     : "/dashboard/loans";
@@ -49,8 +53,8 @@ export function MortgageCommandHero({
 
         <p className="mt-4 max-w-md text-sm font-normal text-muted-foreground">
           {isActiveMortgage
-            ? "Your mortgage is active and being serviced with Orbit Mortgage."
-            : "Continue your mortgage journey with Orbit Mortgage."}
+            ? `Your mortgage is active and being serviced with ${branding.institutionName}.`
+            : `Continue your mortgage journey with ${branding.institutionName}.`}
         </p>
 
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">

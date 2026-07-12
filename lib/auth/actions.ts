@@ -20,6 +20,7 @@ import {
   sendPasswordResetViaResend,
 } from "@/lib/auth/resend-auth-delivery";
 import { ensureOnboardingApplication } from "@/lib/onboarding/finalize-application";
+import { getCurrentCompanyId } from "@/lib/company/server";
 import { notifyAdmin } from "@/lib/notifications/notify";
 import { createClient } from "@/lib/supabase/server";
 import type { MortgageApplicationDraft } from "@/types/mortgage-onboarding";
@@ -71,10 +72,14 @@ export async function loginAction(
 
   if (user) {
     const { notifySecurityEvent } = await import("@/lib/notifications/service");
+    const { resolveBrandingForUserId } = await import(
+      "@/lib/company/resolve-branding"
+    );
+    const branding = await resolveBrandingForUserId(user.id);
     await notifySecurityEvent(
       user.id,
       "New Login Detected",
-      "Your Orbit Mortgage account was accessed. If this wasn't you, contact support immediately.",
+      `Your ${branding.institutionName} account was accessed. If this wasn't you, contact support immediately.`,
     );
 
     if (isAdminStaff(profile?.role) || isFinanceStaff(profile?.role)) {
@@ -119,6 +124,7 @@ export async function registerAction(
   const origin = await getOrigin();
   const supabase = await createClient();
   const emailRedirectTo = buildAuthCallbackUrl(origin);
+  const companyId = await getCurrentCompanyId();
 
   const registration = await registerUserWithResendVerification({
     email: parsed.data.email,
@@ -128,6 +134,7 @@ export async function registerAction(
       first_name: parsed.data.firstName,
       middle_name: parsed.data.middleNameInitial,
       last_name: parsed.data.lastName,
+      company_id: companyId,
     },
     firstName: parsed.data.firstName,
   });
@@ -144,6 +151,7 @@ export async function registerAction(
       first_name: parsed.data.firstName,
       middle_name: parsed.data.middleNameInitial ?? null,
       last_name: parsed.data.lastName,
+      company_id: companyId,
     })
     .eq("id", user.id);
 
@@ -290,6 +298,20 @@ export async function completeProfileAction(
   const draftRaw = formData.get("onboardingDraft")?.toString();
   let createdOnboardingApplication = false;
 
+  const { data: profileRow } = await supabase
+    .from("profiles")
+    .select("company_id, role, email")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (!profileRow?.company_id) {
+    const companyId = await getCurrentCompanyId();
+    await supabase
+      .from("profiles")
+      .update({ company_id: companyId })
+      .eq("id", user.id);
+  }
+
   if (draftRaw) {
     try {
       const draft = JSON.parse(draftRaw) as MortgageApplicationDraft;
@@ -308,17 +330,11 @@ export async function completeProfileAction(
     }
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role, email")
-    .eq("id", user.id)
-    .maybeSingle();
-
   void notifyAdmin({
     event: "PROFILE_COMPLETED",
     payload: {
       name: `${parsed.data.firstName} ${parsed.data.lastName}`.trim(),
-      email: profile?.email ?? user.email,
+      email: profileRow?.email ?? user.email,
     },
     entityType: "user",
     entityId: user.id,
@@ -329,7 +345,7 @@ export async function completeProfileAction(
     redirect(AUTH_ROUTES.qualificationResult);
   }
 
-  redirect(getDefaultRouteForRole(profile?.role));
+  redirect(getDefaultRouteForRole(profileRow?.role));
 }
 
 export async function signOutAction() {

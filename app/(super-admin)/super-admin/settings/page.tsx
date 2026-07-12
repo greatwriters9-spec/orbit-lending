@@ -1,6 +1,6 @@
 import { SectionHeader } from "@/components/ui-kit/section-header";
 import { fetchPlatformSettings, updatePlatformSettingFormAction } from "@/lib/admin/settings/actions";
-import { fetchBrandingConfig } from "@/lib/admin/branding/config";
+import { fetchBrandingConfig } from "@/lib/admin/branding/fetch-config.server";
 import { AdminNotificationSettingsForm } from "@/components/admin/admin-notification-settings-form";
 import { BrandSettingsForm } from "@/components/admin/brand-settings-form";
 import { fetchAdminNotificationSettings } from "@/lib/notifications/settings";
@@ -9,7 +9,7 @@ import { requireSuperAdmin } from "@/lib/auth/guards";
 import { redirect } from "next/navigation";
 
 export const metadata = {
-  title: "System Configuration | Orbit Mortgage",
+  title: "System Configuration",
 };
 
 export default async function SuperAdminSettingsPage() {

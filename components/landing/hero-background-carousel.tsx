@@ -1,49 +1,48 @@
 import { existsSync } from "fs";
 import path from "path";
 
-import { LANDING_HERO_IMAGES } from "@/lib/landing/images";
+import { LANDING_HERO_IMAGES, type LandingImage } from "@/lib/landing/images";
 
-const HERO_IMAGE = LANDING_HERO_IMAGES[0];
+const DEFAULT_HERO_IMAGE = LANDING_HERO_IMAGES[0];
 
-function heroSrcSet(): string | undefined {
-  const width = HERO_IMAGE.width ?? 1024;
-  const base = `${HERO_IMAGE.src} ${width}w`;
+function heroSrcSet(src: string, src2x?: string, width?: number): string | undefined {
+  const baseWidth = width ?? 1024;
+  const base = `${src} ${baseWidth}w`;
 
-  if (!HERO_IMAGE.src2x) {
+  if (!src2x) {
     return base;
   }
 
-  const retinaPath = path.join(
-    process.cwd(),
-    "public",
-    HERO_IMAGE.src2x.replace(/^\//, ""),
-  );
+  const retinaPath = path.join(process.cwd(), "public", src2x.replace(/^\//, ""));
 
   if (!existsSync(retinaPath)) {
     return base;
   }
 
-  return `${HERO_IMAGE.src} ${width}w, ${HERO_IMAGE.src2x} ${width * 2}w`;
+  return `${src} ${baseWidth}w, ${src2x} ${baseWidth * 2}w`;
 }
 
-export function HeroBackgroundCarousel() {
-  const srcSet = heroSrcSet();
+type HeroBackgroundCarouselProps = {
+  heroImage?: LandingImage;
+};
+
+export function HeroBackgroundCarousel({ heroImage = DEFAULT_HERO_IMAGE }: HeroBackgroundCarouselProps) {
+  const srcSet = heroImage.srcSet ?? heroSrcSet(heroImage.src, heroImage.src2x, heroImage.width);
 
   return (
     <div className="absolute inset-0 w-full overflow-hidden" aria-hidden>
-      {/* Native img avoids extra compression; srcSet picks retina when available. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={HERO_IMAGE.src}
+        src={heroImage.src}
         srcSet={srcSet}
         sizes="100vw"
-        alt={HERO_IMAGE.alt}
-        width={HERO_IMAGE.width}
-        height={HERO_IMAGE.height}
+        alt={heroImage.alt}
+        width={heroImage.width}
+        height={heroImage.height}
         decoding="async"
         fetchPriority="high"
-        className="absolute inset-0 h-full w-full object-cover"
-        style={{ objectPosition: HERO_IMAGE.objectPosition ?? "center" }}
+        className="hero-background-image absolute inset-0 h-full w-full object-cover"
+        style={{ objectPosition: heroImage.objectPosition ?? "center" }}
       />
     </div>
   );

@@ -1,6 +1,7 @@
 import { generateDocumentChecklist } from "@/lib/mortgage-application/document-checklist";
 import type { FullMortgageApplication } from "@/types/mortgage-full-application";
 import type { PreQualificationResult } from "@/types/mortgage-onboarding";
+import { DEFAULT_BRANDING_CONFIG } from "@/types/branding-config";
 
 function sumIncome(income: FullMortgageApplication["income"]): number {
   let total = 0;
@@ -47,6 +48,7 @@ export function mapFullApplicationToDbPayload(input: {
   application: FullMortgageApplication;
   preQualification?: PreQualificationResult | null;
   existingPersonalInfo?: Record<string, unknown>;
+  institutionName?: string;
 }) {
   const { application, preQualification, existingPersonalInfo = {} } = input;
   const onboarding =
@@ -137,14 +139,20 @@ export function mapFullApplicationToDbPayload(input: {
     requestedAmount: application.loanDetails.desiredLoanAmount,
     selectedTermId: preQualification?.loanTermId,
     loanProductSlug: preQualification?.loanProductSlug,
-    purpose: buildPurpose(application),
+    purpose: buildPurpose(
+      application,
+      input.institutionName ?? DEFAULT_BRANDING_CONFIG.institutionName,
+    ),
     documentChecklist: checklist,
   };
 }
 
-function buildPurpose(application: FullMortgageApplication): string {
+function buildPurpose(
+  application: FullMortgageApplication,
+  institutionName: string,
+): string {
   if (application.loanDetails.loanPurpose === "refinance") {
-    return "Refinance through Orbit Mortgage";
+    return `Refinance through ${institutionName}`;
   }
   if (application.property.hasProperty && application.property.street) {
     return `Purchase at ${application.property.street}, ${application.property.city}, ${application.property.state}`;
@@ -152,7 +160,7 @@ function buildPurpose(application: FullMortgageApplication): string {
   if (application.property.state) {
     return `Purchase in ${application.property.state}`;
   }
-  return "Purchase through Orbit Mortgage";
+  return `Purchase through ${institutionName}`;
 }
 
 export function extractFullApplicationFromPersonalInfo(

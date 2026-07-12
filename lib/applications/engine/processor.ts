@@ -1,6 +1,8 @@
 import { headers } from "next/headers";
 
 import { notifyAdmin } from "@/lib/notifications/notify";
+import { resolveInstitutionNameForUserId } from "@/lib/company/resolve-branding";
+import { DEFAULT_BRANDING_CONFIG } from "@/types/branding-config";
 import { createClient } from "@/lib/supabase/server";
 import type { EmailTemplateData } from "@/lib/email/types";
 import type { ApplicationStatus } from "@/types/application-details";
@@ -186,10 +188,21 @@ export async function sendSystemMessage(
   applicationId: string,
   message: string,
 ) {
+  const { data: application } = await supabase
+    .from("loan_applications")
+    .select("user_id")
+    .eq("id", applicationId)
+    .maybeSingle();
+
+  let senderName = DEFAULT_BRANDING_CONFIG.institutionName;
+  if (application?.user_id) {
+    senderName = await resolveInstitutionNameForUserId(application.user_id);
+  }
+
   await supabase.from("application_messages").insert({
     application_id: applicationId,
     sender_role: "system",
-    sender_name: "Orbit Mortgage",
+    sender_name: senderName,
     message,
   });
 }

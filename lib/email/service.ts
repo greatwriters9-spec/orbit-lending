@@ -15,6 +15,48 @@ import type {
 } from "@/lib/email/types";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
 
+async function resolveEmailCompanyId(
+  input: SendEmailInput,
+): Promise<string | undefined> {
+  const metadataCompanyId = input.metadata?.company_id;
+  if (typeof metadataCompanyId === "string" && metadataCompanyId.trim()) {
+    return metadataCompanyId;
+  }
+
+  if (!input.userId) {
+    try {
+      const { getCurrentCompanyId } = await import("@/lib/company/server");
+      return await getCurrentCompanyId();
+    } catch {
+      return undefined;
+    }
+  }
+
+  const supabase = createServiceRoleClient();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("company_id")
+    .eq("id", input.userId)
+    .maybeSingle();
+
+  if (profile?.company_id) {
+    return profile.company_id;
+  }
+
+  const { data: authUser } = await supabase.auth.admin.getUserById(input.userId);
+  const metaCompanyId = authUser?.user?.user_metadata?.company_id;
+  if (typeof metaCompanyId === "string" && metaCompanyId.trim()) {
+    return metaCompanyId;
+  }
+
+  try {
+    const { getCurrentCompanyId } = await import("@/lib/company/server");
+    return await getCurrentCompanyId();
+  } catch {
+    return undefined;
+  }
+}
+
 async function createEmailLog(input: {
   userId?: string;
   recipientEmail: string;
@@ -58,10 +100,11 @@ async function createEmailLog(input: {
 }
 
 export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult> {
+  const companyId = await resolveEmailCompanyId(input);
   const rendered = await renderEmailFromTemplate(input.template, input.data, {
     subject: input.subject,
     customMessage: input.customMessage,
-  });
+  }, companyId);
 
   const event = resolveOutgoingEmailEvent({
     template: input.template,

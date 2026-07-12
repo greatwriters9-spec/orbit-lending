@@ -1,4 +1,7 @@
 import { sendPreQualifiedNoticeEmail } from "@/lib/email/hooks";
+import { companyToBrandingConfig } from "@/lib/company/branding";
+import { fetchCompanyById } from "@/lib/company/queries";
+import { getCurrentCompany, getCurrentCompanyId } from "@/lib/company/server";
 import { mapMortgageDraftToLoanApplication } from "@/lib/onboarding/map-draft";
 import { computePreQualification } from "@/lib/onboarding/pre-qualification";
 import { fetchMortgageConfig } from "@/lib/admin/mortgage/config";
@@ -46,7 +49,28 @@ export async function ensureOnboardingApplication(
     return {};
   }
 
-  const loanDraft = mapMortgageDraftToLoanApplication(enrichedDraft, preQual);
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("company_id")
+    .eq("id", userId)
+    .maybeSingle();
+
+  let companyId = profile?.company_id;
+  if (!companyId) {
+    companyId = await getCurrentCompanyId();
+    await supabase
+      .from("profiles")
+      .update({ company_id: companyId })
+      .eq("id", userId);
+  }
+
+  const company =
+    (await fetchCompanyById(companyId)) ?? (await getCurrentCompany());
+  const institutionName = companyToBrandingConfig(company).institutionName;
+
+  const loanDraft = mapMortgageDraftToLoanApplication(enrichedDraft, preQual, {
+    institutionName,
+  });
   const applicationNumber = generateApplicationNumber();
   const isPreQualification = mode === "pre_qualification";
   const status = isPreQualification ? "pre_qualified" : "submitted";
@@ -55,6 +79,7 @@ export async function ensureOnboardingApplication(
     .from("loan_applications")
     .insert({
       user_id: userId,
+      company_id: companyId,
       loan_product_slug: loanDraft.loanProductSlug,
       requested_amount: loanDraft.configuration.requestedAmount,
       selected_term_id: loanDraft.configuration.selectedTermId,
@@ -78,8 +103,8 @@ export async function ensureOnboardingApplication(
     application_id: application.id,
     status,
     note: isPreQualification
-      ? "Buying power assessment completed through Orbit Mortgage pre-qualification."
-      : "Mortgage application submitted through Orbit Mortgage onboarding.",
+      ? `Buying power assessment completed through ${institutionName} pre-qualification.`
+      : `Mortgage application submitted through ${institutionName} onboarding.`,
     changed_by: userId,
   });
 
@@ -130,8 +155,7 @@ export async function ensureOnboardingApplication(
   await createNotification({
     userId,
     title: "Application Submitted",
-    message:
-      "Your mortgage application has been submitted. Orbit Mortgage will review your information and confirm your eligible loan amount by email.",
+    message: `Your mortgage application has been submitted. ${institutionName} will review your information and confirm your eligible loan amount by email.`,
     type: "application_update",
     metadata: {
       applicationId: application.id,

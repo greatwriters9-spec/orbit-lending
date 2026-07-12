@@ -2,7 +2,7 @@ import { SectionHeader } from "@/components/ui-kit/section-header";
 import { SUPPORTED_ROLES, USER_ROLES } from "@/lib/auth/roles";
 
 export const metadata = {
-  title: "Roles & Permissions | Orbit Mortgage",
+  title: "Roles & Permissions",
 };
 
 export default function SuperAdminStaffPage() {

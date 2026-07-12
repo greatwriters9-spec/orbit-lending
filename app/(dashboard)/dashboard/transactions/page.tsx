@@ -6,7 +6,7 @@ import {
 } from "@/lib/transactions/queries";
 
 export const metadata = {
-  title: "Transactions | Orbit Mortgage",
+  title: "Transactions",
 };
 
 export default async function TransactionsPage() {

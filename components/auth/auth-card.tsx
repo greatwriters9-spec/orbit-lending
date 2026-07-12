@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { OrbitLogo } from "@/components/brand/orbit-logo";
+import { AuthCompanyCopyright, AuthCompanyLogo } from "@/components/auth/auth-company-branding";
 import { PoweredByPathward } from "@/components/brand/powered-by-pathward";
 import { cn } from "@/lib/utils";
 
@@ -27,7 +27,7 @@ export function AuthCard({
       )}
     >
       <div className="mb-8 flex justify-center">
-        <OrbitLogo href="/" />
+        <AuthCompanyLogo />
       </div>
 
       <div className="mb-6 text-center">
@@ -41,9 +41,7 @@ export function AuthCard({
         <div className="mt-6 text-center text-sm text-[#64748b]">{footer}</div>
       ) : null}
 
-      <p className="mt-8 text-center text-[11px] text-[#9aa3af]">
-        © {new Date().getFullYear()} Orbit Mortgage
-      </p>
+      <AuthCompanyCopyright />
 
       <div className="mt-4 flex justify-center border-t border-[#e2e8f0] pt-4">
         <PoweredByPathward variant="auth" />

@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-import { createServiceRoleClient } from "@/lib/supabase/service-role";
 import {
   BRANDING_SETTINGS_KEY,
   DEFAULT_BRANDING_CONFIG,
@@ -84,23 +83,4 @@ export function formatBrandingAddress(config: BrandingConfig): string {
   return [config.addressLine1, config.addressLine2, cityLine]
     .filter(Boolean)
     .join("\n");
-}
-
-export async function fetchBrandingConfig(): Promise<BrandingConfig> {
-  try {
-    const supabase = createServiceRoleClient();
-    const { data } = await supabase
-      .from("platform_settings")
-      .select("value")
-      .eq("key", BRANDING_SETTINGS_KEY)
-      .maybeSingle();
-
-    if (!data?.value) {
-      return DEFAULT_BRANDING_CONFIG;
-    }
-
-    return parseBrandingConfig(data.value);
-  } catch {
-    return DEFAULT_BRANDING_CONFIG;
-  }
 }

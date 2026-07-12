@@ -9,7 +9,7 @@ import { processStaleTicketEscalations } from "@/lib/support/actions";
 import type { SupportTicketCategory } from "@/types/support";
 
 export const metadata = {
-  title: "Support | Orbit Mortgage",
+  title: "Support",
 };
 
 export default async function SupportPage({

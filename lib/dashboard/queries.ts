@@ -17,6 +17,7 @@ import { fetchPathwardLinkedAccount, isMortgageApprovedForWithdrawal } from "@/l
 import { parseOnboardingMeta } from "@/lib/onboarding/parse-application";
 import { extractDocumentChecklistFromPersonalInfo } from "@/lib/mortgage-application/map-to-db";
 import { fetchSupportSummary } from "@/lib/support/queries";
+import { resolveBrandingForUserId } from "@/lib/company/resolve-branding";
 import { createClient } from "@/lib/supabase/server";
 import {
   buildClosingFundsView,
@@ -120,6 +121,8 @@ export async function fetchClientDashboardData(
   userId: string,
 ): Promise<ClientDashboardData> {
   const supabase = await createClient();
+  const branding = await resolveBrandingForUserId(userId);
+  const institutionName = branding.institutionName;
   const wallet = await getOrCreateWallet(userId);
   const linkedAccount = await fetchPathwardLinkedAccount(userId);
   const mortgageApprovedForWithdrawal =
@@ -322,6 +325,7 @@ export async function fetchClientDashboardData(
         hasProperty,
         portfolio,
         applicationStatus,
+        institutionName,
       })
     : null;
 
@@ -344,7 +348,7 @@ export async function fetchClientDashboardData(
           showLoanDetails: true,
         }
       : {
-          standing: "Welcome to Orbit Mortgage. Your account is ready.",
+          standing: `Welcome to ${institutionName}. Your account is ready.`,
           paymentReminder: "Start your mortgage journey to see your buying power.",
           nextAction: "Get Pre-Qualified",
           nextActionHref: "/get-started",
@@ -400,6 +404,7 @@ async function buildMortgageDashboardView(input: {
   hasProperty: boolean;
   portfolio: PortfolioSummary | null;
   applicationStatus?: ApplicationStatus;
+  institutionName: string;
 }): Promise<MortgageDashboardView> {
   const supabase = await createClient();
   const applicationId = input.application?.id as string | undefined;
@@ -492,6 +497,7 @@ async function buildMortgageDashboardView(input: {
     hasProperty: input.hasProperty,
     applicationStatus: input.applicationStatus,
     summary,
+    institutionName: input.institutionName,
   });
 
   const [documents, activities, messages] = applicationId
@@ -549,6 +555,7 @@ function buildNextAction(input: {
   hasProperty: boolean;
   applicationStatus?: ApplicationStatus;
   summary: MortgageDashboardView["summary"];
+  institutionName: string;
 }): NextActionView {
   const appHref = input.applicationId
     ? `/dashboard/loans/${input.applicationId}`
@@ -582,7 +589,7 @@ function buildNextAction(input: {
       return {
         title: "Deposit Your Down Payment",
         message:
-          "Your application is approved. Deposit your required down payment into your Funding Account. Orbit Mortgage will verify your deposit before closing funds are released.",
+          `Your application is approved. Deposit your required down payment into your Funding Account. ${input.institutionName} will verify your deposit before closing funds are released.`,
         buttonLabel: "View Deposit Instructions",
         buttonHref: "/dashboard#down-payment",
       };

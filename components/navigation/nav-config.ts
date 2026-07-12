@@ -48,7 +48,6 @@ export const clientNavSections: NavSection[] = [
 ];
 
 export const CLIENT_PORTAL = {
-  title: "Orbit Mortgage",
   subtitle: "Mortgage Portal",
 } as const;
 

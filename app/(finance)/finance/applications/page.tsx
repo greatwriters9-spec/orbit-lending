@@ -6,7 +6,7 @@ import { fetchFinanceApplicationsQueue } from "@/lib/finance/queries";
 import type { ApplicationStatus } from "@/types/application-details";
 
 export const metadata = {
-  title: "Applications Queue | Orbit Mortgage",
+  title: "Applications Queue",
 };
 
 const FILTERS: Array<{ label: string; value?: ApplicationStatus }> = [
