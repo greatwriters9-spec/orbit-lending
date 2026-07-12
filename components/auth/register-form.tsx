@@ -113,6 +113,8 @@ export function RegisterForm() {
           By creating an account, you agree to our{" "}
           <Link
             href="/legal/terms-of-use"
+            target="_blank"
+            rel="noopener noreferrer"
             className="font-medium text-brand-navy underline-offset-2 hover:underline"
           >
             Terms of Use
@@ -120,6 +122,8 @@ export function RegisterForm() {
           and{" "}
           <Link
             href="/legal/privacy-policy"
+            target="_blank"
+            rel="noopener noreferrer"
             className="font-medium text-brand-navy underline-offset-2 hover:underline"
           >
             Privacy Policy

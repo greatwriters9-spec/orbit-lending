@@ -89,8 +89,9 @@ function parseCurrencyInput(value: string): number {
   return digits ? Number(digits) : 0;
 }
 
-function formatCurrencyInput(value: number): string {
-  if (!value) return "";
+function formatCurrencyInput(value: number | undefined): string {
+  if (value === undefined) return "";
+  if (value === 0) return "0";
   return value.toLocaleString("en-US");
 }
 
@@ -329,7 +330,7 @@ export function BuyingPowerAssessmentWizard({
               inputMode="numeric"
               className={onboardingInputClassName()}
               placeholder="$800"
-              value={formatCurrencyInput(draft.monthlyDebtPayments ?? 0)}
+              value={formatCurrencyInput(draft.monthlyDebtPayments)}
               onChange={(event) =>
                 patchDraft({
                   monthlyDebtPayments: parseCurrencyInput(event.target.value),

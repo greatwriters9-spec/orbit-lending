@@ -66,7 +66,7 @@ export const DEFAULT_MORTGAGE_CONFIG: MortgageConfig = {
   description:
     "Competitive fixed-rate mortgage financing for primary residences, refinancing, and investment properties.",
   minLoanAmount: 50000,
-  maxLoanAmount: 1500000,
+  maxLoanAmount: 2_000_000,
   maxLtv: 80,
   status: "active",
   terms: [

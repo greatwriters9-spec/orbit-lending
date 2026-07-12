@@ -35,7 +35,7 @@ async function getAuthContext(): Promise<AuthContext> {
 
   const profile = await getProfile(user.id);
 
-  if (!isProfileComplete(profile)) {
+  if (!isProfileComplete(profile) && !isFinanceStaff(profile?.role)) {
     redirect(AUTH_ROUTES.profileComplete);
   }
 

@@ -372,6 +372,7 @@ type UsersTableProps = {
     role: string;
     accountStatus: string;
     applicationCount: number;
+    companyName?: string | null;
   }>;
   basePath?: string;
 };
@@ -383,6 +384,7 @@ export function UsersTable({ users, basePath = "/admin/users" }: UsersTableProps
         <thead className="border-b border-brand-border bg-brand-background/60 text-xs uppercase tracking-wide text-muted-foreground">
           <tr>
             <th className="px-6 py-3 font-semibold">User</th>
+            <th className="px-6 py-3 font-semibold">Company</th>
             <th className="px-6 py-3 font-semibold">Role</th>
             <th className="px-6 py-3 font-semibold">Account Status</th>
             <th className="px-6 py-3 font-semibold">Applications</th>
@@ -391,7 +393,7 @@ export function UsersTable({ users, basePath = "/admin/users" }: UsersTableProps
         <tbody className="divide-y divide-brand-border">
           {users.length === 0 ? (
             <tr>
-              <td colSpan={4} className="px-6 py-12 text-center text-muted-foreground">
+              <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
                 No users found.
               </td>
             </tr>
@@ -406,6 +408,9 @@ export function UsersTable({ users, basePath = "/admin/users" }: UsersTableProps
                     {user.firstName} {user.lastName}
                   </Link>
                   <p className="text-xs text-muted-foreground">{user.email}</p>
+                </td>
+                <td className="px-6 py-4 text-muted-foreground">
+                  {user.companyName ?? "—"}
                 </td>
                 <td className="px-6 py-4">
                   <RoleBadge role={user.role as UserRole} />

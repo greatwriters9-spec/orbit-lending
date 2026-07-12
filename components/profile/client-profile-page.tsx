@@ -33,9 +33,14 @@ const inputClassName = cn(
 type ClientProfilePageProps = {
   profile: UserProfile;
   email: string;
+  institutionName?: string | null;
 };
 
-export function ClientProfilePage({ profile, email }: ClientProfilePageProps) {
+export function ClientProfilePage({
+  profile,
+  email,
+  institutionName,
+}: ClientProfilePageProps) {
   const [state, formAction, isPending] = useActionState(
     updateProfileAction,
     initialState,
@@ -123,6 +128,11 @@ export function ClientProfilePage({ profile, email }: ClientProfilePageProps) {
             <div>
               <p className="text-xl font-semibold text-brand-navy">{displayName}</p>
               <p className="text-sm text-muted-foreground">{email}</p>
+              {institutionName ? (
+                <p className="mt-1 text-sm font-medium text-brand-navy">
+                  {institutionName} Client
+                </p>
+              ) : null}
               <div className="mt-3 flex flex-wrap gap-2">
                 <StatusLabelBadge label={profile.profile_status} uppercase={false} />
                 <StatusLabelBadge label={profile.account_status} uppercase={false} />

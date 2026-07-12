@@ -10,11 +10,11 @@ import { cn } from "@/lib/utils";
 
 import { SectionHeading, SectionShell } from "./shared/section-shell";
 
-const DEFAULT_AMOUNT = 25000;
+const DEFAULT_AMOUNT = 400000;
 const DEFAULT_APR = 9.49;
 const DEFAULT_TERM = 36;
 const MIN_AMOUNT = 5000;
-const MAX_AMOUNT = 250000;
+const MAX_AMOUNT = 2_000_000;
 const TERM_OPTIONS = [12, 24, 36, 48, 60, 72, 84];
 
 export function LoanCalculator() {

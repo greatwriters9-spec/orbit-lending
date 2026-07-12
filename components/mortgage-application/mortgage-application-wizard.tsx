@@ -44,7 +44,13 @@ function parseCurrency(value: string): number {
   return digits ? Number(digits) : 0;
 }
 
-function formatCurrencyInput(value: number): string {
+function formatCurrencyInput(value: number | undefined): string {
+  if (value === undefined) return "";
+  if (value === 0) return "0";
+  return value.toLocaleString("en-US");
+}
+
+function formatRequiredCurrencyInput(value: number): string {
   if (!value) return "";
   return value.toLocaleString("en-US");
 }
@@ -991,7 +997,7 @@ export function MortgageApplicationWizard({
                   <input
                     inputMode="numeric"
                     className={applicationInputClassName}
-                    value={formatCurrencyInput(
+                    value={formatRequiredCurrencyInput(
                       Number(application.income[sourceKey as keyof typeof application.income] ?? 0),
                     )}
                     onChange={(e) =>
@@ -1239,7 +1245,7 @@ export function MortgageApplicationWizard({
                 <input
                   inputMode="numeric"
                   className={applicationInputClassName}
-                  value={formatCurrencyInput(application.property.purchasePrice)}
+                  value={formatRequiredCurrencyInput(application.property.purchasePrice)}
                   onChange={(e) =>
                     patch((c) => ({
                       ...c,
@@ -1296,7 +1302,7 @@ export function MortgageApplicationWizard({
               <input
                 inputMode="numeric"
                 className={applicationInputClassName}
-                value={formatCurrencyInput(application.loanDetails.desiredLoanAmount)}
+                value={formatRequiredCurrencyInput(application.loanDetails.desiredLoanAmount)}
                 onChange={(e) =>
                   patch((c) => ({
                     ...c,
@@ -1511,11 +1517,21 @@ export function MortgageApplicationWizard({
             ))}
             <p className="text-sm text-muted-foreground">
               Read our{" "}
-              <Link href="/privacy" className="font-semibold text-brand-blue">
+              <Link
+                href="/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-brand-blue"
+              >
                 Privacy Policy
               </Link>{" "}
               and{" "}
-              <Link href="/terms" className="font-semibold text-brand-blue">
+              <Link
+                href="/terms"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-brand-blue"
+              >
                 Terms of Service
               </Link>
               .

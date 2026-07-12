@@ -165,11 +165,21 @@ export default function CreateAccountPage() {
                 />
                 <span className="text-sm leading-relaxed text-muted-foreground">
                   I accept the{" "}
-                  <Link href="/terms" className="font-semibold text-brand-blue hover:underline">
+                  <Link
+                    href="/terms"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-semibold text-brand-blue hover:underline"
+                  >
                     Terms
                   </Link>{" "}
                   and{" "}
-                  <Link href="/privacy" className="font-semibold text-brand-blue hover:underline">
+                  <Link
+                    href="/privacy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-semibold text-brand-blue hover:underline"
+                  >
                     Privacy Policy
                   </Link>
                 </span>

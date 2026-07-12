@@ -197,6 +197,12 @@ function formatAmountFieldValue(value?: number): string {
   return value && value > 0 ? String(value) : "";
 }
 
+function formatZeroAllowedAmountFieldValue(value?: number): string {
+  if (value === undefined) return "";
+  if (value === 0) return "0";
+  return String(value);
+}
+
 function buildAssetUpdate(
   draft: MortgageApplicationDraft,
   patch: Partial<AssetInfo>,
@@ -1106,7 +1112,7 @@ export function OnboardingWizard({
                 type="number"
                 min="0"
                 className={onboardingInputClassName()}
-                value={formatAmountFieldValue(draft.assets?.checkingBalance)}
+                value={formatZeroAllowedAmountFieldValue(draft.assets?.checkingBalance)}
                 onChange={(e) =>
                   updateDraft({
                     assets: buildAssetUpdate(draft, {
@@ -1122,7 +1128,7 @@ export function OnboardingWizard({
                 type="number"
                 min="0"
                 className={onboardingInputClassName()}
-                value={formatAmountFieldValue(draft.assets?.savingsBalance)}
+                value={formatZeroAllowedAmountFieldValue(draft.assets?.savingsBalance)}
                 onChange={(e) =>
                   updateDraft({
                     assets: buildAssetUpdate(draft, {
@@ -1138,7 +1144,7 @@ export function OnboardingWizard({
                 type="number"
                 min="0"
                 className={onboardingInputClassName()}
-                value={formatAmountFieldValue(draft.assets?.investmentBalance)}
+                value={formatZeroAllowedAmountFieldValue(draft.assets?.investmentBalance)}
                 onChange={(e) =>
                   updateDraft({
                     assets: buildAssetUpdate(draft, {

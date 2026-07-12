@@ -30,7 +30,29 @@ type DbProfile = {
   funding_bank_name: string | null;
   profile_status: string;
   created_at: string;
+  company_id: string | null;
 };
+
+async function fetchCompanyNameMap(
+  companyIds: string[],
+): Promise<Map<string, string>> {
+  const map = new Map<string, string>();
+  if (companyIds.length === 0) {
+    return map;
+  }
+
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("companies")
+    .select("id, company_name")
+    .in("id", companyIds);
+
+  for (const company of data ?? []) {
+    map.set(company.id, company.company_name);
+  }
+
+  return map;
+}
 
 export async function fetchAdminUsers(options?: {
   search?: string;
@@ -71,6 +93,14 @@ export async function fetchAdminUsers(options?: {
 
   const userIds = profiles.map((p) => p.id);
   const appCounts = new Map<string, number>();
+  const companyIds = [
+    ...new Set(
+      profiles
+        .map((profile) => profile.company_id)
+        .filter((companyId): companyId is string => Boolean(companyId)),
+    ),
+  ];
+  const companyNames = await fetchCompanyNameMap(companyIds);
 
   if (userIds.length > 0) {
     const { data: apps } = await supabase
@@ -93,6 +123,8 @@ export async function fetchAdminUsers(options?: {
     profileStatus: p.profile_status,
     createdAt: p.created_at,
     applicationCount: appCounts.get(p.id) ?? 0,
+    companyId: p.company_id,
+    companyName: p.company_id ? (companyNames.get(p.company_id) ?? null) : null,
   }));
 }
 
@@ -112,6 +144,9 @@ export async function fetchAdminUserDetail(
   }
 
   const p = data as DbProfile;
+  const companyNames = p.company_id
+    ? await fetchCompanyNameMap([p.company_id])
+    : new Map<string, string>();
 
   const { count } = await supabase
     .from("loan_applications")
@@ -139,6 +174,8 @@ export async function fetchAdminUserDetail(
     profileStatus: p.profile_status,
     createdAt: p.created_at,
     applicationCount: count ?? 0,
+    companyId: p.company_id,
+    companyName: p.company_id ? (companyNames.get(p.company_id) ?? null) : null,
   };
 }
 

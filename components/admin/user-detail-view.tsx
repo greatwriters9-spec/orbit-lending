@@ -155,6 +155,7 @@ function ProfileTab({
   return (
     <div className="card-surface grid gap-4 p-6 sm:grid-cols-2">
       <Info label="Role" value={getRoleLabel(user.role)} />
+      <Info label="Company" value={user.companyName ?? "—"} />
       <Info label="Profile Status" value={user.profileStatus} />
       <Info label="Phone" value={user.phone ?? "—"} />
       <Info label="Country" value={user.country ?? "—"} />

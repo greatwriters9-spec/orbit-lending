@@ -68,6 +68,8 @@ export type AdminUserSummary = {
   profileStatus: string;
   createdAt: string;
   applicationCount: number;
+  companyId: string | null;
+  companyName: string | null;
 };
 
 export type AdminUserDetail = AdminUserSummary & {
